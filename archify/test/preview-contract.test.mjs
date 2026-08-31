@@ -14,8 +14,8 @@ const english = fs.readFileSync(path.join(repoRoot, 'README_EN.md'), 'utf8');
 
 test('preview contract: the skill keeps live preview explicit, desktop-only, and last-good', () => {
   assert.match(delivery, /archify\.mjs preview <type> <input>\.json <output>\.html/);
-  assert.match(delivery, /active desktop authoring loop/i);
-  assert.match(delivery, /previous verified revision on screen and on disk/i);
+  assert.match(delivery, /稼働中のdesktop authoring loop/);
+  assert.match(delivery, /以前の検証済みrevisionを画面とdiskに/);
   assert.match(delivery, /never start it by default/i);
   assert.match(delivery, /CI, unattended agents, remote sharing, or mobile use/i);
   assert.match(delivery, /must never enter the generated artifact or any export/i);
@@ -35,5 +35,5 @@ test('preview contract: English README mirrors document the same optional comman
 test('preview contract: the canonical delivery reference owns no-leak and zero-dependency boundaries', () => {
   assert.match(delivery, /Last-Good Live Preview/);
   assert.match(delivery, /zero-dependency Skill ZIP/i);
-  assert.match(delivery, /Server state, port, source path, diagnostics, error text, and reload tokens must never enter/i);
+  assert.match(delivery, /server state、port、source path、diagnostic、error text、reload tokenを[^\n]*決して入れてはなりません/);
 });

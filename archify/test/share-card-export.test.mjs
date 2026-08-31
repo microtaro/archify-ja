@@ -117,7 +117,7 @@ test('Share Card stays viewer-only and reuses export cleanup instead of source s
 
 test('the skill and every README make the optional Share Card discoverable', () => {
   const viewer = fs.readFileSync(path.join(skillRoot, 'references', 'viewer-runtime.md'), 'utf8');
-  assert.match(viewer, /optional 1200(?:×|x)630 Share Card PNG/i);
+  assert.match(viewer, /任意の1200×630 Share Card PNG/);
   assert.match(viewer, /current theme and visual preset/i);
   assert.match(viewer, /never claim(?:s|ing)? validation/i);
   assert.match(viewer, new RegExp(copyPattern('viewer.export.copyShareCard'), 'i'));
