@@ -44,28 +44,28 @@ Use the installation commands below for the Japanese edition.
 
 > Want to sponsor Archify? [Contact us by email.](mailto:2801884530@qq.com)
 
-## See Archify in action
+## Upstream Archify examples (reference only)
 
-These are generated Archify artifacts, not product mockups. Click a frame to open its live, shareable state.
+These checked-in images are upstream Archify reference examples. They are not live Archify-ja pages or current-product CTAs.
 
 <p align="center">
-  <a href="https://tt-a1i.github.io/archify/gallery.html"><img src="docs/assets/archify-live-proof.gif" alt="Three verified Archify artifacts moving through Signal Flow, Blueprint, and Classic presets" width="960"/></a>
+  <img src="docs/assets/archify-live-proof.gif" alt="Three upstream Archify reference artifacts moving through Signal Flow, Blueprint, and Classic presets" width="960"/>
   <br/>
-  <sub><strong>Three real generated artifacts.</strong> Signal Flow · Blueprint · Classic · <a href="https://tt-a1i.github.io/archify/gallery.html">open the interactive Proof Lab ↗</a></sub>
+  <sub><strong>Upstream reference artifacts.</strong> Signal Flow · Blueprint · Classic</sub>
 </p>
 
 | Guided story | Route probe | Semantic lens |
 |---|---|---|
-| [![Agent workflow playing one authored chapter](docs/assets/archify-demo-story.png)](https://tt-a1i.github.io/archify/gallery/artifacts/agent-tool-call.workflow.html?theme=dark&present=1&play=1#view=happy-path) | [![Cache-miss sequence showing the Web App to Postgres route](docs/assets/archify-demo-route.png)](https://tt-a1i.github.io/archify/gallery/artifacts/cache-miss.sequence.html?theme=dark&present=1#route=web~db) | [![Production architecture comparing backend and database roles](docs/assets/archify-demo-lens.png)](https://tt-a1i.github.io/archify/gallery/artifacts/production-deployment.architecture.html?theme=dark&present=1#lens=backend~database) |
+| ![Upstream workflow reference](docs/assets/archify-demo-story.png) | ![Upstream sequence reference](docs/assets/archify-demo-route.png) | ![Upstream architecture reference](docs/assets/archify-demo-lens.png) |
 | Play one finite named chapter. | Inspect the shortest authored directed path. | Compare real traffic between semantic roles. |
 
-The [Proof Lab](https://tt-a1i.github.io/archify/gallery.html) contains all 11 checked-in scenarios, their JSON sources, named views, and validation receipts.
+The upstream Proof Lab is reference material only; this Japanese edition has no hosted Proof Lab.
 
 ### A real repository, mapped from source
 
-[![MCO runtime architecture generated from the public mco-org/mco repository](docs/assets/mco-runtime-share-card.png)](https://tt-a1i.github.io/archify/cases/mco-runtime.architecture.html?theme=dark&present=1#view=dispatch-path)
+![Upstream MCO runtime architecture reference](docs/assets/mco-runtime-share-card.png)
 
-Archify traced [`mco-org/mco`](https://github.com/mco-org/mco) at `9f1a1cf` and produced this checked map. **[Open it ↗](https://tt-a1i.github.io/archify/cases/mco-runtime.architecture.html?theme=dark&present=1#view=dispatch-path)** · [trace reach ↗](https://tt-a1i.github.io/archify/cases/mco-runtime.architecture.html?theme=dark#focus=router&reach=downstream) · [typed source](docs/cases/mco-runtime.architecture.json)
+Upstream Archify traced [`mco-org/mco`](https://github.com/mco-org/mco) at `9f1a1cf`; this checked-in image and [typed source](docs/cases/mco-runtime.architecture.json) are derived-source reference material.
 
 ## Preview
 
@@ -143,7 +143,7 @@ Continue with focused requests such as `add Redis`, `move auth to the left`, or 
 | **Data Flow** | Pipelines, lineage, PII, consumers | Sources, transforms, stores, boundaries |
 | **Lifecycle** | States, retries, waits, terminal outcomes | States, events, retry and cancellation paths |
 
-Architecture's optional `deployment-ownership` profile fails closed when authored owners, region placement, private database scope, or named crossings are missing; it is never implicit and does not inspect live infrastructure. See the [checked deployment proof](https://tt-a1i.github.io/archify/gallery.html#proof-deployment-ownership).
+Architecture's optional `deployment-ownership` profile fails closed when authored owners, region placement, private database scope, or named crossings are missing; it is never implicit and does not inspect live infrastructure. The deployed proof page is upstream reference material, not a Japanese edition link.
 
 For design or PR review, Architecture Delta compares validated Before / Delta / After snapshots with a machine receipt. Select an authored change or play one finite, viewer-only Review; it infers no impact, risk, or merge safety.
 
@@ -151,7 +151,7 @@ For design or PR review, Architecture Delta compares validated Before / Delta / 
 
 [![Architecture Delta showing added, removed, changed, and moved authored facts](docs/assets/architecture-delta-proof.jpg)](examples/checkout-platform-delta.html)
 
-Not sure which one fits? Use the [interactive scenario guide](https://tt-a1i.github.io/archify/guide.html), or ask the zero-dependency CLI:
+Not sure which one fits? Use the zero-dependency CLI:
 
 ```bash
 node archify/bin/archify.mjs guide "Show an API request with Redis cache miss"
@@ -268,7 +268,7 @@ DeepSeek Harness is not supported by this edition.
 - [Schema reference](archify/schemas/README.md) · [Skill](archify/SKILL.md) · [Examples](archify/examples/) · [Agent cookbook](docs/authoring-cookbook.md)
 - [Changelog](CHANGELOG.md)
 - [Roadmap](ROADMAP.md)
-- [Generated Proof Lab](https://tt-a1i.github.io/archify/gallery.html)
+- Hosted Proof Lab: unavailable for this unpublished Japanese edition.
 
 Automatic Mermaid parsing, general-purpose auto-layout, hosted sharing, and WYSIWYG editing are intentionally outside the current scope.
 

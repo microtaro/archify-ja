@@ -50,6 +50,15 @@ test('the checked-in Japanese edition has one exact offline release identity', (
   assert.equal(result.stdout.trim(), 'release identity ok: archify-ja 2.16.0-ja.1');
 });
 
+test('README mirrors do not present upstream hosted pages as Japanese edition product links', () => {
+  const readme = fs.readFileSync(path.join(repoRoot, 'README.md'), 'utf8');
+  const mirror = fs.readFileSync(path.join(repoRoot, 'README_EN.md'), 'utf8');
+
+  assert.equal(mirror, readme, 'README_EN.md must mirror README.md exactly');
+  assert.doesNotMatch(readme, /https:\/\/tt-a1i\.github\.io\/archify/);
+  assert.doesNotMatch(readme, /https:\/\/microtaro\.github\.io\/archify-ja/);
+});
+
 test('release identity rejects an injected update manifest', () => {
   const root = japaneseFixture({
     'archify/skill-release.json': JSON.stringify({
