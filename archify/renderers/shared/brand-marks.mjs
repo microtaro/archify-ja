@@ -5,6 +5,7 @@ import https from 'node:https';
 import net from 'node:net';
 import { BRAND_MARKS } from './generated-brand-marks.mjs';
 import { throwDiagnosticError } from './diagnostics.mjs';
+import { localizeBrandCaptureError, translateCliMessage } from './i18n.mjs';
 import { esc, textUnits } from './utils.mjs';
 
 const COLLECTIONS = Object.freeze({
@@ -463,11 +464,26 @@ export async function prepareDiagramBrandMarks(diagramType, diagram) {
       const url = asUrl(node.brand.url);
       const resolved = url ? await remoteBrand(url.href, remoteByUrl, deadline) : null;
       if (!resolved || resolved.status !== 'captured') {
-        unknown.push(`/${collection}/${index}/brand could not reproduce the pinned capture: ${resolved?.reason || 'invalid URL'}`);
+        unknown.push({
+          code: 'brand/capture-unavailable',
+          message: translateCliMessage('brand.capture-unreproducible', {
+            path: `/${collection}/${index}/brand`,
+            reason: resolved?.reason
+              ? localizeBrandCaptureError(resolved.reason)
+              : translateCliMessage('brand.invalid-url'),
+          }),
+        });
         return;
       }
       if (resolved.sha256 !== node.brand.sha256) {
-        unknown.push(`/${collection}/${index}/brand digest changed: expected ${node.brand.sha256}, received ${resolved.sha256}`);
+        unknown.push({
+          code: 'brand/digest-mismatch',
+          message: translateCliMessage('brand.digest-changed', {
+            path: `/${collection}/${index}/brand`,
+            expected: node.brand.sha256,
+            received: resolved.sha256,
+          }),
+        });
         return;
       }
       node[RESOLVED_MARK] = resolved;
@@ -483,23 +499,36 @@ export async function prepareDiagramBrandMarks(diagramType, diagram) {
     }
     const url = asUrl(node.brand);
     if (url) {
-      unknown.push(`/${collection}/${index}/brand ${JSON.stringify(node.brand)} is an unpinned URL; capture it first with \`archify brands capture ${url.href} --json\``);
+      unknown.push({
+        code: 'brand/unpinned-url',
+        message: translateCliMessage('brand.unpinned-url', {
+          path: `/${collection}/${index}/brand`,
+          brand: JSON.stringify(node.brand),
+          url: url.href,
+        }),
+      });
       return;
     }
-    unknown.push(`/${collection}/${index}/brand ${JSON.stringify(node.brand)} is not a built-in brand; closest IDs: ${suggestions(node.brand).join(', ')}`);
+    unknown.push({
+      code: 'brand/unknown',
+      message: translateCliMessage('brand.not-built-in', {
+        path: `/${collection}/${index}/brand`,
+        brand: JSON.stringify(node.brand),
+        suggestions: suggestions(node.brand).join(', '),
+      }),
+    });
   });
   if (unknown.length) {
-    throwDiagnosticError(`Brand mark validation failed:\n- ${unknown.join('\n- ')}`, unknown.map((message) => ({
-      code: message.includes('is an unpinned URL') ? 'brand/unpinned-url'
-        : (message.includes('digest changed') ? 'brand/digest-mismatch'
-          : (message.includes('could not reproduce') ? 'brand/capture-unavailable' : 'brand/unknown')),
+    const summary = `${translateCliMessage('brand.validation-failed')}\n- ${unknown.map((entry) => entry.message).join('\n- ')}`;
+    throwDiagnosticError(summary, unknown.map(({ code, message }) => ({
+      code,
       severity: 'error',
       message,
       subject: { diagramType, collection },
       evidence: {},
-      supportedFixes: message.includes('is an unpinned URL')
-        ? ['run `archify brands capture <url> --json` and author the returned digest-pinned brand object']
-        : ['choose an ID from `archify brands`', 'run `archify brands capture <url> --json` for an unknown official site'],
+      supportedFixes: code === 'brand/unpinned-url'
+        ? [translateCliMessage('brand.fix.capture-pinned')]
+        : [translateCliMessage('brand.fix.choose-id'), translateCliMessage('brand.fix.capture-unknown')],
     })));
   }
 }

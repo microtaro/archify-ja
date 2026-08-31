@@ -9,6 +9,7 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { BRAND_MARKS } from '../renderers/shared/generated-brand-marks.mjs';
 import { isPrivateBrandAddress, prepareDiagramBrandMarks } from '../renderers/shared/brand-marks.mjs';
+import { cliFragment, cliPattern } from './helpers/viewer-copy.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const skillRoot = path.resolve(here, '..');
@@ -370,7 +371,7 @@ test('each prepare call rechecks pinned remote bytes instead of trusting a proce
     await prepareDiagramBrandMarks('architecture', diagram);
     await assert.rejects(
       prepareDiagramBrandMarks('architecture', diagram),
-      /brand digest changed/i,
+      new RegExp(cliFragment('brand.digest-changed'), 'i'),
     );
     assert.equal(iconHits, 2);
   } finally {
@@ -394,7 +395,7 @@ test('capture blocks IPv4-mapped IPv6 loopback and metadata destinations before 
   ]) {
     const capture = await runCliAsync(['brands', 'capture', url, '--json']);
     assert.notEqual(capture.status, 0, `${url}: ${capture.stderr || capture.stdout}`);
-    assert.match(capture.stderr, /private brand links are not fetched/i, url);
+    assert.match(capture.stderr, new RegExp(cliPattern('brand.private'), 'i'), url);
   }
 });
 
@@ -415,14 +416,14 @@ test('capture requires the standard port for the selected web protocol', async (
   ]) {
     const capture = await runCliAsync(['brands', 'capture', url, '--json']);
     assert.notEqual(capture.status, 0, capture.stdout);
-    assert.match(capture.stderr, /standard web port/i, url);
+    assert.match(capture.stderr, new RegExp(cliPattern('brand.standard-port'), 'i'), url);
   }
 });
 
 test('capture rejects credentials even when the URL domain matches a bundled preset', async () => {
   const capture = await runCliAsync(['brands', 'capture', 'https://user:secret@github.com/', '--json']);
   assert.notEqual(capture.status, 0, capture.stdout);
-  assert.match(capture.stderr, /cannot contain credentials/i);
+  assert.match(capture.stderr, new RegExp(cliPattern('brand.credentials'), 'i'));
 });
 
 test('rendering many pinned brands limits concurrent remote capture work', async () => {
@@ -490,7 +491,7 @@ test('rendering many pinned brands shares one diagram capture deadline', async (
       ARCHIFY_BRAND_CAPTURE_TIMEOUT_MS: '100',
     });
     assert.notEqual(rendered.status, 0, rendered.stdout);
-    assert.match(rendered.stderr, /abort|timed? ?out|timeout/i);
+    assert.match(rendered.stderr, new RegExp(cliPattern('brand.timeout'), 'i'));
   } finally {
     await new Promise((resolve) => server.close(resolve));
   }
@@ -520,7 +521,7 @@ test('capture applies one total deadline across the page and icon requests', asy
       },
     );
     assert.notEqual(capture.status, 0, capture.stdout);
-    assert.match(capture.stderr, /abort|timed? ?out|timeout/i);
+    assert.match(capture.stderr, new RegExp(cliPattern('brand.timeout'), 'i'));
   } finally {
     await new Promise((resolve) => server.close(resolve));
   }
@@ -549,7 +550,7 @@ test('capture rejects remote SVG even when the document appears passive', async 
       { ARCHIFY_BRAND_ALLOW_PRIVATE: '1' },
     );
     assert.notEqual(capture.status, 0, capture.stdout);
-    assert.match(capture.stderr, /unsupported brand image type image\/svg\+xml/i);
+    assert.match(capture.stderr, new RegExp(cliPattern('brand.unsupported-image', { contentType: 'image/svg+xml' }), 'i'));
   } finally {
     await new Promise((resolve) => server.close(resolve));
   }
@@ -605,7 +606,7 @@ test('capture rejects an image whose bytes do not match its declared media type'
       { ARCHIFY_BRAND_ALLOW_PRIVATE: '1' },
     );
     assert.notEqual(capture.status, 0, capture.stdout);
-    assert.match(capture.stderr, /do(?:es)? not match image\/png/i);
+    assert.match(capture.stderr, new RegExp(cliPattern('brand.bytes-mismatch', { contentType: 'image/png' }), 'i'));
   } finally {
     await new Promise((resolve) => server.close(resolve));
   }
@@ -624,7 +625,7 @@ test('capture rejects a truncated PNG that contains only its signature', async (
       { ARCHIFY_BRAND_ALLOW_PRIVATE: '1' },
     );
     assert.notEqual(capture.status, 0, capture.stdout);
-    assert.match(capture.stderr, /do(?:es)? not match image\/png/i);
+    assert.match(capture.stderr, new RegExp(cliPattern('brand.bytes-mismatch', { contentType: 'image/png' }), 'i'));
   } finally {
     await new Promise((resolve) => server.close(resolve));
   }

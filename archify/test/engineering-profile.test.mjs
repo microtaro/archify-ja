@@ -6,6 +6,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { cliCopy } from './helpers/viewer-copy.mjs';
 
 import {
   deploymentOwnershipDiagnostics,
@@ -64,7 +65,7 @@ test('deployment ownership profile reports exact owners, scopes, state, and cros
   assert.equal(boundaryDiagnostic.evidence.to, 'api_a');
   assert.ok(boundaryDiagnostic.evidence.crossedBoundaries.some((boundary) => boundary.kind === 'security-group'));
   assert.deepEqual(boundaryDiagnostic.supportedFixes, [
-    `set /connections/${boundaryDiagnostic.subject.index}/label to the real cross-boundary mechanism`,
+    cliCopy('deployment.fix.name-mechanism', { index: boundaryDiagnostic.subject.index }),
   ]);
 });
 

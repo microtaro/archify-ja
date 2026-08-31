@@ -1,4 +1,5 @@
 import { throwDiagnosticError } from './diagnostics.mjs';
+import { translateCliMessage } from './i18n.mjs';
 
 const DEPLOYMENT_PROFILE = 'deployment-ownership';
 const DEPLOYMENT_BOUNDARY_KINDS = new Set(['region', 'security-group']);
@@ -33,10 +34,10 @@ export function deploymentOwnershipDiagnostics(diagram) {
     diagnostics.push({
       code: 'engineering/deployment-boundary-kind',
       severity: 'error',
-      message: `Deployment ownership requires at least one ${kind} boundary.`,
+      message: translateCliMessage('deployment.boundary-required', { kind }),
       subject: subject('boundaries', -1),
       evidence: { requiredKind: kind, found: count },
-      supportedFixes: [`add one ${kind} boundary with an explicit wraps list`],
+      supportedFixes: [translateCliMessage('deployment.fix.add-boundary', { kind })],
     });
   }
 
@@ -46,10 +47,10 @@ export function deploymentOwnershipDiagnostics(diagram) {
       diagnostics.push({
         code: 'engineering/deployment-owner-missing',
         severity: 'error',
-        message: `Deployment component ${JSON.stringify(component.id)} does not name its owner in tag.`,
+        message: translateCliMessage('deployment.owner-missing', { component: JSON.stringify(component.id) }),
         subject: subject('components', index, component),
         evidence: { componentType: component.type, ownerField: 'tag' },
-        supportedFixes: [`set /components/${index}/tag to the responsible team or owner`],
+        supportedFixes: [translateCliMessage('deployment.fix.set-owner', { index })],
       });
     }
 
@@ -58,22 +59,22 @@ export function deploymentOwnershipDiagnostics(diagram) {
       diagnostics.push({
         code: 'engineering/deployment-region-scope',
         severity: 'error',
-        message: `Deployment component ${JSON.stringify(component.id)} is not assigned to a region boundary.`,
+        message: translateCliMessage('deployment.region-missing', { component: JSON.stringify(component.id) }),
         subject: subject('components', index, component),
         evidence: { componentType: component.type, regionMemberships: 0 },
-        supportedFixes: ['add the component id to the real region boundary wraps list'],
+        supportedFixes: [translateCliMessage('deployment.fix.add-to-region')],
       });
     } else if (regions.length > 1) {
       diagnostics.push({
         code: 'engineering/deployment-region-ambiguous',
         severity: 'error',
-        message: `Deployment component ${JSON.stringify(component.id)} belongs to more than one region boundary.`,
+        message: translateCliMessage('deployment.region-ambiguous', { component: JSON.stringify(component.id) }),
         subject: subject('components', index, component),
         evidence: {
           componentType: component.type,
           regions: regions.map(({ boundary, index: boundaryIndex }) => ({ boundaryIndex, label: boundary.label })),
         },
-        supportedFixes: ['keep the component id in exactly one real region boundary wraps list'],
+        supportedFixes: [translateCliMessage('deployment.fix.one-region')],
       });
     }
 
@@ -83,10 +84,10 @@ export function deploymentOwnershipDiagnostics(diagram) {
         diagnostics.push({
           code: 'engineering/deployment-private-state',
           severity: 'error',
-          message: `Stateful component ${JSON.stringify(component.id)} is not assigned to a private security-group boundary.`,
+          message: translateCliMessage('deployment.private-missing', { component: JSON.stringify(component.id) }),
           subject: subject('components', index, component),
           evidence: { componentType: component.type, privateMemberships: 0 },
-          supportedFixes: ['add the component id to the real private security-group boundary wraps list'],
+          supportedFixes: [translateCliMessage('deployment.fix.add-to-private')],
         });
       }
     }
@@ -109,10 +110,10 @@ export function deploymentOwnershipDiagnostics(diagram) {
     diagnostics.push({
       code: 'engineering/deployment-private-region-consistency',
       severity: 'error',
-      message: `Private boundary ${JSON.stringify(boundary.label)} must contain components from exactly one shared region.`,
+      message: translateCliMessage('deployment.region-split', { boundary: JSON.stringify(boundary.label) }),
       subject: subject('boundaries', index, boundary),
       evidence: { boundaryKind: boundary.kind, members },
-      supportedFixes: ['assign every private-boundary component to exactly one shared region boundary'],
+      supportedFixes: [translateCliMessage('deployment.fix.one-shared-region')],
     });
   });
 
@@ -130,14 +131,14 @@ export function deploymentOwnershipDiagnostics(diagram) {
     diagnostics.push({
       code: 'engineering/deployment-crossing-mechanism',
       severity: 'error',
-      message: `Cross-boundary connection ${JSON.stringify(connection.id || `${connection.from}->${connection.to}`)} does not name its mechanism.`,
+      message: translateCliMessage('deployment.crossing-unnamed', { connection: JSON.stringify(connection.id || `${connection.from}->${connection.to}`) }),
       subject: subject('connections', index, connection),
       evidence: {
         from: connection.from,
         to: connection.to,
         crossedBoundaries: crossedBoundaries.map(({ boundaryIndex, kind, label }) => ({ boundaryIndex, kind, label })),
       },
-      supportedFixes: [`set /connections/${index}/label to the real cross-boundary mechanism`],
+      supportedFixes: [translateCliMessage('deployment.fix.name-mechanism', { index })],
     });
   });
 
@@ -151,7 +152,7 @@ export function validateEngineeringProfile(diagramType, diagram) {
   const diagnostics = deploymentOwnershipDiagnostics(diagram);
   if (!diagnostics.length) return;
   throwDiagnosticError(
-    `Engineering profile ${JSON.stringify(profile)} failed:\n${diagnostics.map((entry) => `- ${entry.message}`).join('\n')}`,
+    `${translateCliMessage('deployment.profile-failed', { profile: JSON.stringify(profile) })}\n${diagnostics.map((entry) => `- ${entry.message}`).join('\n')}`,
     diagnostics,
   );
 }

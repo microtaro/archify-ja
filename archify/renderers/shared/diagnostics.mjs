@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { translateCliMessage } from './i18n.mjs';
 
 const DIAGNOSTIC_MODE = process.env.ARCHIFY_DIAGNOSTIC_FORMAT === 'json';
 const recorded = [];
@@ -72,26 +73,26 @@ function fallbackDiagnostic(error) {
     return normalizedDiagnostic({
       code: 'input/json-parse',
       severity: 'error',
-      message: `Input JSON could not be parsed: ${error.message}`,
+      message: translateCliMessage('input.json-parse.message', { reason: error.message }),
       subject: { input },
       evidence: { reason: error.message },
-      supportedFixes: ['repair the JSON syntax and run validation again'],
+      supportedFixes: [translateCliMessage('input.json-parse.fix')],
     });
   }
   if (error?.code === 'ENOENT' || error?.code === 'EACCES' || error?.code === 'EISDIR') {
     return normalizedDiagnostic({
       code: 'input/read',
       severity: 'error',
-      message: `Input could not be read: ${error.message}`,
+      message: translateCliMessage('input.read.message', { reason: error.message }),
       subject: { input },
       evidence: { systemCode: error.code, reason: error.message },
-      supportedFixes: ['provide one readable JSON input file'],
+      supportedFixes: [translateCliMessage('input.read.fix')],
     });
   }
   return normalizedDiagnostic({
     code: 'internal/unclassified',
     severity: 'error',
-    message: error?.message || 'Renderer failed without a diagnostic.',
+    message: error?.message || translateCliMessage('input.renderer-failed'),
     subject: { input },
     evidence: { errorName: error?.name || 'Error' },
     supportedFixes: [],
@@ -106,7 +107,7 @@ function rendererFailure(error) {
     schemaVersion: 1,
     ok: false,
     source: 'renderer',
-    error: error?.message || 'Renderer failed without a diagnostic.',
+    error: error?.message || translateCliMessage('input.renderer-failed'),
     diagnostics,
   };
 }

@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { translateCliMessage } from './i18n.mjs';
 
 const MAX_SYMLINK_DEPTH = 64;
 const directorySemanticsCache = new Map();
@@ -32,7 +33,7 @@ function canonicalize(targetPath, depth) {
 
     if (stat.isSymbolicLink()) {
       if (depth >= MAX_SYMLINK_DEPTH) {
-        const error = new Error(`Could not resolve path because a symbolic-link cycle includes "${candidate}".`);
+        const error = new Error(translateCliMessage('output.symlink-cycle-path', { candidate }));
         error.code = 'ELOOP';
         error.path = candidate;
         throw error;
@@ -54,15 +55,15 @@ export function canonicalFuturePath(targetPath) {
   } catch (error) {
     if (error?.code !== 'ELOOP') throw error;
     const output = path.resolve(targetPath);
-    throw new OutputPathError(`Output path contains a symbolic-link cycle: "${output}".`, {
+    throw new OutputPathError({
       code: 'output/symlink-cycle',
-      message: 'Output path could not be resolved because it contains a symbolic-link cycle.',
+      message: translateCliMessage('output.symlink-cycle'),
       subject: { output },
       evidence: {
         systemCode: 'ELOOP',
         ...(error.path ? { cycleAt: path.resolve(error.path) } : {}),
       },
-      supportedFixes: ['remove the symbolic-link cycle or choose an output path outside it'],
+      supportedFixes: [translateCliMessage('output.fix.remove-cycle')],
     });
   }
 }
@@ -234,8 +235,10 @@ function pathIsInside(directoryPath, targetPath) {
 }
 
 export class OutputPathError extends Error {
-  constructor(message, diagnostic) {
-    super(message);
+  // The diagnostic carries the single localized message; the Error reuses it so
+  // stderr and the structured receipt never drift into two different wordings.
+  constructor(diagnostic) {
+    super(diagnostic.message);
     this.name = 'OutputPathError';
     this.archifyDiagnostics = [{
       severity: 'error',
@@ -262,55 +265,55 @@ export function resolveOutputPath({
     source === 'meta'
     && (path.isAbsolute(rawOutput) || path.posix.isAbsolute(rawOutput) || path.win32.isAbsolute(rawOutput))
   ) {
-    throw new OutputPathError('meta.output must be a relative path.', {
+    throw new OutputPathError({
       code: 'output/meta-absolute',
-      message: 'meta.output must be a relative path resolved from the current working directory.',
+      message: translateCliMessage('output.must-be-relative'),
       subject: { output: rawOutput },
-      supportedFixes: ['set meta.output to a relative .html path inside the current working directory'],
+      supportedFixes: [translateCliMessage('output.fix.relative-html')],
     });
   }
   if (source === 'meta' && path.extname(rawOutput).toLowerCase() !== '.html') {
-    throw new OutputPathError('meta.output must target an .html file.', {
+    throw new OutputPathError({
       code: 'output/meta-extension',
-      message: 'meta.output must target an .html file.',
+      message: translateCliMessage('output.must-be-html'),
       subject: { output: rawOutput },
-      supportedFixes: ['change meta.output to a path ending in .html'],
+      supportedFixes: [translateCliMessage('output.fix.html-suffix')],
     });
   }
   const outputPath = path.resolve(cwd, rawOutput);
   if (source === 'meta' && path.extname(canonicalFuturePath(outputPath)).toLowerCase() !== '.html') {
-    throw new OutputPathError('meta.output must resolve to an .html file.', {
+    throw new OutputPathError({
       code: 'output/meta-resolved-extension',
-      message: 'meta.output must resolve to an .html file after symbolic links are followed.',
+      message: translateCliMessage('output.must-resolve-html'),
       subject: { output: rawOutput },
-      supportedFixes: ['remove the symbolic-link alias or point it to an .html target inside the current working directory'],
+      supportedFixes: [translateCliMessage('output.fix.retarget-alias')],
     });
   }
   if (source === 'meta' && !pathIsInside(cwd, outputPath)) {
-    throw new OutputPathError('meta.output must stay inside the current working directory.', {
+    throw new OutputPathError({
       code: 'output/meta-outside-cwd',
-      message: 'meta.output must stay inside the current working directory after symbolic links are resolved.',
+      message: translateCliMessage('output.must-stay-inside'),
       subject: { output: rawOutput, cwd: path.resolve(cwd) },
-      supportedFixes: ['set meta.output to a relative .html path inside the current working directory'],
+      supportedFixes: [translateCliMessage('output.fix.relative-html')],
     });
   }
 
   for (const inputPath of inputPaths) {
     if (!pathsAlias(outputPath, inputPath)) continue;
-    throw new OutputPathError(`Output must not replace ${inputDescription}.`, {
+    throw new OutputPathError({
       code: 'output/input-alias',
-      message: `Output must not replace ${inputDescription}, including through a symbolic-link or future-path alias.`,
+      message: translateCliMessage('output.must-not-replace-input', { inputDescription }),
       subject: { output: outputPath, input: path.resolve(inputPath) },
-      supportedFixes: ['choose an output path that is distinct from every input path'],
+      supportedFixes: [translateCliMessage('output.fix.distinct-from-input')],
     });
   }
   for (const otherOutputPath of otherOutputPaths) {
     if (!pathsAlias(outputPath, otherOutputPath)) continue;
-    throw new OutputPathError('Output targets must use distinct paths.', {
+    throw new OutputPathError({
       code: 'output/target-alias',
-      message: 'Output targets must use distinct paths, including symbolic-link and future-path aliases.',
+      message: translateCliMessage('output.must-be-distinct'),
       subject: { output: outputPath, conflictingOutput: path.resolve(otherOutputPath) },
-      supportedFixes: ['choose distinct paths for every generated output'],
+      supportedFixes: [translateCliMessage('output.fix.distinct-outputs')],
     });
   }
 

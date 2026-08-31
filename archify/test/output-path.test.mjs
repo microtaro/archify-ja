@@ -2,6 +2,7 @@ import { spawn, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { cliFragment } from './helpers/viewer-copy.mjs';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -136,7 +137,7 @@ test('render rejects an output symlink that aliases its JSON input', () => {
   const result = run(['render', 'workflow', input, output], cwd);
 
   assert.equal(result.status, 1);
-  assert.match(result.stderr, /output must not replace an input/i);
+  assert.match(result.stderr, new RegExp(cliFragment('output.must-not-replace-input'), 'i'));
   assert.deepEqual(fs.readFileSync(input), source);
 });
 
@@ -151,7 +152,7 @@ test('render rejects an existing output hard link to its JSON input', () => {
   const result = run(['render', 'workflow', input, output], cwd);
 
   assert.equal(result.status, 1);
-  assert.match(result.stderr, /output must not replace an input/i);
+  assert.match(result.stderr, new RegExp(cliFragment('output.must-not-replace-input'), 'i'));
   assert.deepEqual(fs.readFileSync(input), source);
 });
 
@@ -166,7 +167,7 @@ test('render rejects an absolute meta.output when no CLI output is provided', ()
   const result = run(['render', 'workflow', input], cwd);
 
   assert.equal(result.status, 1);
-  assert.match(result.stderr, /meta\.output must be a relative path/i);
+  assert.match(result.stderr, new RegExp(cliFragment('output.must-be-relative'), 'i'));
   assert.equal(fs.existsSync(output), false);
 });
 
@@ -183,7 +184,7 @@ test('render rejects a relative meta.output that escapes the working directory',
   const result = run(['render', 'workflow', input], cwd);
 
   assert.equal(result.status, 1);
-  assert.match(result.stderr, /meta\.output must stay inside the current working directory/i);
+  assert.match(result.stderr, new RegExp(cliFragment('output.must-stay-inside'), 'i'));
   assert.equal(fs.existsSync(output), false);
 });
 
@@ -203,7 +204,7 @@ test('render rejects a meta.output that escapes through a directory symlink', ()
   const result = run(['render', 'workflow', input], cwd);
 
   assert.equal(result.status, 1);
-  assert.match(result.stderr, /meta\.output must stay inside the current working directory/i);
+  assert.match(result.stderr, new RegExp(cliFragment('output.must-stay-inside'), 'i'));
   assert.equal(fs.existsSync(output), false);
 });
 
@@ -218,7 +219,7 @@ test('render requires a meta.output target with an html extension', () => {
   const result = run(['render', 'workflow', input], cwd);
 
   assert.equal(result.status, 1);
-  assert.match(result.stderr, /meta\.output must target an? \.html file/i);
+  assert.match(result.stderr, new RegExp(cliFragment('output.must-be-html'), 'i'));
   assert.equal(fs.existsSync(output), false);
 });
 
@@ -236,7 +237,7 @@ test('render rejects a meta.output symlink that resolves to a non-html target', 
   const result = run(['render', 'workflow', input], cwd);
 
   assert.equal(result.status, 1);
-  assert.match(result.stderr, /meta\.output must resolve to an? \.html file/i);
+  assert.match(result.stderr, new RegExp(cliFragment('output.must-resolve-html'), 'i'));
   assert.equal(fs.readFileSync(target, 'utf8'), 'trusted target');
 });
 
@@ -272,10 +273,9 @@ test('deliver rechecks aliases immediately before committing a verified candidat
   fs.mkdirSync(installedRenderer, { recursive: true });
   fs.mkdirSync(installedScripts, { recursive: true });
   fs.copyFileSync(cli, path.join(installedBin, 'archify.mjs'));
-  fs.copyFileSync(
-    path.join(skillRoot, 'renderers/shared/output-path.mjs'),
-    path.join(installedShared, 'output-path.mjs'),
-  );
+  for (const shared of ['output-path.mjs', 'i18n.mjs']) {
+    fs.copyFileSync(path.join(skillRoot, 'renderers/shared', shared), path.join(installedShared, shared));
+  }
   fs.writeFileSync(path.join(installedRenderer, 'render-workflow.mjs'), `
 import fs from 'node:fs';
 const [, output] = process.argv.slice(2);
@@ -422,7 +422,7 @@ test('preview applies the meta.output relative-path boundary before starting a s
   }, (error) => error);
 
   assert.ok(failure instanceof Error);
-  assert.match(failure.message, /meta\.output must be a relative path/i);
+  assert.match(failure.message, new RegExp(cliFragment('output.must-be-relative'), 'i'));
   assert.equal(fs.existsSync(output), false);
 });
 
@@ -457,7 +457,7 @@ test('the shared renderer rechecks its guarded output immediately before writing
       svg: '<svg role="img"></svg>',
       cards: [],
     }),
-    /output must not replace an input/i,
+    new RegExp(cliFragment('output.must-not-replace-input'), 'i'),
   );
   assert.deepEqual(fs.readFileSync(input), source);
 });
@@ -474,10 +474,9 @@ test('compare rechecks every target immediately before committing the artifact p
     fs.mkdirSync(directory, { recursive: true });
   }
   fs.copyFileSync(cli, path.join(installedBin, 'archify.mjs'));
-  fs.copyFileSync(
-    path.join(skillRoot, 'renderers/shared/output-path.mjs'),
-    path.join(installedShared, 'output-path.mjs'),
-  );
+  for (const shared of ['output-path.mjs', 'i18n.mjs']) {
+    fs.copyFileSync(path.join(skillRoot, 'renderers/shared', shared), path.join(installedShared, shared));
+  }
   fs.writeFileSync(path.join(installedRenderer, 'render-architecture.mjs'), `
 import fs from 'node:fs';
 import path from 'node:path';

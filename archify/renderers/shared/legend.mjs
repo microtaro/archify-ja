@@ -2,6 +2,7 @@ import { throwDiagnosticError } from './diagnostics.mjs';
 import { rectsOverlap, segmentIntersectsRect } from './geometry.mjs';
 import { esc, textUnits } from './utils.mjs';
 import { translateMessage } from './i18n.mjs';
+import { translateCliMessage } from './i18n.mjs';
 
 const DEFAULT_FONT_SIZE = 8;
 const DEFAULT_ITEM_GAP = 22;
@@ -119,14 +120,14 @@ export function measureLegend(entries, {
   const tooWide = footprint.measured.find((entry) => entry.width > width);
   if (tooWide) {
     if (unfit === 'hide') return null;
-    const message = `[legend/label-too-wide] ${diagramType} legend label for "${tooWide.kind}" needs ${tooWide.width}px but only ${width}px is available.`;
+    const message = translateCliMessage('legend.label-too-wide', { diagramType, kind: tooWide.kind, needed: tooWide.width, available: width });
     throwDiagnosticError(message, [{
       code: 'legend/label-too-wide',
       severity: 'error',
       message,
       subject: { diagramType, path: `/meta/legend/entries/${tooWide.kind}/label` },
       evidence: { kind: tooWide.kind, measuredWidthPx: tooWide.width, availableWidthPx: width },
-      supportedFixes: ['shorten the legend label or use a wider viewBox'],
+      supportedFixes: [translateCliMessage('legend.fix.shorten-label')],
     }]);
   }
 
@@ -134,14 +135,14 @@ export function measureLegend(entries, {
   const legendTopY = titleY - 10;
   if (legendTopY < minTitleY) {
     if (unfit === 'hide') return null;
-    const message = `[legend/vertical-overflow] ${diagramType} legend needs ${footprint.rowCount} rows, which would start at y=${legendTopY} above the available legend band at y=${minTitleY}.`;
+    const message = translateCliMessage('legend.vertical-overflow', { diagramType, rowCount: footprint.rowCount, topY: legendTopY, minTitleY });
     throwDiagnosticError(message, [{
       code: 'legend/vertical-overflow',
       severity: 'error',
       message,
       subject: { diagramType, path: '/meta/legend' },
       evidence: { rowCount: footprint.rowCount, requiredTopY: legendTopY, availableTopY: minTitleY },
-      supportedFixes: ['shorten legend labels, hide nonessential entries, or use a wider viewBox'],
+      supportedFixes: [translateCliMessage('legend.fix.shorten-or-hide')],
     }]);
   }
 
@@ -172,14 +173,14 @@ export function measureLegend(entries, {
   )));
   if (collision) {
     if (unfit === 'hide') return null;
-    const message = `[legend/content-overlap] ${diagramType} legend entry "${collision.kind}" overlaps authored relationship geometry.`;
+    const message = translateCliMessage('legend.content-overlap', { diagramType, kind: collision.kind });
     throwDiagnosticError(message, [{
       code: 'legend/content-overlap',
       severity: 'error',
       message,
       subject: { diagramType, path: '/meta/legend' },
       evidence: { legendKind: collision.kind, legendRect: collision },
-      supportedFixes: ['shorten or hide legend entries, use a wider viewBox, or move the authored relationship route/label out of the legend band'],
+      supportedFixes: [translateCliMessage('legend.fix.move-geometry')],
     }]);
   }
 

@@ -324,6 +324,9 @@
 | `viewer.passport.metadata` | "Node metadata" | "ノードのメタデータ" |
 | `viewer.passport.evidence` | "Verified source evidence" | "検証済みのソース根拠" |
 | `viewer.passport.verified` | "Verified source" | "検証済みソース" |
+| `viewer.passport.verified.local` | "Locally verified source" | "ローカル検証済みソース" |
+| `viewer.passport.drag` | "Drag to move · double-click to reset" | "ドラッグで移動・ダブルクリックで元に戻す" |
+| `viewer.passport.resize` | "Drag a corner to magnify · double-click to reset" | "角のドラッグで拡大・ダブルクリックで元に戻す" |
 | `viewer.passport.reach` | "Authored reach" | "定義済みの到達範囲" |
 | `viewer.passport.reach.trace` | "Trace authored reachability" | "定義済みの到達可能性を探索" |
 | `viewer.passport.upstream` | "Upstream" | "上流" |
@@ -374,6 +377,8 @@
 | `viewer.passport.repository.open` | "Open verified repository revision {revision}" | "検証済みのリポジトリリビジョン {revision} を開く" |
 | `viewer.passport.source.open` | "Open verified source {path} at revision {revision}" | "検証済みソース {path} をリビジョン {revision} で開く" |
 | `viewer.passport.source.openLink` | "Open ↗" | "開く ↗" |
+| `viewer.passport.repository.local` | "local revision {revision}" | "ローカルリビジョン {revision}" |
+| `viewer.passport.source.localOnly` | "local only" | "ローカルのみ" |
 | `viewer.passport.reach.upstream.one` | "Trace {count} upstream authored node" | "定義済みの上流ノード {count} 件を探索" |
 | `viewer.passport.reach.upstream.other` | "Trace {count} upstream authored nodes" | "定義済みの上流ノード {count} 件を探索" |
 | `viewer.passport.reach.downstream.one` | "Trace {count} downstream authored node" | "定義済みの下流ノード {count} 件を探索" |

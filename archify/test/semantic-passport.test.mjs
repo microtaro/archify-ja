@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { copyPattern } from './helpers/viewer-copy.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const skillRoot = path.resolve(__dirname, '..');
@@ -52,21 +53,21 @@ test('renderer-owned structure supplies truthful Semantic Passport context', () 
 
   assert.match(architecture, /data-node-id="api"[^>]+data-node-kind="backend"[^>]+data-node-context="AWS Region: us-west-2 › sg-api :443\/:8000"/);
   assert.match(workflow, /data-node-id="approval"[^>]+data-node-kind="security"[^>]+data-node-context="Policy &amp; Recovery › Human or policy stop › Plan \+ route"/);
-  assert.match(sequence, /data-node-id="redis"[^>]+data-node-kind="database"[^>]+data-node-context="Sequence participant"/);
+  assert.match(sequence, new RegExp(`data-node-id="redis"[^>]+data-node-kind="database"[^>]+data-node-context="${copyPattern('node.context.sequence')}"`));
   assert.match(dataflow, /data-node-id="warehouse"[^>]+data-node-kind="database"[^>]+data-node-context="04 \/ Store"/);
   assert.match(lifecycle, /data-node-id="executing"[^>]+data-node-kind="active"[^>]+data-node-context="Lifecycle phases"/);
 });
 
 test('Relationship Lens renders one Semantic Passport and copyable stable focus link', () => {
   const html = render('workflow', CASES.workflow);
-  assert.match(html, /<span class="relationship-lens-eyebrow">Semantic passport<\/span>/);
+  assert.match(html, new RegExp(`<span class="relationship-lens-eyebrow">${copyPattern('viewer.passport.eyebrow')}</span>`));
   assert.match(html, /id="focus-detail" hidden/);
   assert.match(html, /id="focus-kind" data-passport="kind"/);
   assert.match(html, /id="focus-context" data-passport="context" hidden/);
   assert.match(html, /id="focus-tag" data-passport="tag" hidden/);
   assert.match(html, /id="focus-id" data-passport="id"/);
-  assert.match(html, /id="btn-focus-clear"[^>]+aria-label="Close semantic passport"[^>]+title="Close">&#215;<\/button>/);
-  assert.match(html, /id="btn-focus-copy"[^>]+aria-label="Copy link to focused node"/);
+  assert.match(html, new RegExp(`id="btn-focus-clear"[^>]+aria-label="${copyPattern('viewer.passport.close')}"[^>]+title="${copyPattern('viewer.common.close')}">&#215;</button>`));
+  assert.match(html, new RegExp(`id="btn-focus-copy"[^>]+aria-label="${copyPattern('viewer.passport.copy.focus')}"`));
   assert.match(html, /id="btn-focus-relations"[^>]+aria-expanded="false"[^>]+aria-controls="relationship-lens-list"/);
   assert.match(html, /function renderPassport\(id, node\)/);
   assert.match(html, /var relationId = record && record\.id/);
