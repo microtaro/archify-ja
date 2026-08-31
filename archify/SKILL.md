@@ -36,7 +36,7 @@ metadata:
 
 ## 更新の通知
 
-この最初の日本語版にはupdate manifestがありません。そのため、同梱checker `scripts/check-update.mjs` は `disabled` を伴う `silent` を返し、要求は行いません。checkに言及せず、依頼されたworkflowを続けてください。
+この最初の日本語版にはupdate manifestがありません。そのため、同梱checker `scripts/check-update.mjs` は `disabled` を伴う `silent` を返し、ネットワーク要求を行いません。checkに言及せず、依頼されたworkflowを続けてください。
 
 - `silent` の場合、update checkに言及せず続行します。
 - `update_available` の場合、installed version、latest version、checkerの固定local summary、公式release-notes linkを含む簡潔な通知を、ユーザーとの会話言語で1つ表示します。`severity` が `security` の場合はsecurity updateであることを明記し、控えめなwarning markerを使います。変わるのは強調だけで、ユーザーの自律性ではありません。インストール済みSkillは変更されておらず、いつ更新するか、そもそも更新するかはユーザーが決めると明記してください。固定されたlocal sentenceは翻訳できますが、remote manifestのsummaryを引用、要約、翻訳してはなりません。通知が表示された後、同じcheckerを `--ack "<eventKey>"` 付きで実行し、その正確な `eventKey` をacknowledgeしてから、ユーザーが最初に依頼したtaskを続けます。

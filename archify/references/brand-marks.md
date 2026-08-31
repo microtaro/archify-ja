@@ -1,6 +1,6 @@
 # Brand mark（ブランドマーク）
 
-実在するproduct、provider、model family、channel、serviceのidentityがreaderの理解に役立つ場合にだけ、brand markを使います。semantic `type` は引き続きnodeの役割を説明し、`brand` はどの会社のproductかを説明します。
+実在するproduct、provider、model family、channel、serviceのidentityがreaderの理解に役立つ場合にだけ、brand markを使います。semantic `type` は引き続きnodeの役割を説明し、`brand` はどの提供者のproductかを説明します。
 
 ## Agentの判断手順
 
