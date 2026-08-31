@@ -1,223 +1,175 @@
 <p align="center">
-  <strong>English</strong>
+  <strong>日本語</strong> · <a href="./README_EN.md">English</a>
 </p>
 
-<p align="center">
-  <a href="https://trendshift.io/repositories/31352?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-31352" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/31352" alt="Archify on Trendshift" width="250" height="55"/></a>
-</p>
-
-![Archify product preview](docs/assets/archify-readme-hero.png)
+![Archify-ja プレビュー](docs/assets/archify-readme-hero.png)
 
 # Archify-ja
 
-**Turn a codebase or system description into a polished, interactive system map — directly in chat.**
+**コードベースやシステムの説明から、検証可能で操作できる技術図をチャット内で生成します。**
 
-Archify-ja is a Node.js rendering and validation system for Cursor, Claude Code, Codex CLI, and OpenCode. Agents produce typed JSON IR; Archify-ja deterministically compiles it into HTML/SVG.
+Archify-jaは、Cursor、Claude Code、Codex CLI、OpenCode向けのAgent Skillです。Agentが型付きJSON IRを作り、Node.js製のrendererとvalidatorが自己完結HTML/SVGへ決定論的に変換します。
 
-- **Open it and present** — five diagram types, four presets, dark/light themes, built-in brand marks, and finite motion
-- **Review architecture changes before merge** — compare two validated snapshots as Before / Delta / After, with exact added, removed, changed, moved, and rerouted facts
-- **Every interaction stays grounded** — search nodes, optionally open revision-verified source, trace upstream/downstream authored reach and exact routes, compare roles, and play guided stories without inventing topology
-- **One file, ready to trust and share** — typed JSON IR and deterministic checks produce self-contained HTML plus PNG, SVG, WebM, and 1200×630 share cards
+- Architecture、Workflow、Sequence、Data Flow、Lifecycleの5形式
+- dark/light theme、4種類のvisual preset、有限motion
+- node検索、上流・下流の到達範囲、経路探索、role比較、guided story
+- Schema・layout・HTML/SVG・route・label clearanceの検証
+- PNG、JPEG、WebP、SVG、WebM、1200×630 Share Card出力
 
 ![License](https://img.shields.io/badge/license-MIT-22c55e?style=flat-square)
 ![Agent Skill](https://img.shields.io/badge/Agent-Skill-7C3AED?style=flat-square)
 ![Japanese Edition Version](https://img.shields.io/badge/version-2.16.0--ja.1-0891b2?style=flat-square)
 
-**Current Japanese edition:** `v2.16.0-ja.1`.
+**日本語版:** `v2.16.0-ja.1`
+**Repository:** [microtaro/archify-ja](https://github.com/microtaro/archify-ja)
 
-**[Repository](https://github.com/microtaro/archify-ja)**
+Archify-jaは[`tt-a1i/archify`](https://github.com/tt-a1i/archify) v2.16.0を基にした非公式の日本語派生版です。本家への継続追従は保証しません。
+
+## インストール
+
+### Codex
 
 ```bash
-npx skills add microtaro/archify-ja -g
+npx skills add microtaro/archify-ja --skill archify-ja --agent codex --global --copy --yes
 ```
 
-Use the installation commands below for the Japanese edition.
+### Cursor
 
-**No repository is required:** describe the system in any agent chat.
+```bash
+npx skills add microtaro/archify-ja --skill archify-ja --agent cursor --global --copy --yes
+```
 
-## ❤️ Sponsors
+### Claude Code
 
-<table>
-  <tr><td align="center" width="240"><a href="https://apinebula.ai/ref/wywnaATT"><img src="docs/assets/sponsors/apinebula-archify.jpg" alt="APINEBULA" width="200" /></a><br/><strong><a href="https://apinebula.ai/ref/wywnaATT">APINEBULA</a></strong></td><td>APINEBULA sponsors Archify with one API for Claude, GPT, Gemini, and more. <a href="https://apinebula.ai/ref/wywnaATT">Register through Archify</a> and use <strong><code>Archify</code></strong> for <strong>10% off</strong>.</td></tr>
-  <tr><td align="center" width="240"><a href="https://github.com/EverMind-AI/Raven"><img src="docs/assets/sponsors/evermind-archify-raven.png" alt="Archify × Raven" width="200" /></a><br/><strong><a href="https://github.com/EverMind-AI">EverMind</a> · <a href="https://github.com/EverMind-AI/Raven">Raven</a></strong></td><td>EverMind sponsors Archify and builds memory infrastructure for agents. Its <a href="https://github.com/EverMind-AI/Raven"><strong>Raven</strong></a> harness supports Archify as a Skill for verified, interactive system maps.</td></tr>
-</table>
+```bash
+npx skills add microtaro/archify-ja --skill archify-ja --agent claude-code --global --copy --yes
+```
 
-> Want to sponsor Archify? [Contact us by email.](mailto:2801884530@qq.com)
+### OpenCode
 
-## Upstream Archify examples (reference only)
+```bash
+npx skills add microtaro/archify-ja --skill archify-ja --agent opencode --global --copy --yes
+```
 
-These checked-in images are upstream Archify reference examples. They are not live Archify-ja pages or current-product CTAs.
+現在のprojectだけへ入れる場合は`--global`を外します。導入確認:
 
-<p align="center">
-  <img src="docs/assets/archify-live-proof.gif" alt="Three upstream Archify reference artifacts moving through Signal Flow, Blueprint, and Classic presets" width="960"/>
-  <br/>
-  <sub><strong>Upstream reference artifacts.</strong> Signal Flow · Blueprint · Classic</sub>
-</p>
+```bash
+npx skills list --global
+```
 
-| Guided story | Route probe | Semantic lens |
-|---|---|---|
-| ![Upstream workflow reference](docs/assets/archify-demo-story.png) | ![Upstream sequence reference](docs/assets/archify-demo-route.png) | ![Upstream architecture reference](docs/assets/archify-demo-lens.png) |
-| Play one finite named chapter. | Inspect the shortest authored directed path. | Compare real traffic between semantic roles. |
+更新する場合:
 
-The upstream Proof Lab is reference material only; this Japanese edition has no hosted Proof Lab.
+```bash
+npx skills update archify-ja --global --yes
+```
 
-### A real repository, mapped from source
+## アンインストール
 
-![Upstream MCO runtime architecture reference](docs/assets/mco-runtime-share-card.png)
+全Agentのglobal導入から削除:
 
-Upstream Archify traced [`mco-org/mco`](https://github.com/mco-org/mco) at `9f1a1cf`; this checked-in image and [typed source](docs/cases/mco-runtime.architecture.json) are derived-source reference material.
+```bash
+npx skills remove archify-ja --global --yes
+```
+
+Agentを限定する場合:
+
+```bash
+npx skills remove archify-ja --global --agent codex --yes
+npx skills remove archify-ja --global --agent cursor --yes
+npx skills remove archify-ja --global --agent claude-code --yes
+npx skills remove archify-ja --global --agent opencode --yes
+```
+
+project導入を削除する場合は`--global`を外します。手動で配置した場合は、配置先にある`archify-ja` directoryだけを削除してください。
+
+## 使い方
+
+Repositoryは必須ではありません。チャットでシステムを説明するだけでも使えます。
+
+```text
+Archify-jaを使って、Browser -> API -> Redis cache -> PostgreSQL fallbackを図にしてください。
+```
+
+実装根拠を使う場合:
+
+```text
+このrepositoryを調査し、Archify-jaで高レベルのruntime architecture図を作成してください。
+主要componentを8〜12個、主経路を1本、外部依存とtrust boundaryを表示してください。
+補足はedgeを増やさずcardへ記載してください。
+```
+
+## 図の選び方
+
+| 形式 | 適した内容 |
+|---|---|
+| Architecture | component、service、storage、boundary |
+| Workflow | CI/CD、approval、runbook、分岐 |
+| Sequence | API call、cache fallback、認証、非同期処理 |
+| Data Flow | pipeline、lineage、PII、consumer |
+| Lifecycle | state、retry、wait、terminal outcome |
+
+迷った場合はCLI guideを使えます。
+
+```bash
+node archify/bin/archify.mjs guide "Redisのcache missを含むAPI request"
+```
 
 ## Preview
-
-Same diagram, two themes, one click to switch:
 
 | Dark | Light |
 |---|---|
 | ![Dark theme](docs/assets/archify-dark.png) | ![Light theme](docs/assets/archify-light.png) |
 
-The Export menu copies PNG to the clipboard and downloads static or motion formats:
+ViewerのExport menuから静止画・動画・Share Cardを出力できます。
 
 ![Export menu](docs/assets/archify-menu.png)
 
-Use **Copy Share Card** when you want a canonical 1200×630 image for a README, release, or social post.
+経路を選択した後、**Export → Route Share Card**で全体図を保持した1200×630 PNGを出力します。
 
-After tracing a route, **Export → Route Share Card** downloads that authored path as a 1200×630 PNG with the full diagram retained for context.
+![Route Share Card](docs/assets/archify-route-share-card.png)
 
-![Route Share Card showing the exact Users to API Server path with the full architecture retained as context](docs/assets/archify-route-share-card.png)
+上流・下流の到達範囲を選択した後、**Reach Share Card**を出力できます。
 
-After tracing authored `Upstream` or `Downstream` reach, **Export → Reach Share Card** captures that exact reading without claiming runtime impact.
+![Reach Share Card](docs/assets/mco-runtime-reach-share-card.png)
 
-![MCO downstream Reach Share Card showing authored relationships from Command Router](docs/assets/mco-runtime-reach-share-card.png)
+## Upstream Archify examples
 
-Open [`examples/web-app.html`](examples/web-app.html) locally to try the complete viewer.
+次の画像は派生元Archifyの参考例です。Archify-jaの公開siteへのlinkではありません。
 
-## Quick start
+<p align="center">
+  <img src="docs/assets/archify-live-proof.gif" alt="Upstream Archify reference artifacts" width="960"/>
+</p>
 
-### 1. Install
-
-```bash
-npx skills add microtaro/archify-ja -g
-```
-
-For an explicit, non-interactive Cursor install:
-
-```bash
-npx -y skills add microtaro/archify-ja --skill archify-ja --agent cursor --global --copy --yes
-```
-
-To try without installing:
-
-```bash
-npx skills use microtaro/archify-ja@archify-ja --agent codex
-```
-
-For Raven's manual ZIP install, extract [`archify-ja.zip`](archify-ja.zip) into `~/.raven/workspace/skills`; it yields `~/.raven/workspace/skills/archify-ja`. Raven is not a switcher target.
-
-Archify-ja has no update manifest and makes no update-check request. It never downloads or installs an update.
-
-### 2. Start from a description — no repository required
-
-```text
-Use Archify to draw: Browser -> API -> Redis cache -> PostgreSQL fallback.
-```
-
-For source evidence, open a repository and ask:
-
-```text
-Analyze this repository, then use archify to create a high-level runtime architecture diagram.
-Show 8–12 core components, one primary path, external dependencies, and trust boundaries.
-Put supporting detail in cards instead of adding more edges.
-```
-
-### 3. Refine in chat
-
-Continue with focused requests such as `add Redis`, `move auth to the left`, or `highlight the rollback path`. Archify keeps the typed source available for targeted iteration.
-
-## Choose the right diagram
-
-| Type | Best for | Include in your prompt |
+| Guided story | Route probe | Semantic lens |
 |---|---|---|
-| **Architecture** | Components, services, storage, boundaries | Scope, core components, primary path |
-| **Workflow** | CI/CD, approvals, tool calls, runbooks | Participants, order, branches, exceptions |
-| **Sequence** | API calls, cache fallback, auth, async traces | Callers, callees, returns, timing |
-| **Data Flow** | Pipelines, lineage, PII, consumers | Sources, transforms, stores, boundaries |
-| **Lifecycle** | States, retries, waits, terminal outcomes | States, events, retry and cancellation paths |
+| ![Workflow](docs/assets/archify-demo-story.png) | ![Sequence](docs/assets/archify-demo-route.png) | ![Architecture](docs/assets/archify-demo-lens.png) |
 
-Architecture's optional `deployment-ownership` profile fails closed when authored owners, region placement, private database scope, or named crossings are missing; it is never implicit and does not inspect live infrastructure. The deployed proof page is upstream reference material, not a Japanese edition link.
+実repositoryの参考例:
 
-For design or PR review, Architecture Delta compares validated Before / Delta / After snapshots with a machine receipt. Select an authored change or play one finite, viewer-only Review; it infers no impact, risk, or merge safety.
+![MCO runtime architecture](docs/assets/mco-runtime-share-card.png)
 
-`node archify/bin/archify.mjs compare architecture base.json head.json architecture-delta.html --json`
+派生元は[`mco-org/mco`](https://github.com/mco-org/mco)のrevision `9f1a1cf`を調査して作成しています。型付きsourceは[`docs/cases/mco-runtime.architecture.json`](docs/cases/mco-runtime.architecture.json)です。
 
-[![Architecture Delta showing added, removed, changed, and moved authored facts](docs/assets/architecture-delta-proof.jpg)](examples/checkout-platform-delta.html)
-
-Not sure which one fits? Use the zero-dependency CLI:
-
-```bash
-node archify/bin/archify.mjs guide "Show an API request with Redis cache miss"
-node archify/bin/archify.mjs guide "Map Kafka topics, consumer groups, replay, and DLQ" --json
-```
-
-Workflow keeps the happy path clear across lanes:
-
-![Workflow example](docs/assets/archify-workflow.png)
-
-Sequence explains one interaction over time:
-
-![Sequence example](docs/assets/archify-sequence.png)
-
-Data Flow makes movement and sensitivity boundaries explicit:
-
-![Data Flow example](docs/assets/archify-dataflow.png)
-
-Lifecycle separates progress, waits, retries, and terminal outcomes:
-
-![Lifecycle example](docs/assets/archify-lifecycle.png)
-
-Architecture examples: [`web-app`](examples/web-app.html) · [`Archify pipeline`](examples/archify-repo.html) · [`grid placement`](examples/archify-repo-grid.html) · [`desktop agent`](examples/maka-architecture.html)
-
-## Why Archify
-
-- **Layout judgment over generic auto-layout** — the agent chooses hierarchy, spacing, routes, and emphasis; shared automatic endpoints spread deterministically instead of piling arrows on one midpoint.
-- **Typed JSON IR** — every renderer-backed mode has a schema and reproducible source.
-- **Atomic validation before delivery** — schema, layout, HTML/SVG, route, and label-to-route clearance checks must all pass before a showcase artifact replaces the last known good output.
-- **Failures come with a repair receipt** — `validate --json` and `deliver --json` return stable rule codes, the exact subject, measured evidence, and only supported repair controls instead of a Node stack or an unstructured retry guess.
-- **Last-good live preview** — an optional desktop loop watches one JSON file, refreshes only after the latest candidate passes every gate, and keeps the previous verified diagram visible when a save is incomplete or invalid.
-- **Truthful interaction** — focus, upstream/downstream reach, exact routes, role comparison, and stories reuse authored nodes and relationships instead of inventing topology or claiming runtime impact.
-- **Source evidence, only when requested** — Evidence-backed Architecture nodes mark themselves `SRC n` and open Git-verified files and line ranges pinned to one public commit; ordinary artifacts stay source-free.
-- **Portable by default** — the result is one HTML file; exports remain full-diagram and free of temporary viewer state.
-
-Archify is not a general-purpose drawing editor or a Mermaid theme. It turns technical intent into a communication artifact.
-
-## How it works
-
-| Step | What happens |
-|---|---|
-| **Generate** | The agent creates typed JSON IR from your description. |
-| **Validate** | Bundled validators and layout rules check the source; failures identify the exact local repair in machine-readable JSON. |
-| **Preview (optional)** | A loopback-only desktop session watches one source and reloads only verified revisions; failures keep the last-good artifact. |
-| **Deliver** | A same-directory candidate is rendered and checked; only a passing artifact atomically replaces the target, then optional `--open` launches that exact file. |
-| **Iterate** | The agent updates the source while unrelated structure stays stable. |
-
-Useful repository commands:
+## CLI
 
 ```bash
 cd archify
 node bin/archify.mjs doctor
 node bin/archify.mjs demo /tmp/archify-demo
-node bin/archify.mjs guide "Show CI/CD checks, approval, deploy, and rollback"
 node bin/archify.mjs validate workflow examples/agent-tool-call.workflow.json --quality showcase --json
 node bin/archify.mjs preview workflow examples/agent-tool-call.workflow.json /tmp/workflow.html --quality showcase
 node bin/archify.mjs deliver workflow examples/agent-tool-call.workflow.json /tmp/workflow.html --quality showcase --open --json
 ```
 
-`preview` is an explicit loopback-only desktop mode: it watches one JSON file on a random `127.0.0.1` port, keeps the last verified output through failures, stops with Ctrl-C, and adds no generated-HTML runtime. Use `--no-open` for tests or manual URL opening.
+`preview`は`127.0.0.1`のrandom portで1つのJSON sourceを監視し、検証に成功したrevisionだけを表示します。停止はCtrl-Cです。
 
-`deliver --open` is an opt-in one-shot handoff after commit. Opener failure preserves success; JSON remains on stdout and the absolute fallback path goes to stderr.
+`deliver`は候補を検証し、成功した場合だけ出力先をatomicに置き換えます。`--open`はcommit後のartifactだけを開きます。
 
-On failure, `validate --json` and `deliver --json` emit one JSON object. Apply only each `diagnostics[]` subject's `supportedFixes`, within the Skill's two correction rounds; visual review remains separate.
+失敗時、`validate --json`と`deliver --json`はmachine-readableな`diagnostics[]`を返します。各diagnosticの`supportedFixes`だけを適用し、修正は最大2回です。
 
-Settings:
+## Locale
+
+日本語が既定です。英語Viewerを使う場合だけ`meta.locale`を指定します。
 
 ```json
 {
@@ -229,57 +181,35 @@ Settings:
 }
 ```
 
-`meta.locale=en` localizes page title, Legend, states/errors, a11y, HTML/SVG `lang`—never authored content. Otherwise omit; preserve requested-language copy; disclose English fallback. Static omits `animation`; `classic` defaults.
+`meta.locale`はViewer UI、Legend、状態・error、ARIA、HTML/SVGの`lang`を切り替えます。title、node、relationship、cardなどのauthored contentは自動翻訳しません。
 
-## Explore and share the output
+## Viewer操作
 
-| Action | Control |
+| 操作 | Key |
 |---|---|
-| Open the factual Diagram Guide | <kbd>?</kbd> |
-| Find and focus a semantic node | <kbd>/</kbd> |
-| Trace upstream/downstream authored reach | Focus a node → `Upstream` / `Downstream` |
-| Probe a directed route and inspect its journey | <kbd>R</kbd> or `PATH` |
-| Compare one or two semantic roles | <kbd>L</kbd> or `LENS` |
-| Open the live overview radar | <kbd>M</kbd> or `MAP` |
-| Play a guided story / change chapter | <kbd>P</kbd> / <kbd>[</kbd> <kbd>]</kbd> |
-| Enter Presentation Stage | <kbd>F</kbd> |
-| Choose visual style (`S` cycles) / toggle theme / open Export | <kbd>S</kbd> / <kbd>T</kbd> / <kbd>E</kbd> |
-| Zoom or reset | <kbd>+</kbd> / <kbd>-</kbd> / <kbd>0</kbd> |
+| Guide | <kbd>?</kbd> |
+| node検索 | <kbd>/</kbd> |
+| directed route | <kbd>R</kbd> |
+| semantic role比較 | <kbd>L</kbd> |
+| overview map | <kbd>M</kbd> |
+| story再生 | <kbd>P</kbd> |
+| presentation | <kbd>F</kbd> |
+| style / theme / export | <kbd>S</kbd> / <kbd>T</kbd> / <kbd>E</kbd> |
+| zoom / reset | <kbd>+</kbd> / <kbd>-</kbd> / <kbd>0</kbd> |
 
-Stable links can restore `#focus=<id>`, `#focus=<id>&reach=upstream|downstream`, `#relation=<id>`, `#route=<source>~<target>`, `#lens=<kind>~<kind>`, and `#view=<view-id>`. Reader-driven motion is finite, respects `prefers-reduced-motion`, and never enters canonical exports.
+Viewerの完全な契約は[`archify/SKILL.md`](archify/SKILL.md)を参照してください。
 
-The complete generation and viewer contract lives in [`archify/SKILL.md`](archify/SKILL.md).
+## 配布範囲
 
-## Installation options
-
-| Surface | Install location or method | Capability |
-|---|---|---|
-| **Raven** | Manual ZIP into `~/.raven/workspace/skills` → `~/.raven/workspace/skills/archify-ja` | Full renderer + validation workflow |
-| **Claude Code** | `~/.claude/skills/` or `.claude/skills/` | Full renderer + validation workflow |
-| **Codex CLI** | `~/.agents/skills/` or `.agents/skills/` | Full renderer + validation workflow |
-| **opencode** | `~/.config/opencode/skills/`, `.opencode/skills/`, or `.agents/skills/` | Full renderer + validation workflow |
-| **Claude.ai** | Upload `archify-ja.zip` under Settings → Capabilities → Skills | Depends on Node.js access in the sandbox |
-| **Project Knowledge** | Upload `archify-ja.zip` to the project | Prompt-driven architecture fallback |
-
-DeepSeek Harness is not supported by this edition.
-
-## Reference and scope
-
-- [Schema reference](archify/schemas/README.md) · [Skill](archify/SKILL.md) · [Examples](archify/examples/) · [Agent cookbook](docs/authoring-cookbook.md)
-- [Changelog](CHANGELOG.md)
-- [Roadmap](ROADMAP.md)
-- Hosted Proof Lab: unavailable for this unpublished Japanese edition.
-
-Automatic Mermaid parsing, general-purpose auto-layout, hosted sharing, and WYSIWYG editing are intentionally outside the current scope.
+- RavenとDeepSeek Harnessは初版の対象外です。
+- 独自の更新manifestはなく、update checkのnetwork requestは行いません。
+- hosted Proof Labはありません。
+- WYSIWYG editor、hosted sharing、一般purposeのauto-layoutは対象外です。
 
 ## License
 
-[MIT](LICENSE) — free to use, modify, and distribute.
+[MIT](LICENSE)。元の著作権表示を保持しています。
 
 ## Contributing
 
-Issues, pull requests, and real-world diagrams are welcome. Start with the [contribution guide](CONTRIBUTING.md), use the reproducible bug form for failures, or submit a validated diagram through the [community showcase form](https://github.com/microtaro/archify-ja/issues/new?template=showcase.yml).&nbsp;·&nbsp;[LINUX&nbsp;DO](https://linux.do)
-
-## Star History
-
-<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/microtaro/archify-ja/star-history/assets/star-history-dark.svg" /><img alt="Star History" src="https://raw.githubusercontent.com/microtaro/archify-ja/star-history/assets/star-history-light.svg" /></picture></p>
+[CONTRIBUTING.md](CONTRIBUTING.md)を参照してください。
