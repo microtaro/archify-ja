@@ -227,15 +227,14 @@
   <nav class="site-nav" aria-label="Primary navigation">
     <a class="nav-logo" href="./" aria-label="Back to Archify home">
       <span class="nav-logo-text">Archify</span>
-      <span class="nav-logo-path" data-en="/ proof lab" data-zh="/ 验证作品集">/ proof lab</span>
+      <span class="nav-logo-path">/ proof lab</span>
     </a>
     <div class="nav-right">
-      <a class="nav-link" href="guide.html" data-en="Guide" data-zh="场景指南">Guide</a>
-      <a class="nav-link" href="gallery.html" aria-current="page" data-en="Proof Lab" data-zh="验证作品集">Proof Lab</a>
-      <a class="nav-link" href="start.html" data-en="Start" data-zh="快速上手">Start</a>
+      <a class="nav-link" href="guide.html">Guide</a>
+      <a class="nav-link" href="gallery.html" aria-current="page">Proof Lab</a>
+      <a class="nav-link" href="start.html">Start</a>
       <a class="nav-link" href="https://github.com/tt-a1i/archify" target="_blank" rel="noopener">GitHub</a>
-      <button class="btn-lang" id="language" type="button" aria-label="Switch language">中文</button>
-      <a class="btn btn-primary nav-cta" href="start.html" data-en="Install Skill" data-zh="安装技能">Install Skill</a>
+      <a class="btn btn-primary nav-cta" href="start.html">Install Skill</a>
     </div>
   </nav>
 
@@ -243,14 +242,14 @@
     <section class="hero">
       <div class="shell hero-grid">
         <div>
-          <div class="lead-label" data-en="Generated showcase / verified artifacts" data-zh="自动生成作品集 / 真实验证成品">Generated showcase / verified artifacts</div>
-          <h1 data-en="Proof,<br><em>not promises.</em>" data-zh="先看成品，<br><em>再谈能力。</em>">Proof,<br><em>not promises.</em></h1>
-          <p class="hero-copy" data-en="Every frame below is a live Archify artifact—not a mockup. Each one is regenerated from versioned JSON IR, checked for structural integrity, and linked to the exact source that produced it." data-zh="下面每一帧都是可运行的 Archify 成品，不是效果图。它们全部由版本化 JSON IR 重新生成、经过结构检查，并链接到产生它的精确源数据。">Every frame below is a live Archify artifact—not a mockup. Each one is regenerated from versioned JSON IR, checked for structural integrity, and linked to the exact source that produced it.</p>
+          <div class="lead-label">Generated showcase / verified artifacts</div>
+          <h1>Proof,<br><em>not promises.</em></h1>
+          <p class="hero-copy">Every frame below is a live Archify artifact—not a mockup. Each one is regenerated from versioned JSON IR, checked for structural integrity, and linked to the exact source that produced it.</p>
         </div>
         <div class="proof-board" aria-label="Gallery quality summary">
-          <div class="proof-row"><span class="proof-value">11</span><span class="proof-label" data-en="scenario proofs<br>from real IR" data-zh="个场景成品<br>来自真实 IR">scenario proofs<br>from real IR</span></div>
-          <div class="proof-row"><span class="proof-value">99</span><span class="proof-label" data-en="structural checks<br>passed" data-zh="项结构检查<br>全部通过">structural checks<br>passed</span></div>
-          <div class="proof-row"><span class="proof-value proof-status">PASS</span><span class="proof-label" data-en="generated from<br>source of truth" data-zh="从源数据<br>自动生成">generated from<br>source of truth</span></div>
+          <div class="proof-row"><span class="proof-value">11</span><span class="proof-label">scenario proofs<br>from real IR</span></div>
+          <div class="proof-row"><span class="proof-value">99</span><span class="proof-label">structural checks<br>passed</span></div>
+          <div class="proof-row"><span class="proof-value proof-status">PASS</span><span class="proof-label">generated from<br>source of truth</span></div>
         </div>
       </div>
     </section>
@@ -258,16 +257,16 @@
     <section class="controls" aria-label="Gallery controls">
       <div class="shell controls-inner">
         <div class="filter-group" role="group" aria-label="Filter diagrams by type">
-          <button class="filter-button" type="button" data-filter="all" aria-pressed="true" data-en="All / 11" data-zh="全部配方 / 11">All / 11</button>
-          <button class="filter-button" type="button" data-filter="architecture" aria-pressed="false" data-en="Architecture" data-zh="架构图">Architecture</button>
-          <button class="filter-button" type="button" data-filter="workflow" aria-pressed="false" data-en="Workflow" data-zh="工作流">Workflow</button>
-          <button class="filter-button" type="button" data-filter="sequence" aria-pressed="false" data-en="Sequence" data-zh="时序图">Sequence</button>
-          <button class="filter-button" type="button" data-filter="dataflow" aria-pressed="false" data-en="Data flow" data-zh="数据流">Data flow</button>
-          <button class="filter-button" type="button" data-filter="lifecycle" aria-pressed="false" data-en="Lifecycle" data-zh="生命周期">Lifecycle</button>
+          <button class="filter-button" type="button" data-filter="all" aria-pressed="true">All / 11</button>
+          <button class="filter-button" type="button" data-filter="architecture" aria-pressed="false">Architecture</button>
+          <button class="filter-button" type="button" data-filter="workflow" aria-pressed="false">Workflow</button>
+          <button class="filter-button" type="button" data-filter="sequence" aria-pressed="false">Sequence</button>
+          <button class="filter-button" type="button" data-filter="dataflow" aria-pressed="false">Data flow</button>
+          <button class="filter-button" type="button" data-filter="lifecycle" aria-pressed="false">Lifecycle</button>
         </div>
         <div class="controls-actions">
           <button class="filter-button" id="preview-theme" type="button">Preview: dark</button>
-          <div class="controls-note" data-en="Live HTML previews · open any artifact to explore" data-zh="实时 HTML 预览 · 打开任意成品继续探索">Live HTML previews · open any artifact to explore</div>
+          <div class="controls-note">Live HTML previews · open any artifact to explore</div>
         </div>
       </div>
     </section>
@@ -275,8 +274,8 @@
     <section class="gallery-section" id="gallery">
       <div class="shell">
         <div class="section-intro">
-          <h2 data-en="Five lenses. Eleven real stories." data-zh="五种视角，十一个真实故事。">Five lenses. Eleven real stories.</h2>
-          <p data-en="Every scenario has named reader views with a path-aware Story Trail, shareable navigation, dark/light rendering, self-contained export, and a machine-readable quality receipt." data-zh="每个场景都有能辨别真实方向的 Story Trail 命名视图、可分享导航、深浅主题、自包含导出和机器可读质量凭证。">Every scenario has named reader views with a path-aware Story Trail, shareable navigation, dark/light rendering, self-contained export, and a machine-readable quality receipt.</p>
+          <h2>Five lenses. Eleven real stories.</h2>
+          <p>Every scenario has named reader views with a path-aware Story Trail, shareable navigation, dark/light rendering, self-contained export, and a machine-readable quality receipt.</p>
         </div>
         <div class="gallery-grid" id="gallery-grid">
           <article class="showcase-card is-featured" id="proof-agent-tool-call" data-proof-id="agent-tool-call" data-type="workflow" style="--accent:#047857">
@@ -284,7 +283,7 @@
               <div class="card-index">01</div>
               <div class="card-title-wrap">
                 <div class="card-kicker">Workflow / 12 nodes / 3 views · play</div>
-                <h3 class="card-title" data-en="Agent Tool Call" data-zh="智能体工具调用">Agent Tool Call</h3>
+                <h3 class="card-title">Agent Tool Call</h3>
               </div>
               <div class="card-mode">signal-flow + trace</div>
             </header>
@@ -293,7 +292,7 @@
               <iframe src="gallery/artifacts/agent-tool-call.workflow.html?embed=1&amp;theme=dark" data-src-base="gallery/artifacts/agent-tool-call.workflow.html" title="Agent Tool Call live Archify preview" loading="eager"></iframe>
             </div>
             <div class="card-body">
-              <p class="card-description" data-en="Four consolidated lanes trace a policy-aware agent loop across user interaction, agent runtime, policy and recovery, and tool execution with evidence." data-zh="四条整合泳道呈现策略感知的智能体闭环：用户交互、智能体运行时、策略与恢复，以及带证据的工具执行。">Four consolidated lanes trace a policy-aware agent loop across user interaction, agent runtime, policy and recovery, and tool execution with evidence.</p>
+              <p class="card-description">Four consolidated lanes trace a policy-aware agent loop across user interaction, agent runtime, policy and recovery, and tool execution with evidence.</p>
               <div class="receipt" aria-label="Validation receipt">
                 <div class="receipt-cell"><span class="receipt-label">Artifact</span><span class="receipt-value ok">9/9 pass</span></div>
                 <div class="receipt-cell"><span class="receipt-label">Composition</span><span class="receipt-value ok" title="0 crossings · 0 border runs · 0 micro segments · 0 cramped turns">SHOWCASE · PASS</span></div>
@@ -301,10 +300,10 @@
                 <div class="receipt-cell"><span class="receipt-label">SHA-256</span><span class="receipt-value" title="325680d835f68cb04089bb5d3fdd1b5671abf1790a15fbcae2167dbe6e756f0b">325680d835f6</span></div>
               </div>
               <div class="card-actions">
-                <a class="card-link primary" href="gallery/artifacts/agent-tool-call.workflow.html?present=1&amp;play=1#view=happy-path" target="_blank" rel="noopener" data-en="Play named chapter ↗" data-zh="播放命名章节 ↗">Play named chapter ↗</a>
-                <a class="card-link" href="gallery/artifacts/agent-tool-call.workflow.html" target="_blank" rel="noopener" data-en="Full artifact" data-zh="完整成品">Full artifact</a>
+                <a class="card-link primary" href="gallery/artifacts/agent-tool-call.workflow.html?present=1&amp;play=1#view=happy-path" target="_blank" rel="noopener">Play named chapter ↗</a>
+                <a class="card-link" href="gallery/artifacts/agent-tool-call.workflow.html" target="_blank" rel="noopener">Full artifact</a>
                 <a class="card-link" href="gallery/sources/agent-tool-call.workflow.json" target="_blank" rel="noopener">JSON IR</a>
-                <a class="card-link create-link" href="start.html?type=workflow&amp;source=gallery" data-en="Create this type" data-zh="按此类型开始">Create this type</a>
+                <a class="card-link create-link" href="start.html?type=workflow&amp;source=gallery">Create this type</a>
               </div>
             </div>
           </article>
@@ -313,7 +312,7 @@
               <div class="card-index">02</div>
               <div class="card-title-wrap">
                 <div class="card-kicker">Architecture / 12 nodes / 3 views · play</div>
-                <h3 class="card-title" data-en="Production Deployment Ownership" data-zh="生产部署与归属">Production Deployment Ownership</h3>
+                <h3 class="card-title">Production Deployment Ownership</h3>
               </div>
               <div class="card-mode">blueprint + trace</div>
             </header>
@@ -322,7 +321,7 @@
               <iframe src="gallery/artifacts/production-deployment.architecture.html?embed=1&amp;theme=dark" data-src-base="gallery/artifacts/production-deployment.architecture.html" title="Production Deployment Ownership live Archify preview" loading="lazy"></iframe>
             </div>
             <div class="card-body">
-              <p class="card-description" data-en="Regions, private networks, workload owners, state, cross-region replication, audit evidence, and named boundary crossings." data-zh="展示区域、私有网络、工作负载归属、状态、跨区复制、审计证据和明确的边界穿越。">Regions, private networks, workload owners, state, cross-region replication, audit evidence, and named boundary crossings.</p>
+              <p class="card-description">Regions, private networks, workload owners, state, cross-region replication, audit evidence, and named boundary crossings.</p>
               <div class="engineering-proof" aria-label="Engineering profile validation"><span>Engineering profile</span><strong>DEPLOYMENT OWNERSHIP · PASS</strong></div>
               <div class="receipt" aria-label="Validation receipt">
                 <div class="receipt-cell"><span class="receipt-label">Artifact</span><span class="receipt-value ok">9/9 pass</span></div>
@@ -331,10 +330,10 @@
                 <div class="receipt-cell"><span class="receipt-label">SHA-256</span><span class="receipt-value" title="547c27a1c2d53314c2948690a973f3b259bb6a0ec4e25755916681ca533a2d51">547c27a1c2d5</span></div>
               </div>
               <div class="card-actions">
-                <a class="card-link primary" href="gallery/artifacts/production-deployment.architecture.html?present=1&amp;play=1#view=request-boundary" target="_blank" rel="noopener" data-en="Play named chapter ↗" data-zh="播放命名章节 ↗">Play named chapter ↗</a>
-                <a class="card-link" href="gallery/artifacts/production-deployment.architecture.html" target="_blank" rel="noopener" data-en="Full artifact" data-zh="完整成品">Full artifact</a>
+                <a class="card-link primary" href="gallery/artifacts/production-deployment.architecture.html?present=1&amp;play=1#view=request-boundary" target="_blank" rel="noopener">Play named chapter ↗</a>
+                <a class="card-link" href="gallery/artifacts/production-deployment.architecture.html" target="_blank" rel="noopener">Full artifact</a>
                 <a class="card-link" href="gallery/sources/production-deployment.architecture.json" target="_blank" rel="noopener">JSON IR</a>
-                <a class="card-link create-link" href="start.html?type=architecture&amp;source=gallery" data-en="Create this type" data-zh="按此类型开始">Create this type</a>
+                <a class="card-link create-link" href="start.html?type=architecture&amp;source=gallery">Create this type</a>
               </div>
             </div>
           </article>
@@ -343,7 +342,7 @@
               <div class="card-index">03</div>
               <div class="card-title-wrap">
                 <div class="card-kicker">Sequence / 7 nodes / 3 views · play</div>
-                <h3 class="card-title" data-en="Cache Miss Request" data-zh="缓存未命中请求">Cache Miss Request</h3>
+                <h3 class="card-title">Cache Miss Request</h3>
               </div>
               <div class="card-mode">classic + trace</div>
             </header>
@@ -352,7 +351,7 @@
               <iframe src="gallery/artifacts/cache-miss.sequence.html?embed=1&amp;theme=dark" data-src-base="gallery/artifacts/cache-miss.sequence.html" title="Cache Miss Request live Archify preview" loading="lazy"></iframe>
             </div>
             <div class="card-body">
-              <p class="card-description" data-en="A time-ordered request path covering authentication, cache fallback, persistence, return traffic, and async tracing." data-zh="按时间展开鉴权、缓存回退、持久化、返回流量与异步追踪。">A time-ordered request path covering authentication, cache fallback, persistence, return traffic, and async tracing.</p>
+              <p class="card-description">A time-ordered request path covering authentication, cache fallback, persistence, return traffic, and async tracing.</p>
               <div class="receipt" aria-label="Validation receipt">
                 <div class="receipt-cell"><span class="receipt-label">Artifact</span><span class="receipt-value ok">9/9 pass</span></div>
                 <div class="receipt-cell"><span class="receipt-label">Composition</span><span class="receipt-value ok" title="0 crossings · 0 border runs · 0 micro segments · 0 cramped turns">SHOWCASE · PASS</span></div>
@@ -360,10 +359,10 @@
                 <div class="receipt-cell"><span class="receipt-label">SHA-256</span><span class="receipt-value" title="951f07c29b75138566808e40f0ed251145d2c0bdc228dd5e3ecb98387d9d4dfa">951f07c29b75</span></div>
               </div>
               <div class="card-actions">
-                <a class="card-link primary" href="gallery/artifacts/cache-miss.sequence.html?present=1&amp;play=1#view=cache-fallback" target="_blank" rel="noopener" data-en="Play named chapter ↗" data-zh="播放命名章节 ↗">Play named chapter ↗</a>
-                <a class="card-link" href="gallery/artifacts/cache-miss.sequence.html" target="_blank" rel="noopener" data-en="Full artifact" data-zh="完整成品">Full artifact</a>
+                <a class="card-link primary" href="gallery/artifacts/cache-miss.sequence.html?present=1&amp;play=1#view=cache-fallback" target="_blank" rel="noopener">Play named chapter ↗</a>
+                <a class="card-link" href="gallery/artifacts/cache-miss.sequence.html" target="_blank" rel="noopener">Full artifact</a>
                 <a class="card-link" href="gallery/sources/cache-miss-request.sequence.json" target="_blank" rel="noopener">JSON IR</a>
-                <a class="card-link create-link" href="start.html?type=sequence&amp;source=gallery" data-en="Create this type" data-zh="按此类型开始">Create this type</a>
+                <a class="card-link create-link" href="start.html?type=sequence&amp;source=gallery">Create this type</a>
               </div>
             </div>
           </article>
@@ -372,7 +371,7 @@
               <div class="card-index">04</div>
               <div class="card-title-wrap">
                 <div class="card-kicker">Workflow / 10 nodes / 3 views · play</div>
-                <h3 class="card-title" data-en="Release Delivery Workflow" data-zh="研发交付流程">Release Delivery Workflow</h3>
+                <h3 class="card-title">Release Delivery Workflow</h3>
               </div>
               <div class="card-mode">classic + trace</div>
             </header>
@@ -381,7 +380,7 @@
               <iframe src="gallery/artifacts/release-delivery.workflow.html?embed=1&amp;theme=dark" data-src-base="gallery/artifacts/release-delivery.workflow.html" title="Release Delivery Workflow live Archify preview" loading="lazy"></iframe>
             </div>
             <div class="card-body">
-              <p class="card-description" data-en="A change moves through reproducible build, blocking gates, human approval, canary verification, communication, and rollback." data-zh="一次变更依次经过可复现构建、阻断检查、人工审批、金丝雀验证、沟通和回滚。">A change moves through reproducible build, blocking gates, human approval, canary verification, communication, and rollback.</p>
+              <p class="card-description">A change moves through reproducible build, blocking gates, human approval, canary verification, communication, and rollback.</p>
               <div class="receipt" aria-label="Validation receipt">
                 <div class="receipt-cell"><span class="receipt-label">Artifact</span><span class="receipt-value ok">9/9 pass</span></div>
                 <div class="receipt-cell"><span class="receipt-label">Composition</span><span class="receipt-value ok" title="0 crossings · 0 border runs · 0 micro segments · 0 cramped turns">SHOWCASE · PASS</span></div>
@@ -389,10 +388,10 @@
                 <div class="receipt-cell"><span class="receipt-label">SHA-256</span><span class="receipt-value" title="f3e4fa7d0250b3d39a11a7b862d2b422691978bd3ef287d0ee565ce55a1af187">f3e4fa7d0250</span></div>
               </div>
               <div class="card-actions">
-                <a class="card-link primary" href="gallery/artifacts/release-delivery.workflow.html?present=1&amp;play=1#view=approval-to-production" target="_blank" rel="noopener" data-en="Play named chapter ↗" data-zh="播放命名章节 ↗">Play named chapter ↗</a>
-                <a class="card-link" href="gallery/artifacts/release-delivery.workflow.html" target="_blank" rel="noopener" data-en="Full artifact" data-zh="完整成品">Full artifact</a>
+                <a class="card-link primary" href="gallery/artifacts/release-delivery.workflow.html?present=1&amp;play=1#view=approval-to-production" target="_blank" rel="noopener">Play named chapter ↗</a>
+                <a class="card-link" href="gallery/artifacts/release-delivery.workflow.html" target="_blank" rel="noopener">Full artifact</a>
                 <a class="card-link" href="gallery/sources/release-delivery.workflow.json" target="_blank" rel="noopener">JSON IR</a>
-                <a class="card-link create-link" href="start.html?type=workflow&amp;source=gallery" data-en="Create this type" data-zh="按此类型开始">Create this type</a>
+                <a class="card-link create-link" href="start.html?type=workflow&amp;source=gallery">Create this type</a>
               </div>
             </div>
           </article>
@@ -401,7 +400,7 @@
               <div class="card-index">05</div>
               <div class="card-title-wrap">
                 <div class="card-kicker">Workflow / 11 nodes / 3 views · play</div>
-                <h3 class="card-title" data-en="Incident Response Runbook" data-zh="事故处置 Runbook">Incident Response Runbook</h3>
+                <h3 class="card-title">Incident Response Runbook</h3>
               </div>
               <div class="card-mode">signal-flow + trace</div>
             </header>
@@ -410,7 +409,7 @@
               <iframe src="gallery/artifacts/incident-response.workflow.html?embed=1&amp;theme=dark" data-src-base="gallery/artifacts/incident-response.workflow.html" title="Incident Response Runbook live Archify preview" loading="lazy"></iframe>
             </div>
             <div class="card-body">
-              <p class="card-description" data-en="Detection, incident command, mitigation, stakeholder communication, escalation, rollback, and recovery evidence." data-zh="覆盖发现、事故指挥、缓解、干系人沟通、升级、回滚和恢复证据。">Detection, incident command, mitigation, stakeholder communication, escalation, rollback, and recovery evidence.</p>
+              <p class="card-description">Detection, incident command, mitigation, stakeholder communication, escalation, rollback, and recovery evidence.</p>
               <div class="receipt" aria-label="Validation receipt">
                 <div class="receipt-cell"><span class="receipt-label">Artifact</span><span class="receipt-value ok">9/9 pass</span></div>
                 <div class="receipt-cell"><span class="receipt-label">Composition</span><span class="receipt-value ok" title="0 crossings · 0 border runs · 0 micro segments · 0 cramped turns">SHOWCASE · PASS</span></div>
@@ -418,10 +417,10 @@
                 <div class="receipt-cell"><span class="receipt-label">SHA-256</span><span class="receipt-value" title="c4e58c04598281bbc40c4ebd6b3d671178ee87163d1e243c7e57589eddbd043c">c4e58c045982</span></div>
               </div>
               <div class="card-actions">
-                <a class="card-link primary" href="gallery/artifacts/incident-response.workflow.html?present=1&amp;play=1#view=mitigate-and-verify" target="_blank" rel="noopener" data-en="Play named chapter ↗" data-zh="播放命名章节 ↗">Play named chapter ↗</a>
-                <a class="card-link" href="gallery/artifacts/incident-response.workflow.html" target="_blank" rel="noopener" data-en="Full artifact" data-zh="完整成品">Full artifact</a>
+                <a class="card-link primary" href="gallery/artifacts/incident-response.workflow.html?present=1&amp;play=1#view=mitigate-and-verify" target="_blank" rel="noopener">Play named chapter ↗</a>
+                <a class="card-link" href="gallery/artifacts/incident-response.workflow.html" target="_blank" rel="noopener">Full artifact</a>
                 <a class="card-link" href="gallery/sources/incident-response.workflow.json" target="_blank" rel="noopener">JSON IR</a>
-                <a class="card-link create-link" href="start.html?type=workflow&amp;source=gallery" data-en="Create this type" data-zh="按此类型开始">Create this type</a>
+                <a class="card-link create-link" href="start.html?type=workflow&amp;source=gallery">Create this type</a>
               </div>
             </div>
           </article>
@@ -430,7 +429,7 @@
               <div class="card-index">06</div>
               <div class="card-title-wrap">
                 <div class="card-kicker">Data flow / 10 nodes / 3 views · play</div>
-                <h3 class="card-title" data-en="Product Analytics" data-zh="产品分析数据流">Product Analytics</h3>
+                <h3 class="card-title">Product Analytics</h3>
               </div>
               <div class="card-mode">classic + trace</div>
             </header>
@@ -439,7 +438,7 @@
               <iframe src="gallery/artifacts/product-analytics.dataflow.html?embed=1&amp;theme=dark" data-src-base="gallery/artifacts/product-analytics.dataflow.html" title="Product Analytics live Archify preview" loading="lazy"></iframe>
             </div>
             <div class="card-body">
-              <p class="card-description" data-en="Events move through consent, streaming, PII isolation, warehouse sync, and governed downstream consumers." data-zh="事件依次经过用户同意、流处理、PII 隔离、数仓同步和受治理的下游消费者。">Events move through consent, streaming, PII isolation, warehouse sync, and governed downstream consumers.</p>
+              <p class="card-description">Events move through consent, streaming, PII isolation, warehouse sync, and governed downstream consumers.</p>
               <div class="receipt" aria-label="Validation receipt">
                 <div class="receipt-cell"><span class="receipt-label">Artifact</span><span class="receipt-value ok">9/9 pass</span></div>
                 <div class="receipt-cell"><span class="receipt-label">Composition</span><span class="receipt-value ok" title="0 crossings · 0 border runs · 0 micro segments · 0 cramped turns">SHOWCASE · PASS</span></div>
@@ -447,10 +446,10 @@
                 <div class="receipt-cell"><span class="receipt-label">SHA-256</span><span class="receipt-value" title="522aa268f25a8132ec43e75b6297a548b9779d6ef76c4d7acd724f7d3ee07dc7">522aa268f25a</span></div>
               </div>
               <div class="card-actions">
-                <a class="card-link primary" href="gallery/artifacts/product-analytics.dataflow.html?present=1&amp;play=1#view=consent-boundary" target="_blank" rel="noopener" data-en="Play named chapter ↗" data-zh="播放命名章节 ↗">Play named chapter ↗</a>
-                <a class="card-link" href="gallery/artifacts/product-analytics.dataflow.html" target="_blank" rel="noopener" data-en="Full artifact" data-zh="完整成品">Full artifact</a>
+                <a class="card-link primary" href="gallery/artifacts/product-analytics.dataflow.html?present=1&amp;play=1#view=consent-boundary" target="_blank" rel="noopener">Play named chapter ↗</a>
+                <a class="card-link" href="gallery/artifacts/product-analytics.dataflow.html" target="_blank" rel="noopener">Full artifact</a>
                 <a class="card-link" href="gallery/sources/product-analytics.dataflow.json" target="_blank" rel="noopener">JSON IR</a>
-                <a class="card-link create-link" href="start.html?type=dataflow&amp;source=gallery" data-en="Create this type" data-zh="按此类型开始">Create this type</a>
+                <a class="card-link create-link" href="start.html?type=dataflow&amp;source=gallery">Create this type</a>
               </div>
             </div>
           </article>
@@ -459,7 +458,7 @@
               <div class="card-index">07</div>
               <div class="card-title-wrap">
                 <div class="card-kicker">Sequence / 7 nodes / 3 views · play</div>
-                <h3 class="card-title" data-en="Async Job Roundtrip" data-zh="异步任务往返链路">Async Job Roundtrip</h3>
+                <h3 class="card-title">Async Job Roundtrip</h3>
               </div>
               <div class="card-mode">signal-flow + trace</div>
             </header>
@@ -468,7 +467,7 @@
               <iframe src="gallery/artifacts/async-job-roundtrip.sequence.html?embed=1&amp;theme=dark" data-src-base="gallery/artifacts/async-job-roundtrip.sequence.html" title="Async Job Roundtrip live Archify preview" loading="lazy"></iframe>
             </div>
             <div class="card-body">
-              <p class="card-description" data-en="A fast acknowledgement leads into durable queueing, background work, retry, final-state storage, webhook, and polling fallback." data-zh="快速确认后进入持久队列、后台处理、重试、终态存储、Webhook 和轮询回退。">A fast acknowledgement leads into durable queueing, background work, retry, final-state storage, webhook, and polling fallback.</p>
+              <p class="card-description">A fast acknowledgement leads into durable queueing, background work, retry, final-state storage, webhook, and polling fallback.</p>
               <div class="receipt" aria-label="Validation receipt">
                 <div class="receipt-cell"><span class="receipt-label">Artifact</span><span class="receipt-value ok">9/9 pass</span></div>
                 <div class="receipt-cell"><span class="receipt-label">Composition</span><span class="receipt-value ok" title="0 crossings · 0 border runs · 0 micro segments · 0 cramped turns">SHOWCASE · PASS</span></div>
@@ -476,10 +475,10 @@
                 <div class="receipt-cell"><span class="receipt-label">SHA-256</span><span class="receipt-value" title="9b84690a9aa5f0a2911504070038aeb5b7521f6a072e2dfc73fe2b5bf00f6b20">9b84690a9aa5</span></div>
               </div>
               <div class="card-actions">
-                <a class="card-link primary" href="gallery/artifacts/async-job-roundtrip.sequence.html?present=1&amp;play=1#view=work-and-retry" target="_blank" rel="noopener" data-en="Play named chapter ↗" data-zh="播放命名章节 ↗">Play named chapter ↗</a>
-                <a class="card-link" href="gallery/artifacts/async-job-roundtrip.sequence.html" target="_blank" rel="noopener" data-en="Full artifact" data-zh="完整成品">Full artifact</a>
+                <a class="card-link primary" href="gallery/artifacts/async-job-roundtrip.sequence.html?present=1&amp;play=1#view=work-and-retry" target="_blank" rel="noopener">Play named chapter ↗</a>
+                <a class="card-link" href="gallery/artifacts/async-job-roundtrip.sequence.html" target="_blank" rel="noopener">Full artifact</a>
                 <a class="card-link" href="gallery/sources/async-job-roundtrip.sequence.json" target="_blank" rel="noopener">JSON IR</a>
-                <a class="card-link create-link" href="start.html?type=sequence&amp;source=gallery" data-en="Create this type" data-zh="按此类型开始">Create this type</a>
+                <a class="card-link create-link" href="start.html?type=sequence&amp;source=gallery">Create this type</a>
               </div>
             </div>
           </article>
@@ -488,7 +487,7 @@
               <div class="card-index">08</div>
               <div class="card-title-wrap">
                 <div class="card-kicker">Data flow / 12 nodes / 3 views · play</div>
-                <h3 class="card-title" data-en="Order Event-stream Topology" data-zh="订单事件流拓扑">Order Event-stream Topology</h3>
+                <h3 class="card-title">Order Event-stream Topology</h3>
               </div>
               <div class="card-mode">signal-flow + trace</div>
             </header>
@@ -497,7 +496,7 @@
               <iframe src="gallery/artifacts/event-stream.dataflow.html?embed=1&amp;theme=dark" data-src-base="gallery/artifacts/event-stream.dataflow.html" title="Order Event-stream Topology live Archify preview" loading="lazy"></iframe>
             </div>
             <div class="card-body">
-              <p class="card-description" data-en="Named producers, partitioned topics, consumer groups, idempotent state, dead letters, operator ownership, and controlled replay." data-zh="展示命名生产者、分区 Topic、消费者组、幂等状态、死信、负责人和受控重放。">Named producers, partitioned topics, consumer groups, idempotent state, dead letters, operator ownership, and controlled replay.</p>
+              <p class="card-description">Named producers, partitioned topics, consumer groups, idempotent state, dead letters, operator ownership, and controlled replay.</p>
               <div class="receipt" aria-label="Validation receipt">
                 <div class="receipt-cell"><span class="receipt-label">Artifact</span><span class="receipt-value ok">9/9 pass</span></div>
                 <div class="receipt-cell"><span class="receipt-label">Composition</span><span class="receipt-value ok" title="0 crossings · 0 border runs · 0 micro segments · 0 cramped turns">SHOWCASE · PASS</span></div>
@@ -505,10 +504,10 @@
                 <div class="receipt-cell"><span class="receipt-label">SHA-256</span><span class="receipt-value" title="e97d2b573072ce84575c8bd6cf79068d90a5f192fcddad9735bc250a35aa92cd">e97d2b573072</span></div>
               </div>
               <div class="card-actions">
-                <a class="card-link primary" href="gallery/artifacts/event-stream.dataflow.html?present=1&amp;play=1#view=order-transit" target="_blank" rel="noopener" data-en="Play named chapter ↗" data-zh="播放命名章节 ↗">Play named chapter ↗</a>
-                <a class="card-link" href="gallery/artifacts/event-stream.dataflow.html" target="_blank" rel="noopener" data-en="Full artifact" data-zh="完整成品">Full artifact</a>
+                <a class="card-link primary" href="gallery/artifacts/event-stream.dataflow.html?present=1&amp;play=1#view=order-transit" target="_blank" rel="noopener">Play named chapter ↗</a>
+                <a class="card-link" href="gallery/artifacts/event-stream.dataflow.html" target="_blank" rel="noopener">Full artifact</a>
                 <a class="card-link" href="gallery/sources/event-stream.dataflow.json" target="_blank" rel="noopener">JSON IR</a>
-                <a class="card-link create-link" href="start.html?type=dataflow&amp;source=gallery" data-en="Create this type" data-zh="按此类型开始">Create this type</a>
+                <a class="card-link create-link" href="start.html?type=dataflow&amp;source=gallery">Create this type</a>
               </div>
             </div>
           </article>
@@ -517,7 +516,7 @@
               <div class="card-index">09</div>
               <div class="card-title-wrap">
                 <div class="card-kicker">Lifecycle / 10 nodes / 3 views · play</div>
-                <h3 class="card-title" data-en="Agent Run Lifecycle" data-zh="智能体运行生命周期">Agent Run Lifecycle</h3>
+                <h3 class="card-title">Agent Run Lifecycle</h3>
               </div>
               <div class="card-mode">classic + trace</div>
             </header>
@@ -526,7 +525,7 @@
               <iframe src="gallery/artifacts/agent-run.lifecycle.html?embed=1&amp;theme=dark" data-src-base="gallery/artifacts/agent-run.lifecycle.html" title="Agent Run Lifecycle live Archify preview" loading="lazy"></iframe>
             </div>
             <div class="card-body">
-              <p class="card-description" data-en="Planning, execution, review, human approval, retry, cancellation, and terminal outcomes in one state model." data-zh="用一套状态模型表达规划、执行、复核、人工审批、重试、取消和终态。">Planning, execution, review, human approval, retry, cancellation, and terminal outcomes in one state model.</p>
+              <p class="card-description">Planning, execution, review, human approval, retry, cancellation, and terminal outcomes in one state model.</p>
               <div class="receipt" aria-label="Validation receipt">
                 <div class="receipt-cell"><span class="receipt-label">Artifact</span><span class="receipt-value ok">9/9 pass</span></div>
                 <div class="receipt-cell"><span class="receipt-label">Composition</span><span class="receipt-value ok" title="0 crossings · 0 border runs · 0 micro segments · 0 cramped turns">SHOWCASE · PASS</span></div>
@@ -534,10 +533,10 @@
                 <div class="receipt-cell"><span class="receipt-label">SHA-256</span><span class="receipt-value" title="9e3bbe37fbc36a477ed48bdfb40e19da422d22ac6dd63e6067d749a622122094">9e3bbe37fbc3</span></div>
               </div>
               <div class="card-actions">
-                <a class="card-link primary" href="gallery/artifacts/agent-run.lifecycle.html?present=1&amp;play=1#view=main-lifecycle" target="_blank" rel="noopener" data-en="Play named chapter ↗" data-zh="播放命名章节 ↗">Play named chapter ↗</a>
-                <a class="card-link" href="gallery/artifacts/agent-run.lifecycle.html" target="_blank" rel="noopener" data-en="Full artifact" data-zh="完整成品">Full artifact</a>
+                <a class="card-link primary" href="gallery/artifacts/agent-run.lifecycle.html?present=1&amp;play=1#view=main-lifecycle" target="_blank" rel="noopener">Play named chapter ↗</a>
+                <a class="card-link" href="gallery/artifacts/agent-run.lifecycle.html" target="_blank" rel="noopener">Full artifact</a>
                 <a class="card-link" href="gallery/sources/agent-run.lifecycle.json" target="_blank" rel="noopener">JSON IR</a>
-                <a class="card-link create-link" href="start.html?type=lifecycle&amp;source=gallery" data-en="Create this type" data-zh="按此类型开始">Create this type</a>
+                <a class="card-link create-link" href="start.html?type=lifecycle&amp;source=gallery">Create this type</a>
               </div>
             </div>
           </article>
@@ -546,7 +545,7 @@
               <div class="card-index">10</div>
               <div class="card-title-wrap">
                 <div class="card-kicker">Lifecycle / 11 nodes / 3 views · play</div>
-                <h3 class="card-title" data-en="Deployment Release Lifecycle" data-zh="部署发布生命周期">Deployment Release Lifecycle</h3>
+                <h3 class="card-title">Deployment Release Lifecycle</h3>
               </div>
               <div class="card-mode">signal-flow + trace</div>
             </header>
@@ -555,7 +554,7 @@
               <iframe src="gallery/artifacts/deployment-release.lifecycle.html?embed=1&amp;theme=dark" data-src-base="gallery/artifacts/deployment-release.lifecycle.html" title="Deployment Release Lifecycle live Archify preview" loading="lazy"></iframe>
             </div>
             <div class="card-body">
-              <p class="card-description" data-en="The deployment object moves through build, verification, approval, promotion, health pause, rollback, and explicit terminal outcomes." data-zh="部署对象经过构建、验证、审批、晋级、健康暂停、回滚和明确终态。">The deployment object moves through build, verification, approval, promotion, health pause, rollback, and explicit terminal outcomes.</p>
+              <p class="card-description">The deployment object moves through build, verification, approval, promotion, health pause, rollback, and explicit terminal outcomes.</p>
               <div class="receipt" aria-label="Validation receipt">
                 <div class="receipt-cell"><span class="receipt-label">Artifact</span><span class="receipt-value ok">9/9 pass</span></div>
                 <div class="receipt-cell"><span class="receipt-label">Composition</span><span class="receipt-value ok" title="0 crossings · 0 border runs · 0 micro segments · 0 cramped turns">SHOWCASE · PASS</span></div>
@@ -563,10 +562,10 @@
                 <div class="receipt-cell"><span class="receipt-label">SHA-256</span><span class="receipt-value" title="8278f33c028b9dfdddf6d04501c6c9b7d905ecd95ab45d20a58bee8d748cba37">8278f33c028b</span></div>
               </div>
               <div class="card-actions">
-                <a class="card-link primary" href="gallery/artifacts/deployment-release.lifecycle.html?present=1&amp;play=1#view=rollback-outcomes" target="_blank" rel="noopener" data-en="Play named chapter ↗" data-zh="播放命名章节 ↗">Play named chapter ↗</a>
-                <a class="card-link" href="gallery/artifacts/deployment-release.lifecycle.html" target="_blank" rel="noopener" data-en="Full artifact" data-zh="完整成品">Full artifact</a>
+                <a class="card-link primary" href="gallery/artifacts/deployment-release.lifecycle.html?present=1&amp;play=1#view=rollback-outcomes" target="_blank" rel="noopener">Play named chapter ↗</a>
+                <a class="card-link" href="gallery/artifacts/deployment-release.lifecycle.html" target="_blank" rel="noopener">Full artifact</a>
                 <a class="card-link" href="gallery/sources/deployment-release.lifecycle.json" target="_blank" rel="noopener">JSON IR</a>
-                <a class="card-link create-link" href="start.html?type=lifecycle&amp;source=gallery" data-en="Create this type" data-zh="按此类型开始">Create this type</a>
+                <a class="card-link create-link" href="start.html?type=lifecycle&amp;source=gallery">Create this type</a>
               </div>
             </div>
           </article>
@@ -575,7 +574,7 @@
               <div class="card-index">11</div>
               <div class="card-title-wrap">
                 <div class="card-kicker">Architecture / 10 nodes / 3 views · play</div>
-                <h3 class="card-title" data-en="Three-tier Web App" data-zh="三层 Web 应用">Three-tier Web App</h3>
+                <h3 class="card-title">Three-tier Web App</h3>
               </div>
               <div class="card-mode">classic</div>
             </header>
@@ -584,7 +583,7 @@
               <iframe src="gallery/artifacts/web-app.architecture.html?embed=1&amp;theme=dark" data-src-base="gallery/artifacts/web-app.architecture.html" title="Three-tier Web App live Archify preview" loading="lazy"></iframe>
             </div>
             <div class="card-body">
-              <p class="card-description" data-en="A classic AWS web stack with edge delivery, authentication, API services, cache, persistence, and background work." data-zh="经典 AWS Web 栈：边缘分发、鉴权、API 服务、缓存、持久化与后台任务。">A classic AWS web stack with edge delivery, authentication, API services, cache, persistence, and background work.</p>
+              <p class="card-description">A classic AWS web stack with edge delivery, authentication, API services, cache, persistence, and background work.</p>
               <div class="receipt" aria-label="Validation receipt">
                 <div class="receipt-cell"><span class="receipt-label">Artifact</span><span class="receipt-value ok">9/9 pass</span></div>
                 <div class="receipt-cell"><span class="receipt-label">Composition</span><span class="receipt-value ok" title="0 crossings · 0 border runs · 0 micro segments · 0 cramped turns">SHOWCASE · PASS</span></div>
@@ -592,21 +591,21 @@
                 <div class="receipt-cell"><span class="receipt-label">SHA-256</span><span class="receipt-value" title="d2ace03a19456e1ba1e24ed5ec2ef8de495190cbf1f59d54ab9d138d460a5ab8">d2ace03a1945</span></div>
               </div>
               <div class="card-actions">
-                <a class="card-link primary" href="gallery/artifacts/web-app.architecture.html?present=1&amp;play=1#view=request-path" target="_blank" rel="noopener" data-en="Play named chapter ↗" data-zh="播放命名章节 ↗">Play named chapter ↗</a>
-                <a class="card-link" href="gallery/artifacts/web-app.architecture.html" target="_blank" rel="noopener" data-en="Full artifact" data-zh="完整成品">Full artifact</a>
+                <a class="card-link primary" href="gallery/artifacts/web-app.architecture.html?present=1&amp;play=1#view=request-path" target="_blank" rel="noopener">Play named chapter ↗</a>
+                <a class="card-link" href="gallery/artifacts/web-app.architecture.html" target="_blank" rel="noopener">Full artifact</a>
                 <a class="card-link" href="gallery/sources/web-app.architecture.json" target="_blank" rel="noopener">JSON IR</a>
-                <a class="card-link create-link" href="start.html?type=architecture&amp;source=gallery" data-en="Create this type" data-zh="按此类型开始">Create this type</a>
+                <a class="card-link create-link" href="start.html?type=architecture&amp;source=gallery">Create this type</a>
               </div>
             </div>
           </article>
         </div>
-        <div class="empty-state" id="empty-state" data-en="No proof cards match this filter." data-zh="当前筛选条件下没有成品。">No proof cards match this filter.</div>
+        <div class="empty-state" id="empty-state">No proof cards match this filter.</div>
         <div class="community-callout">
           <div class="community-callout-copy">
-            <strong class="community-callout-title" data-en="Built something real?" data-zh="做出了真实成品？">Built something real?</strong>
-            <p data-en="Share the redacted source, verified artifact, validation receipt, and visual-review result. Approved work can join the community Proof Lab with attribution." data-zh="提交脱敏源数据、已验证成品、验证凭证和视觉审查结果。通过审核的作品可署名加入社区 Proof Lab。">Share the redacted source, verified artifact, validation receipt, and visual-review result. Approved work can join the community Proof Lab with attribution.</p>
+            <strong class="community-callout-title">Built something real?</strong>
+            <p>Share the redacted source, verified artifact, validation receipt, and visual-review result. Approved work can join the community Proof Lab with attribution.</p>
           </div>
-          <a class="card-link" href="https://github.com/tt-a1i/archify/issues/new?template=showcase.yml" target="_blank" rel="noopener noreferrer" data-en="Share a verified diagram ↗" data-zh="提交已验证成品 ↗">Share a verified diagram ↗</a>
+          <a class="card-link" href="https://github.com/tt-a1i/archify/issues/new?template=showcase.yml" target="_blank" rel="noopener noreferrer">Share a verified diagram ↗</a>
         </div>
       </div>
     </section>
@@ -614,13 +613,13 @@
     <section class="method">
       <div class="shell method-grid">
         <div>
-          <div class="lead-label" data-en="Build receipt" data-zh="生成凭证">Build receipt</div>
-          <h2 data-en="The gallery cannot drift from the product." data-zh="画廊不会和产品事实分叉。">The gallery cannot drift from the product.</h2>
+          <div class="lead-label">Build receipt</div>
+          <h2>The gallery cannot drift from the product.</h2>
           <div class="pipeline" aria-label="Gallery generation pipeline">
-            <div class="pipeline-step"><span class="pipeline-num">01</span><span class="pipeline-label" data-en="Read versioned JSON IR" data-zh="读取版本化 JSON IR">Read versioned JSON IR</span><span class="pipeline-state">PASS</span></div>
-            <div class="pipeline-step"><span class="pipeline-num">02</span><span class="pipeline-label" data-en="Run the typed renderer" data-zh="执行类型化 renderer">Run the typed renderer</span><span class="pipeline-state">PASS</span></div>
-            <div class="pipeline-step"><span class="pipeline-num">03</span><span class="pipeline-label" data-en="Check HTML and SVG structure" data-zh="检查 HTML 与 SVG 结构">Check HTML and SVG structure</span><span class="pipeline-state">PASS</span></div>
-            <div class="pipeline-step"><span class="pipeline-num">04</span><span class="pipeline-label" data-en="Publish artifact, source, and digest" data-zh="发布成品、源数据与摘要">Publish artifact, source, and digest</span><span class="pipeline-state">PASS</span></div>
+            <div class="pipeline-step"><span class="pipeline-num">01</span><span class="pipeline-label">Read versioned JSON IR</span><span class="pipeline-state">PASS</span></div>
+            <div class="pipeline-step"><span class="pipeline-num">02</span><span class="pipeline-label">Run the typed renderer</span><span class="pipeline-state">PASS</span></div>
+            <div class="pipeline-step"><span class="pipeline-num">03</span><span class="pipeline-label">Check HTML and SVG structure</span><span class="pipeline-state">PASS</span></div>
+            <div class="pipeline-step"><span class="pipeline-num">04</span><span class="pipeline-label">Publish artifact, source, and digest</span><span class="pipeline-state">PASS</span></div>
           </div>
         </div>
         <div class="method-code">
@@ -641,8 +640,8 @@ receipt 99 checks / 11 artifacts / deterministic hashes</pre>
 
   <footer>
     <div class="shell footer-inner">
-      <span data-en="Generated from Archify's checked-in examples. No hand-authored capability claims." data-zh="由 Archify 仓库内示例自动生成，不手写可能过期的能力声明。">Generated from Archify's checked-in examples. No hand-authored capability claims.</span>
-      <span data-en="Archify v2.16.0 · stable · MIT" data-zh="Archify v2.16.0 · 稳定版 · MIT">Archify v2.16.0 · stable · MIT</span>
+      <span>Generated from Archify's checked-in examples. No hand-authored capability claims.</span>
+      <span>Archify v2.16.0 · stable · MIT</span>
     </div>
   </footer>
 
@@ -1755,26 +1754,12 @@ receipt 99 checks / 11 artifacts / deterministic hashes</pre>
     }
   ]
 }</script>
-  <script src="assets/site-language.js"></script>
   <script>
     (function () {
       var cards = Array.prototype.slice.call(document.querySelectorAll('.showcase-card'));
       var filterButtons = Array.prototype.slice.call(document.querySelectorAll('[data-filter]'));
       var empty = document.getElementById('empty-state');
       var previewTheme = 'dark';
-      var language = ArchifySiteLanguage.read();
-
-      function applyLanguage(next) {
-        language = ArchifySiteLanguage.write(next);
-        document.documentElement.lang = language === 'zh' ? 'zh-CN' : 'en';
-        document.querySelectorAll('[data-en][data-zh]').forEach(function (node) {
-          node.innerHTML = node.getAttribute(language === 'zh' ? 'data-zh' : 'data-en');
-        });
-        var languageButton = document.getElementById('language');
-        languageButton.textContent = language === 'zh' ? 'EN' : '中文';
-        languageButton.setAttribute('aria-label', language === 'zh' ? 'Switch to English' : '切换到中文');
-      }
-
       function applyFilter(type, updateUrl) {
         var visible = 0;
         cards.forEach(function (card) {
@@ -1806,14 +1791,11 @@ receipt 99 checks / 11 artifacts / deterministic hashes</pre>
       filterButtons.forEach(function (button) {
         button.addEventListener('click', function () { applyFilter(button.getAttribute('data-filter'), true); });
       });
-      document.getElementById('language').addEventListener('click', function () { applyLanguage(language === 'en' ? 'zh' : 'en'); });
       document.getElementById('preview-theme').addEventListener('click', function () { applyPreviewTheme(previewTheme === 'dark' ? 'light' : 'dark'); });
 
       var allowed = ['architecture', 'workflow', 'sequence', 'dataflow', 'lifecycle'];
       var requested = new URLSearchParams(location.search).get('type') || 'all';
       applyFilter(allowed.indexOf(requested) >= 0 ? requested : 'all', false);
-      applyLanguage(language);
-
       if ('IntersectionObserver' in window) {
         var observer = new IntersectionObserver(function (entries) {
           entries.forEach(function (entry) {

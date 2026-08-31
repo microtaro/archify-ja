@@ -1,5 +1,5 @@
 <p align="center">
-  <strong>English</strong> · <a href="./README_ZH.md">简体中文</a>
+  <strong>English</strong>
 </p>
 
 <p align="center">

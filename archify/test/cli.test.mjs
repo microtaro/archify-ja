@@ -177,16 +177,6 @@ test('cli: guide recommends a scenario as structured json', () => {
   assert.equal(parsed.recommendation.type, 'sequence');
 });
 
-test('cli: guide detects Chinese and explains the recommendation boundary', () => {
-  const result = run(['guide', '展示 Kafka topic 消费者组和死信队列']);
-
-  assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /推荐: 事件流拓扑  \[dataflow\]/);
-  assert.match(result.stdout, /不要这样用:/);
-  assert.match(result.stdout, /必须包含:/);
-  assert.match(result.stdout, /可直接复制的提示词:/);
-});
-
 test('cli: guide works from an installed skill without node_modules', () => {
   const installedRoot = path.join(tmp, 'installed-guide-skill');
   copyInstalledSkill(installedRoot);

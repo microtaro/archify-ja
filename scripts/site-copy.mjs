@@ -14,13 +14,6 @@ export const DIAGRAM_TYPE_LABELS = Object.freeze({
     dataflow: 'Data flow',
     lifecycle: 'Lifecycle',
   }),
-  zh: Object.freeze({
-    architecture: '架构图',
-    workflow: '工作流',
-    sequence: '时序图',
-    dataflow: '数据流',
-    lifecycle: '生命周期',
-  }),
 });
 
 export function diagramTypeCopyReplacements() {
@@ -32,7 +25,6 @@ export function diagramTypeCopyReplacements() {
   for (const type of DIAGRAM_TYPES) {
     const placeholder = type.toUpperCase();
     replacements[`[[DIAGRAM_TYPE_${placeholder}_EN]]`] = DIAGRAM_TYPE_LABELS.en[type];
-    replacements[`[[DIAGRAM_TYPE_${placeholder}_ZH]]`] = DIAGRAM_TYPE_LABELS.zh[type];
   }
 
   return replacements;

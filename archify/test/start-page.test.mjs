@@ -43,7 +43,7 @@ function executeStartPage(html) {
 
   const ids = Object.fromEntries([
     'recipe-title', 'recipe-question', 'recipe-prompt', 'include-list', 'proof-link',
-    'proof-meta', 'copy-status', 'language', 'agent-state', 'install-command',
+    'proof-meta', 'copy-status', 'agent-state', 'install-command',
     'project-command', 'copy-prompt', 'copy-starter',
   ].map((id) => [id, new FakeElement({ id })]));
   ids['start-data'] = new FakeElement({ id: 'start-data', textContent: dataMatch[1] });
@@ -74,7 +74,6 @@ function executeStartPage(html) {
       if (selector === '[data-agent]') return agents;
       if (selector === '[data-input]') return inputs;
       if (selector === '[data-copy-source]') return copySources;
-      if (selector === '[data-en][data-zh]') return [];
       return [];
     },
   };
@@ -82,14 +81,9 @@ function executeStartPage(html) {
     location: { href: 'https://example.test/start.html', search: '', pathname: '/start.html' },
     isSecureContext: true,
     dispatchEvent() {},
-    ArchifySiteLanguage: {
-      read() { return 'en'; },
-      write(value) { return value; },
-    },
   };
   const context = {
     window,
-    ArchifySiteLanguage: window.ArchifySiteLanguage,
     document,
     navigator: { languages: ['en'], language: 'en', clipboard: { async writeText(value) { copied.push(value); } } },
     history: { replaceState(_state, _title, url) { replacedUrl = url; } },
@@ -124,7 +118,7 @@ test('start page: checked-in HTML is reproducible from canonical scenario recipe
   }
 });
 
-test('start page: offers five bounded bilingual starts without ingesting source content', () => {
+test('start page: offers five bounded English starts without ingesting source content', () => {
   const html = fs.readFileSync(path.join(repoRoot, 'docs/start.html'), 'utf8');
   assert.doesNotMatch(html, /\[\[[A-Z0-9_]+\]\]/);
   assert.match(html, /npx -y skills add tt-a1i\/archify --skill archify --agent codex --global --copy --yes/);
@@ -132,15 +126,11 @@ test('start page: offers five bounded bilingual starts without ingesting source 
   for (const agent of ['cursor', 'codex', 'claude-code', 'opencode']) {
     assert.match(html, new RegExp(`role="tab" data-agent="${agent}"`));
   }
-  assert.match(html, /data-en="Describe it\."/);
-  assert.match(html, /data-en="Archify maps it\."/);
-  assert.match(html, /data-zh="直接说，"/);
-  assert.match(html, /data-zh="Archify 就能画。"/);
+  assert.match(html, />Describe it\.</);
+  assert.match(html, />Archify maps it\.</);
   assert.match(html, /id="copy-starter"/);
-  assert.match(html, /data-en="Copy install \+ prompt"/);
-  assert.match(html, /data-zh="复制安装命令 \+ 提示词"/);
-  assert.match(html, /data-en="No repository is required\./);
-  assert.match(html, /data-zh="不需要绑定代码库。/);
+  assert.match(html, />Copy install \+ prompt</);
+  assert.match(html, /No repository is required\./);
   assert.match(html, /data-input="description"/);
   assert.match(html, /data-input="repository"/);
 
@@ -148,7 +138,7 @@ test('start page: offers five bounded bilingual starts without ingesting source 
   assert.ok(dataMatch);
   const data = JSON.parse(dataMatch[1]);
   assert.deepEqual(Object.keys(data), ['architecture', 'workflow', 'sequence', 'dataflow', 'lifecycle']);
-  assert.ok(Object.values(data).every((entry) => entry.en.prompt && entry.zh.prompt && entry.en.descriptionPrompt && entry.zh.descriptionPrompt && entry.en.repositoryPrompt && entry.zh.repositoryPrompt && entry.proof));
+  assert.ok(Object.values(data).every((entry) => entry.en.prompt && !('zh' in entry) && entry.en.descriptionPrompt && entry.en.repositoryPrompt && entry.proof));
 
   const scriptMatch = html.match(/<script>\n([\s\S]*?)\n  <\/script>\n<\/body>/);
   assert.ok(scriptMatch);
@@ -160,7 +150,6 @@ test('start page: offers five bounded bilingual starts without ingesting source 
   assert.match(scriptMatch[1], /next\.searchParams\.set\('agent', agent\)/);
   assert.match(scriptMatch[1], /next\.searchParams\.set\('source', source\)/);
   assert.match(scriptMatch[1], /next\.searchParams\.set\('input', input\)/);
-  assert.match(scriptMatch[1], /next\.searchParams\.delete\('lang'\)/);
   assert.match(scriptMatch[1], /--agent ' \+ agent \+ ' --global --copy --yes/);
   assert.match(scriptMatch[1], /--agent ' \+ agent \+ ' --copy --yes/);
   assert.match(scriptMatch[1], /function starterText\(\)/);
@@ -183,7 +172,7 @@ test('start page: canonical recipes own description and repository prompt varian
   for (const [type, id] of selected) {
     const recipe = SCENARIO_RECIPES.find((candidate) => candidate.id === id);
     assert.equal(recipe?.type, type);
-    for (const language of ['en', 'zh']) {
+    for (const language of ['en']) {
       const prompts = startPromptsFor(recipe, language);
       assert.equal(prompts.descriptionPrompt, recipe.start[language].descriptionPrompt);
       assert.ok(prompts.repositoryPrompt.toLowerCase().includes(recipe[language].prompt.toLowerCase()));

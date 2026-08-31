@@ -27,7 +27,6 @@ const startData = Object.fromEntries(Object.entries(START_RECIPE_IDS).map(([type
     throw new Error(`Missing canonical start recipe ${JSON.stringify(id)} for ${type}.`);
   }
   const enPrompts = startPromptsFor(recipe, 'en');
-  const zhPrompts = startPromptsFor(recipe, 'zh');
   return [type, {
     id: recipe.id,
     type: recipe.type,
@@ -36,10 +35,6 @@ const startData = Object.fromEntries(Object.entries(START_RECIPE_IDS).map(([type
     en: {
       ...recipe.en,
       ...enPrompts,
-    },
-    zh: {
-      ...recipe.zh,
-      ...zhPrompts,
     },
   }];
 }));

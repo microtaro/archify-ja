@@ -5,7 +5,6 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const sourceRoot = path.resolve(__dirname, '../docs/assets');
 const SITE_ASSETS = Object.freeze([
-  'site-language.js',
   'site-navigation.css',
 ]);
 
