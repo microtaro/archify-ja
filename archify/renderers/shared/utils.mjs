@@ -117,7 +117,7 @@ function serializeScriptJson(value) {
 }
 
 const TEMPLATE_PLACEHOLDERS = [
-  '<html lang="en" data-theme="dark" data-preset="[VISUAL PRESET]">',
+  '<html lang="ja-JP" data-theme="dark" data-preset="[VISUAL PRESET]">',
   '<title>[PROJECT NAME] Architecture Diagram</title>',
   '<h1>[PROJECT NAME] Architecture</h1>',
   GUIDED_VIEWS_PLACEHOLDER,
