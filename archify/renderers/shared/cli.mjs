@@ -7,7 +7,7 @@ import { installRendererDiagnosticBoundary, throwDiagnosticProblems } from './di
 import { validateEngineeringProfile } from './engineering-profiles.mjs';
 import { resolveOutputPath } from './output-path.mjs';
 import { prepareDiagramBrandMarks } from './brand-marks.mjs';
-import { resolveLocale, translateMessage } from './i18n.mjs';
+import { resolveLocale, translateCliMessage, translateMessage } from './i18n.mjs';
 
 installRendererDiagnosticBoundary();
 
@@ -98,13 +98,16 @@ export function validateRelationshipIds(diagramType, diagram) {
   relationships.forEach((relationship, index) => {
     if (relationship.id === undefined || relationship.id === null || relationship.id === '') return;
     if (seen.has(relationship.id)) {
-      problems.push(`/${collection}/${index}/id duplicates relationship id ${JSON.stringify(relationship.id)}`);
+      problems.push(translateCliMessage('relationship.duplicate-id', {
+        path: `/${collection}/${index}/id`,
+        id: JSON.stringify(relationship.id),
+      }));
     }
     seen.add(relationship.id);
   });
 
   if (problems.length) {
-    throwDiagnosticProblems('Relationship identity validation failed', problems, {
+    throwDiagnosticProblems(translateCliMessage('relationship.validation-failed'), problems, {
       code: 'relationship/duplicate-id',
       subject: { diagramType, collection },
     });
@@ -123,22 +126,33 @@ export function validateGuidedViews(diagramType, diagram) {
   const problems = [];
 
   views.forEach((view, index) => {
-    if (seen.has(view.id)) problems.push(`/meta/views/${index}/id duplicates view id ${JSON.stringify(view.id)}`);
+    if (seen.has(view.id)) {
+      problems.push(translateCliMessage('guided-view.duplicate-view-id', {
+        path: `/meta/views/${index}/id`,
+        id: JSON.stringify(view.id),
+      }));
+    }
     seen.add(view.id);
     const seenFocus = new Set();
     (view.focus || []).forEach((id, focusIndex) => {
       if (seenFocus.has(id)) {
-        problems.push(`/meta/views/${index}/focus/${focusIndex} duplicates semantic id ${JSON.stringify(id)}`);
+        problems.push(translateCliMessage('guided-view.duplicate-semantic-id', {
+          path: `/meta/views/${index}/focus/${focusIndex}`,
+          id: JSON.stringify(id),
+        }));
       }
       seenFocus.add(id);
       if (!semanticIds.has(id)) {
-        problems.push(`/meta/views/${index}/focus/${focusIndex} references unknown semantic id ${JSON.stringify(id)}`);
+        problems.push(translateCliMessage('guided-view.unknown-semantic-id', {
+          path: `/meta/views/${index}/focus/${focusIndex}`,
+          id: JSON.stringify(id),
+        }));
       }
     });
   });
 
   if (problems.length) {
-    throwDiagnosticProblems('Guided view validation failed', problems, {
+    throwDiagnosticProblems(translateCliMessage('guided-view.validation-failed'), problems, {
       code: 'guided-view/invalid',
       subject: { diagramType, collection: 'meta.views' },
     });

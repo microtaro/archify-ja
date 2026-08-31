@@ -46,7 +46,7 @@ test('repair receipt: malformed JSON is one clean machine object without a Node 
   assert.equal(failure.diagnostics[0].code, 'input/json-parse');
   assert.equal(failure.diagnostics[0].severity, 'error');
   assert.match(failure.diagnostics[0].evidence.reason, /JSON/);
-  assert.deepEqual(failure.diagnostics[0].supportedFixes, ['repair the JSON syntax and run validation again']);
+  assert.deepEqual(failure.diagnostics[0].supportedFixes, ['JSON の構文を修正してから、もう一度検証してください']);
   assert.doesNotMatch(result.stdout, /\n\s+at\s|file:\/\//);
 });
 
@@ -77,7 +77,7 @@ test('repair receipt: all five modes identify schema subjects and supported fixe
       identity,
     });
     assert.equal(repair.evidence.additionalProperty, 'unexpected');
-    assert.deepEqual(repair.supportedFixes, ['remove unsupported property "unexpected"']);
+    assert.deepEqual(repair.supportedFixes, ['未対応のプロパティ "unexpected" を削除してください']);
   }
 });
 
@@ -90,8 +90,40 @@ test('repair receipt: human validation formats the same rule without a stack', (
   assert.equal(result.status, 1);
   assert.equal(result.stdout, '');
   assert.match(result.stderr, /\[schema\/additionalProperties\]/);
-  assert.match(result.stderr, /Fix: remove unsupported property "unexpected"/);
+  assert.match(result.stderr, /修正: 未対応のプロパティ "unexpected" を削除してください/);
   assert.doesNotMatch(result.stderr, /\n\s+at\s|file:\/\//);
+});
+
+test('repair receipt: Japanese schema error preserves JSON shape and diagnostic codes', () => {
+  const source = JSON.parse(fs.readFileSync(path.join(skillRoot, 'examples/agent-tool-call.workflow.json'), 'utf8'));
+  source.nodes[0].unexpected = true;
+  const input = writeFixture('japanese-schema.workflow.json', source);
+
+  const human = run(['validate', 'workflow', input]);
+  assert.equal(human.status, 1);
+  assert.match(human.stderr, /workflow のスキーマ検証に失敗しました/);
+  assert.match(human.stderr, /\[schema\/additionalProperties\]/);
+  assert.match(human.stderr, /修正: 未対応のプロパティ "unexpected" を削除してください。/);
+
+  const machine = run(['validate', 'workflow', input, '--json']);
+  assert.equal(machine.status, 1);
+  assert.equal(machine.stderr, '');
+  const failure = receipt(machine);
+  assert.deepEqual(Object.keys(failure), [
+    'schemaVersion', 'ok', 'command', 'stage', 'type', 'input', 'error', 'diagnostics',
+  ]);
+  assert.equal(failure.command, 'validate');
+  assert.equal(failure.diagnostics[0].code, 'schema/additionalProperties');
+  assert.equal(failure.diagnostics[0].severity, 'error');
+  assert.deepEqual(failure.diagnostics[0].subject, {
+    diagramType: 'workflow',
+    path: '/nodes/0',
+    identity: 'user',
+  });
+  assert.equal(failure.diagnostics[0].evidence.additionalProperty, 'unexpected');
+  assert.deepEqual(failure.diagnostics[0].supportedFixes, [
+    '未対応のプロパティ "unexpected" を削除してください',
+  ]);
 });
 
 test('repair receipt: validate and deliver share exact Clean Flow evidence while delivery preserves the trusted artifact', () => {

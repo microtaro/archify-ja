@@ -7,11 +7,13 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { extractSvgs, parseXml } from './helpers/xml.mjs';
+import { CLI_MESSAGES_JA, CLI_MESSAGE_SOURCES } from '../renderers/shared/i18n.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const skillRoot = path.resolve(__dirname, '..');
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-cli-'));
 const cli = path.join(skillRoot, 'bin/archify.mjs');
+const cliMessageReview = path.join(skillRoot, 'references', 'cli-messages.ja-review.md');
 
 function run(args, options = {}) {
   return spawnSync(process.execPath, [cli, ...args], {
@@ -69,6 +71,72 @@ function copyInstalledSkill(target) {
   });
 }
 
+test('cli: no arguments presents Japanese usage without translating commands or options', () => {
+  const result = run([]);
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /^使い方:\n/);
+  assert.match(result.stdout, /種類:\n  architecture, workflow, sequence, dataflow, lifecycle/);
+  assert.match(result.stdout, /archify validate <type> <input\.json> \[--json\] \[--layout-json\]/);
+  assert.match(result.stdout, /--repo-root path \(architecture のみ\)/);
+});
+
+test('cli: unknown command is Japanese while preserving the command and exit contract', () => {
+  const result = run(['frobnicate']);
+
+  assert.equal(result.status, 2);
+  assert.equal(result.stdout, '');
+  assert.match(result.stderr, /^不明なコマンド "frobnicate"。\n\n使い方:/);
+});
+
+test('cli: Japanese review table records exact English source and direct translation', () => {
+  const markdown = fs.readFileSync(cliMessageReview, 'utf8');
+  const rows = markdown.split('\n')
+    .filter((line) => line.startsWith('| `'))
+    .map((line) => {
+      const cells = line.split('|').slice(1, -1).map((cell) => cell.trim());
+      assert.equal(cells.length, 3, line);
+      return {
+        key: cells[0].slice(1, -1),
+        english: JSON.parse(cells[1]),
+        japanese: JSON.parse(cells[2]),
+      };
+    });
+  const reviewed = new Map(rows.map((row) => [row.key, row]));
+
+  const expectedKeys = Object.keys(CLI_MESSAGE_SOURCES).sort();
+  assert.deepEqual(Object.keys(CLI_MESSAGES_JA).sort(), expectedKeys);
+  assert.deepEqual([...reviewed.keys()].sort(), expectedKeys);
+  assert.equal(new Set(rows.map((row) => row.key)).size, rows.length);
+  for (const row of rows) {
+    assert.equal(row.english, CLI_MESSAGE_SOURCES[row.key], `English source: ${row.key}`);
+    assert.equal(row.japanese, CLI_MESSAGES_JA[row.key], `Japanese review: ${row.key}`);
+    const englishVariables = [...row.english.matchAll(/\{([a-zA-Z0-9_]+)\}/g)].map((match) => match[1]).sort();
+    const japaneseVariables = [...row.japanese.matchAll(/\{([a-zA-Z0-9_]+)\}/g)].map((match) => match[1]).sort();
+    assert.deepEqual(japaneseVariables, englishVariables, `interpolation variables: ${row.key}`);
+  }
+  assert.deepEqual(reviewed.get('usage.heading'), {
+    key: 'usage.heading',
+    english: 'Usage:',
+    japanese: '使い方:',
+  });
+  assert.deepEqual(reviewed.get('error.unknown-command'), {
+    key: 'error.unknown-command',
+    english: 'Unknown command "{command}".',
+    japanese: '不明なコマンド "{command}"。',
+  });
+  assert.deepEqual(reviewed.get('doctor.ready'), {
+    key: 'doctor.ready',
+    english: 'Archify is ready.',
+    japanese: 'Archify を使用できます。',
+  });
+  assert.deepEqual(reviewed.get('schema.additional-properties.fix'), {
+    key: 'schema.additional-properties.fix',
+    english: 'remove unsupported property {property}',
+    japanese: '未対応のプロパティ {property} を削除してください',
+  });
+});
+
 test('cli: help lists commands and diagram types', () => {
   const result = run(['--help']);
   assert.equal(result.status, 0, result.stderr);
@@ -78,10 +146,10 @@ test('cli: help lists commands and diagram types', () => {
   assert.match(result.stdout, /archify preview <type>/);
   assert.match(result.stdout, /archify visual-check <output\.html>/);
   assert.match(result.stdout, /--open/);
-  assert.match(result.stdout, /--repo-root path \(architecture only\)/);
-  assert.match(result.stdout, /archify guide \[scenario or question\]/);
+  assert.match(result.stdout, /--repo-root path \(architecture のみ\)/);
+  assert.match(result.stdout, /archify guide \[シナリオまたは質問\]/);
   assert.match(result.stdout, /archify doctor/);
-  assert.match(result.stdout, /archify demo \[output-directory\]/);
+  assert.match(result.stdout, /archify demo \[出力ディレクトリ\]/);
   assert.match(result.stdout, /architecture, workflow, sequence, dataflow, lifecycle/);
 });
 
@@ -89,16 +157,16 @@ test('cli: doctor reports a complete installation is ready', () => {
   const result = run(['doctor']);
   assert.equal(result.status, 0, result.stderr);
   assert.match(result.stdout, /\[ok\] Node\.js v\d+/);
-  assert.match(result.stdout, /\[ok\] Core template/);
-  assert.match(result.stdout, /\[ok\] Example renderer/);
-  assert.match(result.stdout, /\[ok\] Live preview runtime/);
-  assert.match(result.stdout, /\[ok\] Scenario recipe guide/);
-  assert.match(result.stdout, /\[ok\] Progressive authoring references/);
-  assert.match(result.stdout, /\[ok\] Architecture compare runtime and proof fixtures/);
-  assert.match(result.stdout, /\[ok\] Standalone schema validators/);
-  assert.match(result.stdout, /\[ok\] architecture renderer, schema, and example/);
-  assert.match(result.stdout, /\[ok\] lifecycle renderer, schema, and example/);
-  assert.match(result.stdout, /Archify is ready\./);
+  assert.match(result.stdout, /\[ok\] コアテンプレート/);
+  assert.match(result.stdout, /\[ok\] サンプルレンダラー/);
+  assert.match(result.stdout, /\[ok\] ライブプレビュー実行環境/);
+  assert.match(result.stdout, /\[ok\] シナリオレシピガイド/);
+  assert.match(result.stdout, /\[ok\] 段階的な作成ガイド/);
+  assert.match(result.stdout, /\[ok\] アーキテクチャ比較の実行環境と証跡用データ/);
+  assert.match(result.stdout, /\[ok\] スタンドアロンのスキーマ検証器/);
+  assert.match(result.stdout, /\[ok\] architecture のレンダラー、スキーマ、サンプル/);
+  assert.match(result.stdout, /\[ok\] lifecycle のレンダラー、スキーマ、サンプル/);
+  assert.match(result.stdout, /Archify を使用できます。/);
 });
 
 test('cli: doctor identifies an incomplete installation', () => {
@@ -113,10 +181,10 @@ test('cli: doctor identifies an incomplete installation', () => {
   });
 
   assert.equal(result.status, 1);
-  assert.match(result.stdout, /\[missing\] Core template/);
-  assert.match(result.stdout, /\[missing\] Scenario recipe guide/);
-  assert.match(result.stdout, /\[missing\] workflow renderer, schema, and example/);
-  assert.match(result.stderr, /Archify is not ready: \d+ required files? missing\./);
+  assert.match(result.stdout, /\[missing\] コアテンプレート/);
+  assert.match(result.stdout, /\[missing\] シナリオレシピガイド/);
+  assert.match(result.stdout, /\[missing\] workflow のレンダラー、スキーマ、サンプル/);
+  assert.match(result.stderr, /Archify を使用できません: 必要なファイルが \d+ 件ありません。/);
 });
 
 test('cli: doctor rejects a corrupt standalone validator', () => {
@@ -130,8 +198,8 @@ test('cli: doctor rejects a corrupt standalone validator', () => {
   });
 
   assert.equal(result.status, 1);
-  assert.match(result.stdout, /\[invalid\] Standalone schema validators/);
-  assert.match(result.stderr, /Archify is not ready: 1 runtime check failed\./);
+  assert.match(result.stdout, /\[invalid\] スタンドアロンのスキーマ検証器/);
+  assert.match(result.stderr, /Archify を使用できません: 実行時検査が 1 件失敗しました。/);
 });
 
 test('cli: examples renders from an installed skill', () => {
@@ -198,7 +266,7 @@ test('cli: demo creates a ready-to-open diagram in a chosen directory', () => {
 
   assert.equal(result.status, 0, result.stderr);
   assert.equal(fs.existsSync(output), true);
-  assert.match(fs.readFileSync(output, 'utf8'), /Sample Web App Diagram/);
+  assert.match(fs.readFileSync(output, 'utf8'), /Sample Web App のダイアグラム/);
   assert.match(result.stdout, new RegExp(`Demo ready: ${output.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`));
   assert.match(result.stdout, /Next: open the HTML in your browser/);
   assert.match(result.stdout, /archify render architecture/);
@@ -509,7 +577,7 @@ test('cli: deliver reports renderer failure as json and preserves the previous a
   const failure = JSON.parse(result.stdout);
   assert.equal(failure.ok, false);
   assert.equal(failure.stage, 'render');
-  assert.match(failure.error, /schema validation failed/i);
+  assert.match(failure.error, /スキーマ検証に失敗しました/);
   assert.equal(fs.readFileSync(out, 'utf8'), trustedPriorArtifact);
 });
 
@@ -544,7 +612,11 @@ test('cli: invalid source output metadata still fails inside the renderer', () =
   assert.equal(result.status, 1);
   const failure = JSON.parse(result.stdout);
   assert.equal(failure.stage, 'render');
-  assert.match(failure.error, /schema validation failed/i);
+  assert.match(failure.error, /スキーマ検証に失敗しました/);
+  assert.match(failure.diagnostics[0].message, /型は "string" でなければなりません/);
+  assert.deepEqual(failure.diagnostics[0].supportedFixes, [
+    '/meta/output には "string" を使用してください',
+  ]);
   assert.equal(fs.readFileSync(out, 'utf8'), trustedPriorArtifact);
 });
 
@@ -694,19 +766,19 @@ test('cli: validate rejects unknown flags, layout-json assignment typos, and ext
   const cases = [
     {
       args: ['validate', 'workflow', input, '--layout-json', '--bogus'],
-      pattern: /Unknown validate option "--bogus"/,
+      pattern: /不明な validate オプション "--bogus"/,
     },
     {
       args: ['validate', 'workflow', input, '--layout-json=true'],
-      pattern: /Unknown validate option "--layout-json=true"/,
+      pattern: /不明な validate オプション "--layout-json=true"/,
     },
     {
       args: ['validate', 'workflow', input, '--layout-json=true', '--json'],
-      pattern: /Unknown validate option "--layout-json=true"/,
+      pattern: /不明な validate オプション "--layout-json=true"/,
     },
     {
       args: ['validate', 'workflow', input, 'unexpected-output.html', '--layout-json'],
-      pattern: /Usage:/,
+      pattern: /使い方:/,
     },
   ];
 

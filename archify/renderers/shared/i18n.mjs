@@ -1081,10 +1081,144 @@ const JA_MESSAGES = {
 
 const CATALOGS = { 'ja-JP': JA_MESSAGES, en: MESSAGES };
 
+// CLI copy keeps the shipped English wording beside its direct Japanese
+// translation. Commands, options, paths, numeric values, diagnostic codes,
+// and JSON field names are interpolation values rather than translated copy.
+export const CLI_MESSAGE_SOURCES = Object.freeze({
+  'usage.heading': 'Usage:',
+  'usage.architecture-only': 'architecture only',
+  'usage.guide-argument': 'scenario or question',
+  'usage.brands-query': 'name, alias, domain, or category',
+  'usage.output-directory': 'output-directory',
+  'usage.types': 'Types:',
+  'error.unknown-command': 'Unknown command "{command}".',
+  'error.unknown-option': 'Unknown {command} option "{option}".',
+  'diagnostic.fix-label': 'Fix:',
+  'input.json-parse.message': 'Input JSON could not be parsed: {reason}',
+  'input.json-parse.fix': 'repair the JSON syntax and run validation again',
+  'input.read.message': 'Input could not be read: {reason}',
+  'input.read.fix': 'provide one readable JSON input file',
+  'doctor.heading': 'Archify doctor',
+  'doctor.node': 'Node.js v{version} (requires >=18)',
+  'doctor.core-template': 'Core template',
+  'doctor.example-renderer': 'Example renderer',
+  'doctor.preview-runtime': 'Live preview runtime',
+  'doctor.visual-check-runtime': 'Visual-check runtime',
+  'doctor.output-path-runtime': 'Output path safety runtime',
+  'doctor.scenario-guide': 'Scenario recipe guide',
+  'doctor.authoring-references': 'Progressive authoring references',
+  'doctor.compare-runtime': 'Architecture compare runtime and proof fixtures',
+  'doctor.validators': 'Standalone schema validators',
+  'doctor.renderer-bundle': '{type} renderer, schema, and example',
+  'doctor.ready': 'Archify is ready.',
+  'doctor.not-ready': 'Archify is not ready: {problems}.',
+  'doctor.node-required': 'Node.js 18 or newer is required',
+  'doctor.files-missing': '{count} required file(s) missing',
+  'doctor.runtime-failed': '{count} runtime check(s) failed',
+  'schema.validation-failed': '{type} schema validation failed:',
+  'schema.additional-properties.message': '{path} must NOT have additional properties {details}',
+  'schema.additional-properties.fix': 'remove unsupported property {property}',
+  'schema.required.message': '{path} must have required property {property} {details}',
+  'schema.required.fix': 'add required property {property}',
+  'schema.type.message': '{path} must be {type} {details}',
+  'schema.type.fix': 'use {type} at {path}',
+  'schema.enum.message': '{path} must be equal to one of the allowed values {details}',
+  'schema.enum.fix': 'choose one of {values}',
+  'schema.pattern.message': '{path} must match pattern {pattern} {details}',
+  'schema.pattern.fix': 'match the required pattern {pattern}',
+  'schema.minimum.message': '{path} must be {comparison} {limit} {details}',
+  'schema.minimum.fix': 'use a value {comparison} {limit}',
+  'schema.maximum.message': '{path} must be {comparison} {limit} {details}',
+  'schema.maximum.fix': 'use a value {comparison} {limit}',
+  'schema.min-items.message': '{path} must NOT have fewer than {limit} items {details}',
+  'schema.min-items.fix': 'provide at least {limit} item(s)',
+  'schema.max-items.message': '{path} must NOT have more than {limit} items {details}',
+  'schema.max-items.fix': 'provide at most {limit} item(s)',
+  'schema.min-length.message': '{path} must NOT have fewer than {limit} characters {details}',
+  'schema.min-length.fix': 'provide at least {limit} character(s)',
+  'schema.max-length.message': '{path} must NOT have more than {limit} characters {details}',
+  'schema.max-length.fix': 'provide at most {limit} character(s)',
+  'relationship.validation-failed': 'Relationship identity validation failed',
+  'relationship.duplicate-id': '{path} duplicates relationship id {id}',
+  'guided-view.validation-failed': 'Guided view validation failed',
+  'guided-view.duplicate-view-id': '{path} duplicates view id {id}',
+  'guided-view.duplicate-semantic-id': '{path} duplicates semantic id {id}',
+  'guided-view.unknown-semantic-id': '{path} references unknown semantic id {id}',
+  'i18n.invalid-message': 'Invalid Archify i18n message {key} for {locale}',
+  'i18n.missing-message': 'Missing Archify i18n message {key} for {locale}',
+});
+
+export const CLI_MESSAGES_JA = Object.freeze({
+  'usage.heading': '使い方:',
+  'usage.architecture-only': 'architecture のみ',
+  'usage.guide-argument': 'シナリオまたは質問',
+  'usage.brands-query': '名前、別名、ドメイン、またはカテゴリ',
+  'usage.output-directory': '出力ディレクトリ',
+  'usage.types': '種類:',
+  'error.unknown-command': '不明なコマンド "{command}"。',
+  'error.unknown-option': '不明な {command} オプション "{option}"。',
+  'diagnostic.fix-label': '修正:',
+  'input.json-parse.message': '入力 JSON を解析できませんでした: {reason}',
+  'input.json-parse.fix': 'JSON の構文を修正してから、もう一度検証してください',
+  'input.read.message': '入力を読み込めませんでした: {reason}',
+  'input.read.fix': '読み取り可能な JSON 入力ファイルを 1 つ指定してください',
+  'doctor.heading': 'Archify 診断',
+  'doctor.node': 'Node.js v{version}（18 以上が必要）',
+  'doctor.core-template': 'コアテンプレート',
+  'doctor.example-renderer': 'サンプルレンダラー',
+  'doctor.preview-runtime': 'ライブプレビュー実行環境',
+  'doctor.visual-check-runtime': 'visual-check 実行環境',
+  'doctor.output-path-runtime': '出力パス安全性の実行環境',
+  'doctor.scenario-guide': 'シナリオレシピガイド',
+  'doctor.authoring-references': '段階的な作成ガイド',
+  'doctor.compare-runtime': 'アーキテクチャ比較の実行環境と証跡用データ',
+  'doctor.validators': 'スタンドアロンのスキーマ検証器',
+  'doctor.renderer-bundle': '{type} のレンダラー、スキーマ、サンプル',
+  'doctor.ready': 'Archify を使用できます。',
+  'doctor.not-ready': 'Archify を使用できません: {problems}。',
+  'doctor.node-required': 'Node.js 18 以上が必要です',
+  'doctor.files-missing': '必要なファイルが {count} 件ありません',
+  'doctor.runtime-failed': '実行時検査が {count} 件失敗しました',
+  'schema.validation-failed': '{type} のスキーマ検証に失敗しました:',
+  'schema.additional-properties.message': '{path} に未対応のプロパティを含めることはできません {details}',
+  'schema.additional-properties.fix': '未対応のプロパティ {property} を削除してください',
+  'schema.required.message': '{path} に必須プロパティ {property} がありません {details}',
+  'schema.required.fix': '必須プロパティ {property} を追加してください',
+  'schema.type.message': '{path} の型は {type} でなければなりません {details}',
+  'schema.type.fix': '{path} には {type} を使用してください',
+  'schema.enum.message': '{path} は許可された値のいずれかでなければなりません {details}',
+  'schema.enum.fix': '{values} のいずれかを選択してください',
+  'schema.pattern.message': '{path} はパターン {pattern} に一致しなければなりません {details}',
+  'schema.pattern.fix': '必須パターン {pattern} に一致させてください',
+  'schema.minimum.message': '{path} は {comparison} {limit} でなければなりません {details}',
+  'schema.minimum.fix': '{comparison} {limit} の値を使用してください',
+  'schema.maximum.message': '{path} は {comparison} {limit} でなければなりません {details}',
+  'schema.maximum.fix': '{comparison} {limit} の値を使用してください',
+  'schema.min-items.message': '{path} には {limit} 項目以上が必要です {details}',
+  'schema.min-items.fix': '{limit} 項目以上を指定してください',
+  'schema.max-items.message': '{path} は {limit} 項目以下でなければなりません {details}',
+  'schema.max-items.fix': '{limit} 項目以下を指定してください',
+  'schema.min-length.message': '{path} は {limit} 文字以上でなければなりません {details}',
+  'schema.min-length.fix': '{limit} 文字以上を指定してください',
+  'schema.max-length.message': '{path} は {limit} 文字以下でなければなりません {details}',
+  'schema.max-length.fix': '{limit} 文字以下を指定してください',
+  'relationship.validation-failed': '関係 ID の検証に失敗しました',
+  'relationship.duplicate-id': '{path} で関係 ID {id} が重複しています',
+  'guided-view.validation-failed': 'ガイド表示の検証に失敗しました',
+  'guided-view.duplicate-view-id': '{path} で表示 ID {id} が重複しています',
+  'guided-view.duplicate-semantic-id': '{path} でセマンティック ID {id} が重複しています',
+  'guided-view.unknown-semantic-id': '{path} が不明なセマンティック ID {id} を参照しています',
+  'i18n.invalid-message': 'Archify の i18n メッセージ {key} は {locale} で無効です',
+  'i18n.missing-message': 'Archify の i18n メッセージ {key} が {locale} にありません',
+});
+
 for (const [locale, catalog] of Object.entries(CATALOGS)) {
   for (const [key, message] of Object.entries(catalog)) {
     if (typeof message !== 'string') {
-      throw new Error(`Invalid Archify i18n message ${JSON.stringify(key)} for ${locale}`);
+      throw new Error(translateCliMessage('i18n.invalid-message', {
+        key: JSON.stringify(key),
+        locale,
+      }));
     }
   }
 }
@@ -1099,10 +1233,20 @@ export function formatMessage(template, values = {}) {
   ));
 }
 
+export function translateCliMessage(key, values = {}) {
+  if (!Object.hasOwn(CLI_MESSAGES_JA, key)) {
+    throw new Error(`CLI message key ${JSON.stringify(key)} is not defined`);
+  }
+  return formatMessage(CLI_MESSAGES_JA[key], values);
+}
+
 export function translateMessage(locale, key, values = {}) {
   const resolved = resolveLocale(locale);
   if (!Object.hasOwn(CATALOGS[resolved], key)) {
-    throw new Error(`Missing Archify i18n message ${JSON.stringify(key)} for ${resolved}`);
+    throw new Error(translateCliMessage('i18n.missing-message', {
+      key: JSON.stringify(key),
+      locale: resolved,
+    }));
   }
   return formatMessage(CATALOGS[resolved][key], values);
 }

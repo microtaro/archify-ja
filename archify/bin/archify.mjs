@@ -7,30 +7,72 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
+let translateCliMessage;
+try {
+  ({ translateCliMessage } = await import('../renderers/shared/i18n.mjs'));
+} catch (error) {
+  if (error?.code !== 'ERR_MODULE_NOT_FOUND') throw error;
+  // `doctor` must still diagnose a severely incomplete installation where
+  // only this entrypoint remains. Keep its Japanese output usable until the
+  // missing shared runtime is reported by the checks below.
+  const fallbackMessages = {
+    'usage.heading': '使い方:',
+    'usage.architecture-only': 'architecture のみ',
+    'usage.guide-argument': 'シナリオまたは質問',
+    'usage.brands-query': '名前、別名、ドメイン、またはカテゴリ',
+    'usage.output-directory': '出力ディレクトリ',
+    'usage.types': '種類:',
+    'error.unknown-command': '不明なコマンド "{command}"。',
+    'error.unknown-option': '不明な {command} オプション "{option}"。',
+    'diagnostic.fix-label': '修正:',
+    'doctor.heading': 'Archify 診断',
+    'doctor.node': 'Node.js v{version}（18 以上が必要）',
+    'doctor.core-template': 'コアテンプレート',
+    'doctor.example-renderer': 'サンプルレンダラー',
+    'doctor.preview-runtime': 'ライブプレビュー実行環境',
+    'doctor.visual-check-runtime': 'visual-check 実行環境',
+    'doctor.output-path-runtime': '出力パス安全性の実行環境',
+    'doctor.scenario-guide': 'シナリオレシピガイド',
+    'doctor.authoring-references': '段階的な作成ガイド',
+    'doctor.compare-runtime': 'アーキテクチャ比較の実行環境と証跡用データ',
+    'doctor.validators': 'スタンドアロンのスキーマ検証器',
+    'doctor.renderer-bundle': '{type} のレンダラー、スキーマ、サンプル',
+    'doctor.ready': 'Archify を使用できます。',
+    'doctor.not-ready': 'Archify を使用できません: {problems}。',
+    'doctor.node-required': 'Node.js 18 以上が必要です',
+    'doctor.files-missing': '必要なファイルが {count} 件ありません',
+    'doctor.runtime-failed': '実行時検査が {count} 件失敗しました',
+  };
+  translateCliMessage = (key, values = {}) => String(fallbackMessages[key] || key)
+    .replace(/\{([a-zA-Z0-9_]+)\}/g, (match, name) => (
+      Object.hasOwn(values, name) ? String(values[name]) : match
+    ));
+}
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const skillRoot = path.resolve(__dirname, '..');
 
 const TYPES = new Set(['architecture', 'workflow', 'sequence', 'dataflow', 'lifecycle']);
 
 function usage() {
-  return `Usage:
-  archify render <type> <input.json> [output.html] [--quality standard|showcase] [--repo-root path (architecture only)]
+  return `${translateCliMessage('usage.heading')}
+  archify render <type> <input.json> [output.html] [--quality standard|showcase] [--repo-root path (${translateCliMessage('usage.architecture-only')})]
   archify compare architecture <base.json> <head.json> [output.html] [--receipt path] [--json] [--quality standard|showcase] [--repo-root path]
-  archify deliver <type> <input.json> [output.html] [--json] [--open] [--quality standard|showcase] [--repo-root path (architecture only)]
-  archify preview <type> <input.json> [output.html] [--no-open] [--quality standard|showcase] [--repo-root path (architecture only)]
-  archify validate <type> <input.json> [--json] [--layout-json] [--quality standard|showcase] [--repo-root path (architecture only)]
+  archify deliver <type> <input.json> [output.html] [--json] [--open] [--quality standard|showcase] [--repo-root path (${translateCliMessage('usage.architecture-only')})]
+  archify preview <type> <input.json> [output.html] [--no-open] [--quality standard|showcase] [--repo-root path (${translateCliMessage('usage.architecture-only')})]
+  archify validate <type> <input.json> [--json] [--layout-json] [--quality standard|showcase] [--repo-root path (${translateCliMessage('usage.architecture-only')})]
   archify migrate workflow <old.json> <new.json> --to-schema 2 [--json]
   archify inspect <type> <input.json>
   archify check <output.html>
   archify visual-check <output.html> [--json]
-  archify guide [scenario or question] [--json] [--lang en|zh]
-  archify brands [name, alias, domain, or category] [--json]
+  archify guide [${translateCliMessage('usage.guide-argument')}] [--json] [--lang en|zh]
+  archify brands [${translateCliMessage('usage.brands-query')}] [--json]
   archify brands capture <url> [--json]
   archify examples
   archify doctor
-  archify demo [output-directory]
+  archify demo [${translateCliMessage('usage.output-directory')}]
 
-Types:
+${translateCliMessage('usage.types')}
   architecture, workflow, sequence, dataflow, lifecycle
 `;
 }
@@ -152,9 +194,10 @@ function rendererFailure(result) {
   try {
     const payload = JSON.parse((result.stderr || '').trim());
     if (payload?.ok === false && Array.isArray(payload.diagnostics) && payload.diagnostics.length) {
+      const diagnostics = payload.diagnostics.map(localizeRendererDiagnostic);
       return {
-        error: payload.error || payload.diagnostics[0].message,
-        diagnostics: payload.diagnostics,
+        error: localizeRendererError(payload.error, diagnostics),
+        diagnostics,
       };
     }
   } catch {
@@ -169,6 +212,82 @@ function rendererFailure(result) {
       evidence: { exitCode: result.status ?? 1 },
     })],
   };
+}
+
+function annotatedDiagnosticPath(diagnostic) {
+  const pathValue = diagnostic.subject?.path || '/';
+  return diagnostic.subject?.identity == null
+    ? pathValue
+    : `${pathValue} (id/label: ${JSON.stringify(diagnostic.subject.identity)})`;
+}
+
+function localizeRendererDiagnostic(diagnosticEntry) {
+  const entry = {
+    ...diagnosticEntry,
+    subject: { ...(diagnosticEntry.subject || {}) },
+    evidence: { ...(diagnosticEntry.evidence || {}) },
+    supportedFixes: [...(diagnosticEntry.supportedFixes || [])],
+  };
+  if (entry.code === 'input/json-parse') {
+    entry.message = translateCliMessage('input.json-parse.message', {
+      reason: entry.evidence.reason || entry.message,
+    });
+    entry.supportedFixes = [translateCliMessage('input.json-parse.fix')];
+  } else if (entry.code === 'input/read') {
+    entry.message = translateCliMessage('input.read.message', {
+      reason: entry.evidence.reason || entry.message,
+    });
+    entry.supportedFixes = [translateCliMessage('input.read.fix')];
+  } else if (entry.code === 'schema/additionalProperties') {
+    const property = JSON.stringify(entry.evidence.additionalProperty);
+    entry.message = translateCliMessage('schema.additional-properties.message', {
+      path: annotatedDiagnosticPath(entry),
+      details: JSON.stringify({ additionalProperty: entry.evidence.additionalProperty }),
+    });
+    entry.supportedFixes = [translateCliMessage('schema.additional-properties.fix', { property })];
+  } else if (entry.code?.startsWith('schema/')) {
+    const keyword = entry.code.slice('schema/'.length);
+    const messageKey = {
+      required: 'required',
+      type: 'type',
+      enum: 'enum',
+      pattern: 'pattern',
+      minimum: 'minimum',
+      maximum: 'maximum',
+      minItems: 'min-items',
+      maxItems: 'max-items',
+      minLength: 'min-length',
+      maxLength: 'max-length',
+    }[keyword];
+    if (messageKey) {
+      const params = Object.fromEntries(Object.entries(entry.evidence)
+        .filter(([name]) => name !== 'keyword' && name !== 'expected'));
+      const values = {
+        path: annotatedDiagnosticPath(entry),
+        details: Object.keys(params).length ? JSON.stringify(params) : '',
+        property: JSON.stringify(entry.evidence.missingProperty),
+        type: JSON.stringify(entry.evidence.type),
+        values: JSON.stringify(entry.evidence.allowedValues || []),
+        pattern: JSON.stringify(entry.evidence.pattern),
+        comparison: entry.evidence.comparison,
+        limit: entry.evidence.limit,
+      };
+      entry.message = translateCliMessage(`schema.${messageKey}.message`, values).trimEnd();
+      entry.supportedFixes = [translateCliMessage(`schema.${messageKey}.fix`, values)];
+    }
+  }
+  return entry;
+}
+
+function localizeRendererError(error, diagnostics) {
+  const primary = diagnostics[0];
+  if (primary?.code === 'input/json-parse' || primary?.code === 'input/read') return primary.message;
+  if (primary?.code?.startsWith('schema/')) {
+    return `${translateCliMessage('schema.validation-failed', {
+      type: primary.subject?.diagramType || 'diagram',
+    })}\n  ${primary.message}`;
+  }
+  return error || primary?.message;
 }
 
 const COMPOSITION_CHECKS = new Set([
@@ -233,7 +352,9 @@ function formatDiagnostics(error, diagnostics = []) {
   return [
     error,
     ...diagnostics.map((entry) => {
-      const fix = entry.supportedFixes?.length ? ` Fix: ${entry.supportedFixes.join('; ')}.` : '';
+      const fix = entry.supportedFixes?.length
+        ? ` ${translateCliMessage('diagnostic.fix-label')} ${entry.supportedFixes.join('; ')}。`
+        : '';
       return `[${entry.code}] ${entry.message}${fix}`;
     }),
   ].join('\n');
@@ -293,7 +414,7 @@ function extractCompareOptions(args) {
       if (!receipt) fail('--receipt requires a JSON output path.');
       continue;
     }
-    if (arg.startsWith('--')) fail(`Unknown compare option "${arg}".`);
+    if (arg.startsWith('--')) fail(translateCliMessage('error.unknown-option', { command: 'compare', option: arg }));
     positional.push(arg);
   }
   return { positional, receipt, json };
@@ -755,7 +876,7 @@ async function commandDeliver(args) {
   const open = repoArgs.rest.includes('--open');
   const knownOptions = new Set(['--json', '--open']);
   const unknown = repoArgs.rest.filter((arg) => arg.startsWith('--') && !knownOptions.has(arg));
-  if (unknown.length) fail(`Unknown deliver option "${unknown[0]}".`);
+  if (unknown.length) fail(translateCliMessage('error.unknown-option', { command: 'deliver', option: unknown[0] }));
   const positional = repoArgs.rest.filter((arg) => !knownOptions.has(arg));
   const [type, input, requestedOutput] = positional;
   if (!type || !input || positional.length > 3) fail(usage());
@@ -1119,7 +1240,7 @@ async function commandPreview(args) {
   const noOpen = repoArgs.rest.includes('--no-open');
   const knownOptions = new Set(['--no-open']);
   const unknown = repoArgs.rest.filter((arg) => arg.startsWith('--') && !knownOptions.has(arg));
-  if (unknown.length) fail(`Unknown preview option "${unknown[0]}".`);
+  if (unknown.length) fail(translateCliMessage('error.unknown-option', { command: 'preview', option: unknown[0] }));
   const positional = repoArgs.rest.filter((arg) => !knownOptions.has(arg));
   const [type, input, output] = positional;
   if (!type || !input || positional.length > 3) fail(usage());
@@ -1157,7 +1278,7 @@ async function commandVisualCheck(args) {
   const json = args.includes('--json');
   const knownOptions = new Set(['--json']);
   const unknown = args.filter((arg) => arg.startsWith('--') && !knownOptions.has(arg));
-  if (unknown.length) fail(`Unknown visual-check option "${unknown[0]}".`, 1);
+  if (unknown.length) fail(translateCliMessage('error.unknown-option', { command: 'visual-check', option: unknown[0] }), 1);
   const positional = args.filter((arg) => !knownOptions.has(arg));
   if (positional.length !== 1) fail(usage(), 1);
 
@@ -1212,7 +1333,7 @@ async function commandDoctor() {
   const checks = [];
   const nodeMajor = Number.parseInt(process.versions.node.split('.')[0], 10);
   checks.push({
-    label: `Node.js v${process.versions.node} (requires >=18)`,
+    label: translateCliMessage('doctor.node', { version: process.versions.node }),
     ok: nodeMajor >= 18,
     missing: 0,
     failureLabel: 'unsupported',
@@ -1220,42 +1341,42 @@ async function commandDoctor() {
 
   const template = path.join(skillRoot, 'assets/template.html');
   checks.push({
-    label: 'Core template',
+    label: translateCliMessage('doctor.core-template'),
     ok: fs.existsSync(template),
     missing: fs.existsSync(template) ? 0 : 1,
   });
 
   const examplesRenderer = path.join(skillRoot, 'scripts/render-examples.mjs');
   checks.push({
-    label: 'Example renderer',
+    label: translateCliMessage('doctor.example-renderer'),
     ok: fs.existsSync(examplesRenderer),
     missing: fs.existsSync(examplesRenderer) ? 0 : 1,
   });
 
   const previewRuntime = path.join(skillRoot, 'bin/preview.mjs');
   checks.push({
-    label: 'Live preview runtime',
+    label: translateCliMessage('doctor.preview-runtime'),
     ok: fs.existsSync(previewRuntime),
     missing: fs.existsSync(previewRuntime) ? 0 : 1,
   });
 
   const visualCheckRuntime = path.join(skillRoot, 'bin/visual-check.mjs');
   checks.push({
-    label: 'Visual-check runtime',
+    label: translateCliMessage('doctor.visual-check-runtime'),
     ok: fs.existsSync(visualCheckRuntime),
     missing: fs.existsSync(visualCheckRuntime) ? 0 : 1,
   });
 
   const outputPathRuntime = path.join(skillRoot, 'renderers/shared/output-path.mjs');
   checks.push({
-    label: 'Output path safety runtime',
+    label: translateCliMessage('doctor.output-path-runtime'),
     ok: fs.existsSync(outputPathRuntime),
     missing: fs.existsSync(outputPathRuntime) ? 0 : 1,
   });
 
   const scenarioGuide = path.join(skillRoot, 'recipes/scenarios.mjs');
   checks.push({
-    label: 'Scenario recipe guide',
+    label: translateCliMessage('doctor.scenario-guide'),
     ok: fs.existsSync(scenarioGuide),
     missing: fs.existsSync(scenarioGuide) ? 0 : 1,
   });
@@ -1267,7 +1388,7 @@ async function commandDoctor() {
   ];
   const authoringReferencesMissing = authoringReferences.filter((file) => !fs.existsSync(file)).length;
   checks.push({
-    label: 'Progressive authoring references',
+    label: translateCliMessage('doctor.authoring-references'),
     ok: authoringReferencesMissing === 0,
     missing: authoringReferencesMissing,
   });
@@ -1279,7 +1400,7 @@ async function commandDoctor() {
   ];
   const compareMissing = [compareRuntime, ...compareFixtures].filter((file) => !fs.existsSync(file)).length;
   checks.push({
-    label: 'Architecture compare runtime and proof fixtures',
+    label: translateCliMessage('doctor.compare-runtime'),
     ok: compareMissing === 0,
     missing: compareMissing,
   });
@@ -1296,7 +1417,7 @@ async function commandDoctor() {
     }
   }
   checks.push({
-    label: 'Standalone schema validators',
+    label: translateCliMessage('doctor.validators'),
     ok: validatorsValid,
     missing: validatorsExist ? 0 : 1,
     invalid: validatorsExist && !validatorsValid ? 1 : 0,
@@ -1319,13 +1440,13 @@ async function commandDoctor() {
     ];
     const missing = required.filter((file) => !fs.existsSync(file)).length;
     checks.push({
-      label: `${type} renderer, schema, and example`,
+      label: translateCliMessage('doctor.renderer-bundle', { type }),
       ok: missing === 0,
       missing,
     });
   }
 
-  console.log('Archify doctor\n');
+  console.log(`${translateCliMessage('doctor.heading')}\n`);
   for (const check of checks) {
     console.log(`[${check.ok ? 'ok' : (check.failureLabel || 'missing')}] ${check.label}`);
   }
@@ -1334,15 +1455,15 @@ async function commandDoctor() {
   const missingFiles = checks.reduce((count, check) => count + check.missing, 0);
   const invalidRuntime = checks.reduce((count, check) => count + (check.invalid || 0), 0);
   if (nodeFailed === 0 && missingFiles === 0 && invalidRuntime === 0) {
-    console.log('\nArchify is ready.');
+    console.log(`\n${translateCliMessage('doctor.ready')}`);
     return;
   }
 
   const problems = [];
-  if (nodeFailed) problems.push('Node.js 18 or newer is required');
-  if (missingFiles) problems.push(`${missingFiles} required file${missingFiles === 1 ? '' : 's'} missing`);
-  if (invalidRuntime) problems.push(`${invalidRuntime} runtime check${invalidRuntime === 1 ? '' : 's'} failed`);
-  console.error(`\nArchify is not ready: ${problems.join('; ')}.`);
+  if (nodeFailed) problems.push(translateCliMessage('doctor.node-required'));
+  if (missingFiles) problems.push(translateCliMessage('doctor.files-missing', { count: missingFiles }));
+  if (invalidRuntime) problems.push(translateCliMessage('doctor.runtime-failed', { count: invalidRuntime }));
+  console.error(`\n${translateCliMessage('doctor.not-ready', { problems: problems.join('、') })}`);
   process.exitCode = 1;
 }
 
@@ -1365,7 +1486,7 @@ async function commandGuide(args) {
       if (value !== 'en' && value !== 'zh') fail('--lang must be "en" or "zh".');
       lang = value;
     } else if (arg.startsWith('--')) {
-      fail(`Unknown guide option "${arg}".`);
+      fail(translateCliMessage('error.unknown-option', { command: 'guide', option: arg }));
     } else {
       queryParts.push(arg);
     }
@@ -1402,7 +1523,7 @@ async function commandGuide(args) {
 async function commandBrands(args) {
   const json = args.includes('--json');
   const unknown = args.filter((arg) => arg.startsWith('--') && arg !== '--json');
-  if (unknown.length) fail(`Unknown brands option "${unknown[0]}".`);
+  if (unknown.length) fail(translateCliMessage('error.unknown-option', { command: 'brands', option: unknown[0] }));
   const positional = args.filter((arg) => arg !== '--json');
   if (positional[0] === 'capture') {
     if (positional.length !== 2) fail('Usage: archify brands capture <url> [--json]');
@@ -1576,7 +1697,7 @@ function extractMigrationOptions(args) {
       if (!toSchema) fail('--to-schema requires a schema version.');
       continue;
     }
-    if (arg.startsWith('--')) fail(`Unknown migrate option "${arg}".`);
+    if (arg.startsWith('--')) fail(translateCliMessage('error.unknown-option', { command: 'migrate', option: arg }));
     positional.push(arg);
   }
   return { positional, json, toSchema };
@@ -1813,7 +1934,7 @@ function commandValidate(args) {
   const repoRoot = repoArgs.repoRoot;
   const knownOptions = new Set(['--json', '--layout-json']);
   const unknown = args.filter((arg) => arg.startsWith('--') && !knownOptions.has(arg));
-  if (unknown.length) fail(`Unknown validate option "${unknown[0]}".`);
+  if (unknown.length) fail(translateCliMessage('error.unknown-option', { command: 'validate', option: unknown[0] }));
   const json = args.includes('--json');
   const layoutJson = args.includes('--layout-json');
   const rest = args.filter((arg) => !knownOptions.has(arg));
@@ -1984,5 +2105,5 @@ switch (command) {
     commandDemo(args);
     break;
   default:
-    fail(`Unknown command "${command}".\n\n${usage()}`);
+    fail(`${translateCliMessage('error.unknown-command', { command })}\n\n${usage()}`);
 }
