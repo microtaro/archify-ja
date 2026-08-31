@@ -5,3 +5,6 @@ node_modules/
 .lore/
 /.impeccable/
 .worktrees/
+
+# 会社の情報を含む作図データ（公開しない）
+experiments/route-field-guide/
