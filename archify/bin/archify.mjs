@@ -8,9 +8,10 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 let translateCliMessage;
+let localizeBrandCaptureError;
 let CLI_MESSAGE_SOURCES = {};
 try {
-  ({ CLI_MESSAGE_SOURCES, translateCliMessage } = await import('../renderers/shared/i18n.mjs'));
+  ({ CLI_MESSAGE_SOURCES, translateCliMessage, localizeBrandCaptureError } = await import('../renderers/shared/i18n.mjs'));
 } catch (error) {
   if (error?.code !== 'ERR_MODULE_NOT_FOUND') throw error;
   // `doctor` must still diagnose a severely incomplete installation where
@@ -894,7 +895,7 @@ function sourceEvidenceFromArtifact(artifact) {
   const match = html.match(/<script id="archify-source-evidence-data" type="application\/json">([\s\S]*?)<\/script>/);
   if (!match) return null;
   const evidence = JSON.parse(match[1]);
-  if (evidence?.verified !== true || !evidence.repository?.url || !evidence.repository?.revision || !Number.isInteger(evidence.referenceCount)) {
+  if (evidence?.verified !== true || !evidence.repository?.revision || !Number.isInteger(evidence.referenceCount)) {
     throw new Error(translateCliMessage('delivery.evidence-incomplete'));
   }
   return evidence;
@@ -1180,7 +1181,10 @@ async function commandDeliver(args) {
       ...(sourceEvidence ? {
         evidence: {
           verified: true,
-          repository: sourceEvidence.repository.url,
+          // Verification is always local. "scope" says whether the verified
+          // paths also resolve to public permalinks.
+          scope: sourceEvidence.repository.url ? 'public-permalink' : 'local',
+          ...(sourceEvidence.repository.url ? { repository: sourceEvidence.repository.url } : {}),
           revision: sourceEvidence.repository.revision,
           references: sourceEvidence.referenceCount,
         },
@@ -1611,35 +1615,6 @@ async function commandBrands(args) {
   for (const [category, entries] of grouped) {
     console.log(`${category}: ${entries.map((mark) => mark.id).join(', ')}`);
   }
-}
-
-function localizeBrandCaptureError(message) {
-  const exact = {
-    'brand capture requires one HTTP(S) URL': 'brand.capture-url-required',
-    'only HTTP(S) brand links are supported': 'brand.http-only',
-    'brand links cannot contain credentials': 'brand.credentials',
-    'brand links must use a standard web port': 'brand.standard-port',
-    'private brand links are not fetched': 'brand.private',
-    'brand capture timed out': 'brand.timeout',
-    'brand link redirected too many times': 'brand.redirects',
-    'brand asset is too large': 'brand.asset-too-large',
-    'no usable site icon was found': 'brand.no-icon',
-  }[message];
-  if (exact) return translateCliMessage(exact);
-
-  let match = message.match(/^brand link returned HTTP (\d+)$/);
-  if (match) return translateCliMessage('brand.http-status', { status: match[1] });
-  match = message.match(/^unsupported brand image type (.+)$/);
-  if (match) return translateCliMessage('brand.unsupported-image', { contentType: match[1] });
-  match = message.match(/^brand asset bytes do not match (.+)$/);
-  if (match) return translateCliMessage('brand.bytes-mismatch', { contentType: match[1] });
-  match = message.match(/^brand capture failed: ([\s\S]+)$/);
-  if (match) {
-    return translateCliMessage('brand.capture-failed', {
-      reason: localizeBrandCaptureError(match[1]),
-    });
-  }
-  return message;
 }
 
 function commandDemo(args) {

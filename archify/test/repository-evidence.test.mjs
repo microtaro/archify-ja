@@ -6,6 +6,7 @@ import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { startPreview } from '../bin/preview.mjs';
+import { cliFragment, copyPattern } from './helpers/viewer-copy.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const skillRoot = path.resolve(here, '..');
@@ -89,6 +90,7 @@ test('repository evidence is revision-verified, receipt-backed, searchable, and 
   const receipt = JSON.parse(result.stdout);
   assert.deepEqual(receipt.evidence, {
     verified: true,
+    scope: 'public-permalink',
     repository: 'https://github.com/example/evidence-repo',
     revision: data.revision,
     references: 2,
@@ -100,7 +102,7 @@ test('repository evidence is revision-verified, receipt-backed, searchable, and 
   assert.equal(evidence.repository.shortRevision, data.revision.slice(0, 7));
   assert.equal(evidence.nodes.users.length, 2);
   assert.equal(evidence.nodes.users[0].href, `https://github.com/example/evidence-repo/blob/${data.revision}/src/router.js#L1-L3`);
-  assert.match(html, /Verified source/);
+  assert.match(html, new RegExp(copyPattern('viewer.passport.verified')));
   assert.match(html, /Archify\.sourceEvidence = \(function \(\)/);
   assert.match(html, /var sourceSearch = sources\.map/);
   assert.match(html, /renderSourceEvidence\(id\)/);
@@ -135,44 +137,44 @@ test('evidence fails closed without a root, on wrong origin, missing blobs, or i
   let result = run(['deliver', 'architecture', data.input, output, '--json']);
   assert.equal(result.status, 1);
   assert.equal(JSON.parse(result.stdout).stage, 'render');
-  assert.match(JSON.parse(result.stdout).error, /Pass --repo-root/);
+  assert.match(JSON.parse(result.stdout).error, new RegExp(cliFragment('evidence.root-required')));
   assert.equal(fs.readFileSync(output, 'utf8'), 'trusted previous artifact');
 
   git(data.root, 'remote', 'set-url', 'origin', 'https://github.com/example/other-repo.git');
   result = run(['deliver', 'architecture', data.input, output, '--repo-root', data.root, '--json']);
   assert.equal(result.status, 1);
-  assert.match(JSON.parse(result.stdout).error, /does not match/);
+  assert.match(JSON.parse(result.stdout).error, new RegExp(cliFragment('evidence.origin-mismatch')));
   git(data.root, 'remote', 'set-url', 'origin', 'git@github.com:example/evidence-repo.git');
 
   data.diagram.components[0].sources = [{ path: '../outside.js' }];
   fs.writeFileSync(data.input, JSON.stringify(data.diagram));
   result = run(['deliver', 'architecture', data.input, output, '--repo-root', data.root, '--json']);
   assert.equal(result.status, 1);
-  assert.match(JSON.parse(result.stdout).error, /must stay inside the repository/);
+  assert.match(JSON.parse(result.stdout).error, new RegExp(cliFragment('evidence.path-escape')));
 
   data.diagram.components[0].sources = [{ path: 'src/router.js\n' }];
   fs.writeFileSync(data.input, JSON.stringify(data.diagram));
   result = run(['deliver', 'architecture', data.input, output, '--repo-root', data.root, '--json']);
   assert.equal(result.status, 1);
-  assert.match(JSON.parse(result.stdout).error, /repo-relative POSIX path/);
+  assert.match(JSON.parse(result.stdout).error, new RegExp(cliFragment('evidence.path-invalid')));
 
   data.diagram.components[0].sources = [{ path: 'src/missing.js' }];
   fs.writeFileSync(data.input, JSON.stringify(data.diagram));
   result = run(['deliver', 'architecture', data.input, output, '--repo-root', data.root, '--json']);
   assert.equal(result.status, 1);
-  assert.match(JSON.parse(result.stdout).error, /does not identify a file/);
+  assert.match(JSON.parse(result.stdout).error, new RegExp(cliFragment('evidence.file-missing')));
 
   data.diagram.components[0].sources = [{ path: 'src/router.js', line: 99 }];
   fs.writeFileSync(data.input, JSON.stringify(data.diagram));
   result = run(['deliver', 'architecture', data.input, output, '--repo-root', data.root, '--json']);
   assert.equal(result.status, 1);
-  assert.match(JSON.parse(result.stdout).error, /requests line 99/);
+  assert.match(JSON.parse(result.stdout).error, new RegExp(cliFragment('evidence.line-out-of-range')));
 
   data.diagram.components[0].sources = [{ path: 'src/router.js', line: 4 }];
   fs.writeFileSync(data.input, JSON.stringify(data.diagram));
   result = run(['deliver', 'architecture', data.input, output, '--repo-root', data.root, '--json']);
   assert.equal(result.status, 1);
-  assert.match(JSON.parse(result.stdout).error, /has 3 lines/);
+  assert.match(JSON.parse(result.stdout).error, new RegExp(cliFragment('evidence.line-out-of-range')));
   assert.equal(fs.readFileSync(output, 'utf8'), 'trusted previous artifact');
 });
 
@@ -180,7 +182,7 @@ test('--repo-root stays bounded to architecture and schema limits evidence shape
   const data = fixture();
   let result = run(['render', 'workflow', path.join(skillRoot, 'examples', 'agent-tool-call.workflow.json'), '--repo-root', data.root]);
   assert.equal(result.status, 2);
-  assert.match(result.stderr, /architecture diagrams only/);
+  assert.match(result.stderr, new RegExp(cliFragment('error.repo-root-architecture-only')));
 
   data.diagram.components[0].sources = [
     { path: 'src/router.js' },
@@ -191,7 +193,7 @@ test('--repo-root stays bounded to architecture and schema limits evidence shape
   fs.writeFileSync(data.input, JSON.stringify(data.diagram));
   result = run(['validate', 'architecture', data.input, '--repo-root', data.root]);
   assert.equal(result.status, 1);
-  assert.match(result.stderr, /must NOT have more than 3 items/);
+  assert.match(result.stderr, new RegExp(cliFragment('schema.max-items.message')));
 });
 
 test('live preview forwards repo-root and publishes only verified evidence', { timeout: 20000 }, async () => {

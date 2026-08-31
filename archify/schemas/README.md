@@ -86,7 +86,7 @@ Lifecycle stateの `type` はmode固有（`start`/`active`/`waiting`/...）で�
 
 共有loaderは続けて、JSON Schemaだけではここで簡潔に表現できないcross-collection factを確認します。duplicate view ID、duplicate focus ID、diagramのsemantic collectionに存在しないfocus ID、modeのrelationship collection内で重複するオーサリング済みrelationship IDです。
 
-Architectureはさらに、opt-inでrevision固定済みのrepository evidenceに対応します。`meta.repository` はpublic GitHub URLと完全なcommit SHAを指定し、componentはrepo-relative POSIX path、任意のline range、任意のlabelを持つ `sources` を1～3個保持できます。shapeはschemaで検査され、その後rendererが `--repo-root` を要求します。local Git originが一致し、Gitがcommit、blob、要求lineを証明しなければなりません。検証済みevidenceはSemantic PassportとNode Finder向けにcanonical SVG外へ埋め込まれます。通常documentとvisual exportはrepository evidenceを保持しません。
+Architectureはさらに、opt-inでrevision固定済みのrepository evidenceに対応します。`meta.repository` は完全なcommit SHAを必須とし、public GitHub URLは任意です。componentはrepo-relative POSIX path、任意のline range、任意のlabelを持つ `sources` を1～3個保持できます。shapeはschemaで検査され、その後rendererが `--repo-root` を要求します。Gitがcommit、blob、要求lineを証明しなければなりません。検証は常にlocalで完結し、networkには出ません。`url` を指定した場合だけlocal Git originの一致も検査し、Viewerは検証済みpathをpublic permalinkのリンクにします。`url` を省略するとevidenceはlocal検証のままリンクを張らず、Viewerはpathとline番号を「ローカル検証済みソース」として表示します。検証済みevidenceはSemantic PassportとNode Finder向けにcanonical SVG外へ埋め込まれます。通常documentとvisual exportはrepository evidenceを保持しません。
 
 ## Visual品質とengineering上の真実性
 

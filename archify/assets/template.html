@@ -1648,7 +1648,10 @@
       left: 1rem;
       top: 1rem;
       z-index: 12;
-      display: block;
+      /* Column flex so a resized panel hands its spare height to the list
+         instead of leaving a gap under it. */
+      display: flex;
+      flex-direction: column;
       width: min(22rem, calc(100% - 13rem));
       max-width: calc(100% - 13rem);
       overflow: hidden;
@@ -1661,6 +1664,70 @@
       font-size: 0.6875rem;
     }
     .focus-chip[hidden] { display: none; }
+    .relationship-lens-head { flex: 0 0 auto; }
+    /* Corner drag magnifies the passport: the wrapper carries a zoom factor so
+       the copy itself grows instead of the box gaining empty space. Grips stay
+       outside the wrapper so they keep a constant, grabbable screen size. */
+    .relationship-lens-scale {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      max-height: var(--passport-max-height, none);
+    }
+    .focus-chip[data-passport-zoomed="true"] { width: auto; max-width: none; }
+    .focus-chip[data-passport-zoomed="true"] .relationship-lens-scale {
+      width: var(--passport-base-width, 22rem);
+      zoom: var(--passport-zoom, 1);
+    }
+    .focus-chip[data-panel-resizing] { user-select: none; }
+    .relationship-lens-resize {
+      position: absolute;
+      width: 0.95rem;
+      height: 0.95rem;
+      touch-action: none;
+      /* Above the head so the top corners stay grabbable; the close button is
+         lifted back over it below. */
+      z-index: 3;
+    }
+    .relationship-lens-resize::before {
+      content: '';
+      position: absolute;
+      width: 0.45rem;
+      height: 0.45rem;
+      opacity: 0.62;
+    }
+    .relationship-lens-resize:hover::before { opacity: 1; }
+    .relationship-lens-resize[data-corner="nw"] { left: 0; top: 0; cursor: nwse-resize; }
+    .relationship-lens-resize[data-corner="ne"] { right: 0; top: 0; cursor: nesw-resize; }
+    .relationship-lens-resize[data-corner="sw"] { left: 0; bottom: 0; cursor: nesw-resize; }
+    .relationship-lens-resize[data-corner="se"] { right: 0; bottom: 0; cursor: nwse-resize; }
+    .relationship-lens-resize[data-corner="nw"]::before {
+      left: 0.22rem; top: 0.22rem;
+      border-left: 2px solid var(--frontend-stroke);
+      border-top: 2px solid var(--frontend-stroke);
+      border-top-left-radius: 0.2rem;
+    }
+    .relationship-lens-resize[data-corner="ne"]::before {
+      right: 0.22rem; top: 0.22rem;
+      border-right: 2px solid var(--frontend-stroke);
+      border-top: 2px solid var(--frontend-stroke);
+      border-top-right-radius: 0.2rem;
+    }
+    .relationship-lens-resize[data-corner="sw"]::before {
+      left: 0.22rem; bottom: 0.22rem;
+      border-left: 2px solid var(--frontend-stroke);
+      border-bottom: 2px solid var(--frontend-stroke);
+      border-bottom-left-radius: 0.2rem;
+    }
+    .relationship-lens-resize[data-corner="se"]::before {
+      right: 0.22rem; bottom: 0.22rem;
+      border-right: 2px solid var(--frontend-stroke);
+      border-bottom: 2px solid var(--frontend-stroke);
+      border-bottom-right-radius: 0.2rem;
+    }
+    /* Keep the close/copy controls clickable where the top-right grip overlaps. */
+    .relationship-lens-actions { position: relative; z-index: 4; }
     html[data-preset="blueprint"] .focus-chip { border-radius: 0.3rem; }
     .focus-chip button {
       flex: none;
@@ -1676,7 +1743,12 @@
       padding: 0.7rem 0.75rem 0.65rem;
       border-bottom: 1px solid var(--toolbar-border);
       background: linear-gradient(120deg, color-mix(in srgb, var(--frontend-fill) 34%, transparent), transparent 72%);
+  cursor: grab;
+      touch-action: none;
     }
+    .relationship-lens-head button { cursor: pointer; }
+    .focus-chip[data-panel-dragging="true"] { user-select: none; }
+    .focus-chip[data-panel-dragging="true"] .relationship-lens-head { cursor: grabbing; }
     .relationship-lens-copy { min-width: 0; }
     .relationship-lens-actions {
       display: flex;
@@ -1843,11 +1915,23 @@
     }
     .semantic-passport-source small {
       grid-column: 1 / -1;
-      overflow: hidden;
+      /* The file name is the identifying half of a path, so the directory
+         prefix is what gets clipped when the row is too narrow. */
+      display: flex;
+      min-width: 0;
       color: var(--text-faint);
       font-size: 0.5rem;
+    }
+    .semantic-passport-source small .passport-source-dir {
+      min-width: 0;
+      overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+    }
+    .semantic-passport-source small .passport-source-file {
+      flex: 0 0 auto;
+      white-space: nowrap;
+      color: var(--text-muted);
     }
     .relationship-lens-summary {
       display: block;
@@ -1925,6 +2009,8 @@
     }
     .semantic-passport-reach-status[hidden] { display: none; }
     .relationship-lens-list {
+      flex: 1 1 auto;
+      min-height: 0;
       max-height: min(18rem, 46vh);
       overflow: auto;
       padding: 0.4rem;
@@ -5227,7 +5313,8 @@
         <p class="node-finder-status" id="node-finder-status" aria-live="polite"></p>
       </div>
       <div class="focus-chip relationship-lens no-print" id="focus-chip" hidden role="region" aria-labelledby="relationship-lens-title">
-        <div class="relationship-lens-head">
+        <div class="relationship-lens-scale" id="focus-scale">
+        <div class="relationship-lens-head" title="{{i18n:viewer.passport.drag}}">
           <div class="relationship-lens-copy">
             <span class="relationship-lens-eyebrow">{{i18n:viewer.passport.eyebrow}}</span>
             <strong class="relationship-lens-title" id="relationship-lens-title"><span id="focus-label"></span></strong>
@@ -5241,7 +5328,7 @@
             </div>
             <div class="semantic-passport-evidence" id="focus-evidence" hidden aria-label="{{i18n:viewer.passport.evidence}}">
               <div class="semantic-passport-evidence-head">
-                <span class="semantic-passport-evidence-status">{{i18n:viewer.passport.verified}}</span>
+                <span class="semantic-passport-evidence-status" id="focus-evidence-status">{{i18n:viewer.passport.verified}}</span>
                 <a class="semantic-passport-repository" id="focus-repository" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer"></a>
               </div>
               <div class="semantic-passport-evidence-links" id="focus-evidence-links"></div>
@@ -5267,6 +5354,11 @@
           </div>
         </div>
         <div class="relationship-lens-list" id="relationship-lens-list" aria-label="{{i18n:viewer.passport.relations.list}}"></div>
+        </div>
+        <div class="relationship-lens-resize" data-corner="nw" title="{{i18n:viewer.passport.resize}}" aria-hidden="true"></div>
+        <div class="relationship-lens-resize" data-corner="ne" title="{{i18n:viewer.passport.resize}}" aria-hidden="true"></div>
+        <div class="relationship-lens-resize" data-corner="sw" title="{{i18n:viewer.passport.resize}}" aria-hidden="true"></div>
+        <div class="relationship-lens-resize" data-corner="se" title="{{i18n:viewer.passport.resize}}" aria-hidden="true"></div>
       </div>
       <div class="route-probe no-print" id="route-probe" hidden role="region" aria-labelledby="route-probe-title" data-state="idle">
         <div class="route-probe-head">
@@ -7427,6 +7519,226 @@
       var evidence = document.getElementById('focus-evidence');
       var repositoryLink = document.getElementById('focus-repository');
       var evidenceLinks = document.getElementById('focus-evidence-links');
+      var evidenceStatus = document.getElementById('focus-evidence-status');
+      /* The passport is auto-placed beside the focused node, which can cover the
+         node itself on left-hand columns. Dragging the head pins it: a manual
+         placement wins until the passport closes, so picking another node no
+         longer yanks the panel away. Double-click the head to hand it back. */
+      var chipHead = chip.querySelector('.relationship-lens-head');
+      var manualPlacement = null;
+      var chipDrag = null;
+      function chipBounds() {
+        var containerRect = container.getBoundingClientRect();
+        if (!containerRect.width || !containerRect.height) return null;
+        var padding = window.innerWidth <= 720 ? 8 : 16;
+        var visibleTop = Math.max(padding, -containerRect.top + padding);
+        var visibleBottom = Math.min(containerRect.height - padding, window.innerHeight - containerRect.top - padding);
+        return {
+          minLeft: padding,
+          maxLeft: Math.max(padding, containerRect.width - chip.offsetWidth - padding),
+          minTop: visibleTop,
+          maxTop: Math.max(visibleTop, visibleBottom - chip.offsetHeight)
+        };
+      }
+      function applyManualPlacement() {
+        if (!manualPlacement) return false;
+        var bounds = chipBounds();
+        if (!bounds) return false;
+        chip.style.left = Math.round(Math.max(bounds.minLeft, Math.min(bounds.maxLeft, manualPlacement.left))) + 'px';
+        chip.style.top = Math.round(Math.max(bounds.minTop, Math.min(bounds.maxTop, manualPlacement.top))) + 'px';
+        return true;
+      }
+      function clearManualPlacement() {
+        manualPlacement = null;
+        chip.style.left = '';
+        chip.style.top = '';
+      }
+      function beginChipDrag(event) {
+        if (chip.hidden || event.button !== 0) return;
+        if (event.target.closest && event.target.closest('button, a, input, select, textarea')) return;
+        var containerRect = container.getBoundingClientRect();
+        var chipRect = chip.getBoundingClientRect();
+        chipDrag = {
+          pointerId: event.pointerId,
+          originX: event.clientX,
+          originY: event.clientY,
+          startLeft: chipRect.left - containerRect.left,
+          startTop: chipRect.top - containerRect.top,
+          previous: manualPlacement
+        };
+        event.preventDefault();
+        event.stopPropagation();
+        chip.setAttribute('data-panel-dragging', 'true');
+        try { chipHead.setPointerCapture(event.pointerId); } catch (_) {}
+      }
+      function moveChipDrag(event) {
+        if (!chipDrag || chipDrag.pointerId !== event.pointerId) return;
+        event.preventDefault();
+        event.stopPropagation();
+        manualPlacement = {
+          left: chipDrag.startLeft + event.clientX - chipDrag.originX,
+          top: chipDrag.startTop + event.clientY - chipDrag.originY
+        };
+        applyManualPlacement();
+      }
+      function finishChipDrag(event, cancel) {
+        if (!chipDrag || chipDrag.pointerId !== event.pointerId) return;
+        event.preventDefault();
+        event.stopPropagation();
+        var activeDrag = chipDrag;
+        chipDrag = null;
+        chip.removeAttribute('data-panel-dragging');
+        try { chipHead.releasePointerCapture(event.pointerId); } catch (_) {}
+        if (cancel) {
+          manualPlacement = activeDrag.previous;
+          if (manualPlacement) applyManualPlacement();
+          else clearManualPlacement();
+          return;
+        }
+        applyManualPlacement();
+      }
+      /* Corner grips magnify the passport itself. Growing the box alone would
+         only add empty space, so the drag drives a zoom factor on the inner
+         wrapper: the copy scales with the panel. The diagram behind is never
+         touched. The opposite corner stays pinned while scaling. */
+      var chipScale = document.getElementById('focus-scale');
+      var chipResizers = chip.querySelectorAll('.relationship-lens-resize');
+      var chipSizeDrag = null;
+      var passportZoom = 1;
+      var passportBaseWidth = 0;
+      var passportBaseHeight = 0;
+      var MIN_PASSPORT_ZOOM = 1;
+      var MAX_PASSPORT_ZOOM = 3;
+      function chipFrame() {
+        var containerRect = container.getBoundingClientRect();
+        if (!containerRect.width || !containerRect.height) return null;
+        var padding = window.innerWidth <= 720 ? 8 : 16;
+        var visibleTop = Math.max(padding, -containerRect.top + padding);
+        var visibleBottom = Math.min(containerRect.height, window.innerHeight - containerRect.top) - padding;
+        return {
+          width: containerRect.width,
+          padding: padding,
+          visibleHeight: Math.max(120, visibleBottom - visibleTop)
+        };
+      }
+      function applyPassportZoom() {
+        if (!chipScale) return false;
+        if (passportZoom === 1 || !passportBaseWidth) {
+          chip.removeAttribute('data-passport-zoomed');
+          chip.style.removeProperty('--passport-zoom');
+          chip.style.removeProperty('--passport-base-width');
+          chip.style.removeProperty('--passport-max-height');
+          return false;
+        }
+        chip.style.setProperty('--passport-base-width', passportBaseWidth + 'px');
+        chip.style.setProperty('--passport-zoom', String(passportZoom));
+        // The wrapper lays out at 1/zoom scale, so its cap must be pre-divided.
+        var frame = chipFrame();
+        if (frame) chip.style.setProperty('--passport-max-height', (frame.visibleHeight / passportZoom) + 'px');
+        chip.setAttribute('data-passport-zoomed', 'true');
+        return true;
+      }
+      function clearPassportZoom() {
+        passportZoom = 1;
+        applyPassportZoom();
+      }
+      function beginChipResize(event) {
+        if (chip.hidden || event.button !== 0) return;
+        var corner = event.currentTarget.getAttribute('data-corner') || 'se';
+        var containerRect = container.getBoundingClientRect();
+        var chipRect = chip.getBoundingClientRect();
+        if (!passportBaseWidth) passportBaseWidth = Math.round(chipRect.width / passportZoom);
+        if (!passportBaseHeight) passportBaseHeight = Math.round(chipRect.height / passportZoom);
+        chipSizeDrag = {
+          pointerId: event.pointerId,
+          handle: event.currentTarget,
+          corner: corner,
+          originX: event.clientX,
+          originY: event.clientY,
+          left: chipRect.left - containerRect.left,
+          top: chipRect.top - containerRect.top,
+          width: chipRect.width,
+          height: chipRect.height,
+          previousZoom: passportZoom,
+          previousPlacement: manualPlacement
+        };
+        event.preventDefault();
+        event.stopPropagation();
+        chip.setAttribute('data-panel-resizing', corner);
+        try { event.currentTarget.setPointerCapture(event.pointerId); } catch (_) {}
+      }
+      function moveChipResize(event) {
+        if (!chipSizeDrag || chipSizeDrag.pointerId !== event.pointerId) return;
+        event.preventDefault();
+        event.stopPropagation();
+        var frame = chipFrame();
+        if (!frame || !passportBaseWidth) return;
+        var d = chipSizeDrag;
+        var west = d.corner === 'nw' || d.corner === 'sw';
+        var north = d.corner === 'nw' || d.corner === 'ne';
+        // Project the pointer travel onto the corner's diagonal so both axes
+        // contribute without either one dominating.
+        var travel = ((west ? -1 : 1) * (event.clientX - d.originX)
+          + (north ? -1 : 1) * (event.clientY - d.originY)) / 2;
+        // Width is the only ceiling: height is handled by capping the panel and
+        // letting the relationship list scroll, so a long list never caps zoom.
+        var maxByWidth = (frame.width - 2 * frame.padding) / passportBaseWidth;
+        var zoom = (d.width + travel) / passportBaseWidth;
+        zoom = Math.max(MIN_PASSPORT_ZOOM, Math.min(Math.min(MAX_PASSPORT_ZOOM, maxByWidth), zoom));
+        zoom = Math.round(zoom * 100) / 100;
+        if (zoom === passportZoom) return;
+        passportZoom = zoom;
+        applyPassportZoom();
+        // Re-measure after the zoom lands, then pin the opposite corner.
+        var anchorRight = d.left + d.width;
+        var anchorBottom = d.top + d.height;
+        manualPlacement = {
+          left: west ? anchorRight - chip.offsetWidth : d.left,
+          top: north ? anchorBottom - chip.offsetHeight : d.top
+        };
+        applyManualPlacement();
+      }
+      function finishChipResize(event, cancel) {
+        if (!chipSizeDrag || chipSizeDrag.pointerId !== event.pointerId) return;
+        event.preventDefault();
+        event.stopPropagation();
+        var active = chipSizeDrag;
+        chipSizeDrag = null;
+        chip.removeAttribute('data-panel-resizing');
+        try { active.handle.releasePointerCapture(event.pointerId); } catch (_) {}
+        if (cancel) {
+          passportZoom = active.previousZoom;
+          manualPlacement = active.previousPlacement;
+          applyPassportZoom();
+          if (manualPlacement) applyManualPlacement(); else clearManualPlacement();
+          return;
+        }
+        applyPassportZoom();
+        applyManualPlacement();
+      }
+      Array.prototype.forEach.call(chipResizers, function (handle) {
+        handle.addEventListener('pointerdown', beginChipResize);
+        handle.addEventListener('pointermove', moveChipResize);
+        handle.addEventListener('pointerup', function (event) { finishChipResize(event, false); });
+        handle.addEventListener('pointercancel', function (event) { finishChipResize(event, true); });
+        handle.addEventListener('dblclick', function (event) {
+          event.preventDefault();
+          event.stopPropagation();
+          clearPassportZoom();
+          requestLensPlacement();
+        });
+      });
+      if (chipHead) {
+        chipHead.addEventListener('pointerdown', beginChipDrag);
+        chipHead.addEventListener('pointermove', moveChipDrag);
+        chipHead.addEventListener('pointerup', function (event) { finishChipDrag(event, false); });
+        chipHead.addEventListener('pointercancel', function (event) { finishChipDrag(event, true); });
+        chipHead.addEventListener('dblclick', function (event) {
+          if (event.target.closest && event.target.closest('button, a')) return;
+          clearManualPlacement();
+          requestLensPlacement();
+        });
+      }
       var summary = document.getElementById('focus-summary');
       var reachSection = document.getElementById('focus-reach');
       var reachStatus = document.getElementById('focus-reach-status');
@@ -7751,26 +8063,53 @@
           evidence.hidden = true;
           return;
         }
-        var slug = repository.url.replace(/^https:\/\/github\.com\//, '').replace(/\/$/, '');
-        repositoryLink.href = repository.url + '/tree/' + repository.revision;
-        repositoryLink.textContent = slug + ' @ ' + repository.shortRevision;
-        repositoryLink.setAttribute('aria-label', viewerText('viewer.passport.repository.open', { revision: repository.revision }));
+        /* Verification is local. A public repository URL is optional and only
+           turns the verified paths into clickable permalinks. */
+        var linked = typeof repository.url === 'string' && repository.url.length > 0;
+        if (evidenceStatus) {
+          evidenceStatus.textContent = viewerText(linked ? 'viewer.passport.verified' : 'viewer.passport.verified.local');
+        }
+        if (linked) {
+          var slug = repository.url.replace(/^https:\/\/github\.com\//, '').replace(/\/$/, '');
+          repositoryLink.href = repository.url + '/tree/' + repository.revision;
+          repositoryLink.textContent = slug + ' @ ' + repository.shortRevision;
+          repositoryLink.setAttribute('aria-label', viewerText('viewer.passport.repository.open', { revision: repository.revision }));
+        } else {
+          repositoryLink.removeAttribute('href');
+          repositoryLink.removeAttribute('aria-label');
+          repositoryLink.textContent = viewerText('viewer.passport.repository.local', { revision: repository.shortRevision });
+        }
         sources.forEach(function (source) {
-          var link = document.createElement('a');
+          var link = document.createElement(linked ? 'a' : 'div');
           link.className = 'semantic-passport-source';
-          link.href = source.href;
-          link.target = '_blank';
-          link.rel = 'noopener noreferrer';
-          link.referrerPolicy = 'no-referrer';
-          link.setAttribute('aria-label', viewerText('viewer.passport.source.open', { path: source.path, revision: repository.shortRevision }));
+          if (linked) {
+            link.href = source.href;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            link.referrerPolicy = 'no-referrer';
+            link.setAttribute('aria-label', viewerText('viewer.passport.source.open', { path: source.path, revision: repository.shortRevision }));
+          }
           var name = document.createElement('strong');
           name.textContent = source.label || source.path.split('/').pop() || source.path;
           var location = document.createElement('code');
           location.textContent = source.line
-            ? 'L' + source.line + (source.endLine && source.endLine !== source.line ? '–' + source.endLine : '') + ' ↗'
-            : viewerText('viewer.passport.source.openLink');
+            ? 'L' + source.line + (source.endLine && source.endLine !== source.line ? '–' + source.endLine : '') + (linked ? ' ↗' : '')
+            : viewerText(linked ? 'viewer.passport.source.openLink' : 'viewer.passport.source.localOnly');
           var sourcePath = document.createElement('small');
-          sourcePath.textContent = source.path;
+          sourcePath.title = source.path;
+          var cut = source.path.lastIndexOf('/');
+          if (cut >= 0) {
+            var dirPart = document.createElement('span');
+            dirPart.className = 'passport-source-dir';
+            dirPart.textContent = source.path.slice(0, cut + 1);
+            var filePart = document.createElement('span');
+            filePart.className = 'passport-source-file';
+            filePart.textContent = source.path.slice(cut + 1);
+            sourcePath.appendChild(dirPart);
+            sourcePath.appendChild(filePart);
+          } else {
+            sourcePath.textContent = source.path;
+          }
           link.appendChild(name);
           link.appendChild(location);
           link.appendChild(sourcePath);
@@ -8426,6 +8765,11 @@
       function placeRelationshipLens() {
         lensFrame = 0;
         if (chip.hidden || activeIds.length !== 1) return;
+        applyPassportZoom();
+        if (applyManualPlacement()) {
+          if (Archify.radar && typeof Archify.radar.sync === 'function') Archify.radar.sync();
+          return;
+        }
         var node = svg.querySelector('[data-node-id="' + activeIds[0] + '"]');
         if (!node) return;
         var containerRect = container.getBoundingClientRect();
@@ -8699,7 +9043,13 @@
           Archify.view.reveal([id], { includeNeighbors: true, reason: 'focus' });
         }
       });
-      clearBtn.addEventListener('click', function () { clear({ restoreFocus: true }); });
+      clearBtn.addEventListener('click', function () {
+        /* Switching nodes keeps a dragged position; closing the passport hands
+           placement back to the automatic layout. */
+        clearManualPlacement();
+        clearPassportZoom();
+        clear({ restoreFocus: true });
+      });
       copyBtn.addEventListener('click', copyFocusLink);
       upstreamBtn.addEventListener('click', function () { applyReachability('upstream'); });
       downstreamBtn.addEventListener('click', function () { applyReachability('downstream'); });
@@ -11553,6 +11903,14 @@
         state.y = centerY - contentY * next;
         apply();
       }
+      /* Relative zoom must read the scale that is actually on screen. A focus
+         camera animates the transform without touching state, so computing
+         state.scale + delta at the call site would step from a stale base and
+         zoom out. Interrupt first, then measure. */
+      function zoomBy(delta) {
+        interruptCamera();
+        zoom(state.scale + delta, { manual: false });
+      }
       function reset(options) {
         options = options || {};
         if (options.automatic !== true) interruptCamera();
@@ -11781,8 +12139,8 @@
         }
       }
 
-      inBtn.addEventListener('click', function () { zoom(state.scale + 0.25); });
-      outBtn.addEventListener('click', function () { zoom(state.scale - 0.25); });
+      inBtn.addEventListener('click', function () { zoomBy(0.25); });
+      outBtn.addEventListener('click', function () { zoomBy(-0.25); });
       resetBtn.addEventListener('click', reset);
       container.addEventListener('pointerdown', function (event) {
         if (state.scale <= 1 || event.button !== 0 || event.target.closest('.diagram-nav, .focus-chip, .node-finder, .diagram-guide, .overview-map, .route-probe, .semantic-lens') || event.target.closest('[data-node-id]') || event.target.closest('[data-relationship-hit-key]')) return;
@@ -11817,8 +12175,8 @@
       requestAnimationFrame(syncSemantic);
 
       return {
-        zoomIn: function () { zoom(state.scale + 0.25); },
-        zoomOut: function () { zoom(state.scale - 0.25); },
+        zoomIn: function () { zoomBy(0.25); },
+        zoomOut: function () { zoomBy(-0.25); },
         reset: reset,
         reveal: reveal,
         centerAt: centerAt,
