@@ -1,6 +1,8 @@
-export const SKILL_ID = 'archify';
-export const EXPECTED_REPOSITORY = 'https://github.com/tt-a1i/archify';
-export const DEFAULT_MANIFEST_URL = 'https://tt-a1i.github.io/archify/skill-updates/archify/stable.json';
+export const SKILL_ID = 'archify-ja';
+export const EXPECTED_REPOSITORY = 'https://github.com/microtaro/archify-ja';
+export const EXPECTED_VERSION = '2.16.0-ja.1';
+export const EXPECTED_CHANNEL = 'development';
+export const DEFAULT_MANIFEST_URL = null;
 
 const CONTROL_OR_BIDI = /[\u0000-\u001f\u007f-\u009f\u202a-\u202e\u2066-\u2069]/u;
 const HEX_40 = /^[a-f0-9]{40}$/;
@@ -103,17 +105,17 @@ export function validateCanonicalUtcTimestamp(value) {
 
 export function validateLocalRelease(value) {
   if (!hasExactKeys(value, [
-    'schemaVersion', 'skillId', 'channel', 'version', 'source', 'updateManifestUrl',
+    'schemaVersion', 'skillId', 'channel', 'version', 'source',
   ])
     || value.schemaVersion !== 1
     || value.skillId !== SKILL_ID
+    || value.version !== EXPECTED_VERSION
+    || value.channel !== EXPECTED_CHANNEL
     || !hasExactKeys(value.source, ['repository'])
-    || value.source.repository !== EXPECTED_REPOSITORY
-    || value.updateManifestUrl !== DEFAULT_MANIFEST_URL) {
+    || value.source.repository !== EXPECTED_REPOSITORY) {
     throw new UpdateContractError('invalid local release identity');
   }
-  const expectedChannel = releaseChannelForVersion(value.version);
-  if (value.channel !== expectedChannel) {
+  if (releaseChannelForVersion(value.version) !== EXPECTED_CHANNEL) {
     throw new UpdateContractError('local release channel does not match its version');
   }
   return {
@@ -122,7 +124,6 @@ export function validateLocalRelease(value) {
     channel: value.channel,
     version: value.version,
     source: { repository: value.source.repository },
-    updateManifestUrl: value.updateManifestUrl,
   };
 }
 
@@ -130,7 +131,7 @@ export function validateReleaseNotesUrl(value, version) {
   if (!isStableCoreVersion(version)) {
     throw new UpdateContractError('release notes require a stable core version');
   }
-  const expected = `https://github.com/tt-a1i/archify/releases/tag/v${version}`;
+  const expected = `https://github.com/microtaro/archify-ja/releases/tag/v${version}`;
   if (value !== expected) {
     throw new UpdateContractError('release notes URL is outside the exact trusted release path');
   }

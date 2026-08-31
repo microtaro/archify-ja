@@ -1446,17 +1446,14 @@ export async function checkForUpdate({
   } catch {
     return silent('invalid-local-release');
   }
-  if (localReleaseSource?.skillId === 'archify-ja'
-    && !Object.hasOwn(localReleaseSource, 'updateManifestUrl')) {
-    return silent('disabled');
-  }
-  if (typeof fetchImpl !== 'function') return silent('runtime-unavailable');
   let localRelease;
   try {
     localRelease = validateLocalRelease(localReleaseSource);
   } catch {
     return silent('invalid-local-release');
   }
+  if (!Object.hasOwn(localRelease, 'updateManifestUrl')) return silent('disabled');
+  if (typeof fetchImpl !== 'function') return silent('runtime-unavailable');
 
   const nowMs = Number(now());
   if (!Number.isFinite(nowMs)) return silent('invalid-clock');

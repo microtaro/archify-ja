@@ -8,12 +8,14 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '..');
-const defaultPackageRoot = process.env.RUNNER_TEMP
-  ? path.join(process.env.RUNNER_TEMP, 'archify-package', 'archify-ja')
-  : path.join(repoRoot, 'archify-ja');
-const skillRoot = path.resolve(process.argv[2] || defaultPackageRoot);
+const packageArgument = process.argv[2];
+if (!packageArgument) {
+  throw new Error('package smoke requires an explicit staged archify-ja root');
+}
+const skillRoot = path.resolve(packageArgument);
 const cli = path.join(skillRoot, 'bin', 'archify.mjs');
 const updateChecker = path.join(skillRoot, 'scripts', 'check-update.mjs');
+const updateContract = path.join(skillRoot, 'scripts', 'update-contract.mjs');
 const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-package-smoke-'));
 
 function requireAbsent(relative) {
@@ -61,6 +63,9 @@ try {
   if (!fs.existsSync(updateChecker)) {
     throw new Error(`packaged update checker not found at ${updateChecker}`);
   }
+  if (!fs.existsSync(updateContract)) {
+    throw new Error(`packaged update contract not found at ${updateContract}`);
+  }
 
   const packageJson = JSON.parse(fs.readFileSync(path.join(skillRoot, 'package.json'), 'utf8'));
   const dependencyFields = [
@@ -79,12 +84,29 @@ try {
   }
 
   const skillRelease = JSON.parse(fs.readFileSync(path.join(skillRoot, 'skill-release.json'), 'utf8'));
-  if (packageJson.name !== 'archify-ja' || packageJson.version !== '2.16.0-ja.1'
-    || skillRelease.skillId !== 'archify-ja' || skillRelease.channel !== 'development'
-    || skillRelease.version !== packageJson.version
-    || skillRelease.source?.repository !== 'https://github.com/microtaro/archify-ja'
-    || Object.hasOwn(skillRelease, 'updateManifestUrl')) {
+  const contract = await import(pathToFileURL(updateContract).href);
+  if (packageJson.name !== 'archify-ja' || packageJson.version !== '2.16.0-ja.1') {
+    throw new Error('packaged package.json does not identify archify-ja 2.16.0-ja.1');
+  }
+  let validatedRelease;
+  try {
+    validatedRelease = contract.validateLocalRelease(skillRelease);
+  } catch {
     throw new Error('packaged skill-release.json does not match the offline Japanese release identity');
+  }
+  if (validatedRelease.version !== packageJson.version) {
+    throw new Error('packaged skill-release.json does not match package.json');
+  }
+
+  const skill = fs.readFileSync(path.join(skillRoot, 'SKILL.md'), 'utf8');
+  if (!/^# Archify-ja$/m.test(skill)
+    || !/^\s*version:\s*["']?2\.16["']?\s*$/m.test(skill)
+    || !/^\s*author:\s*microtaro\s*$/m.test(skill)) {
+    throw new Error('packaged SKILL.md does not identify the Japanese edition');
+  }
+  const template = fs.readFileSync(path.join(skillRoot, 'assets', 'template.html'), 'utf8');
+  if (!/<meta\s+name="generator"\s+content="archify-ja 2\.16\.0-ja\.1"\s*\/?\s*>/.test(template)) {
+    throw new Error('packaged renderer generator does not identify archify-ja 2.16.0-ja.1');
   }
 
   const updateCheck = spawnSync(process.execPath, [updateChecker], {
@@ -120,7 +142,6 @@ try {
     throw new Error('packaged update checker did not stay offline without a manifest');
   }
 
-  const skill = fs.readFileSync(path.join(skillRoot, 'SKILL.md'), 'utf8');
   const skillReferences = [...skill.matchAll(
     /`((?:assets|bin|examples|recipes|references|renderers|schemas|scripts)\/[^`\s]+)`/g,
   )]
