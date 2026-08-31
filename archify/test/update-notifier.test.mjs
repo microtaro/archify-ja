@@ -12,7 +12,7 @@ import {
   acknowledgeUpdate,
   checkForUpdate,
 } from '../scripts/check-update.mjs';
-import { DEFAULT_MANIFEST_URL, compareSemver, parseSemver } from '../scripts/update-contract.mjs';
+import { compareSemver, parseSemver } from '../scripts/update-contract.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const skillRoot = path.resolve(here, '..');
@@ -432,11 +432,11 @@ function assertUnsafeCacheStateIsIgnored(testFixture) {
   });
 }
 
-test('production manifest URL is a fixed trusted GitHub Pages resource', () => {
-  assert.equal(DEFAULT_MANIFEST_URL, expectedManifestUrl);
+test('the Japanese edition has no production manifest or update endpoint', () => {
   const local = JSON.parse(fs.readFileSync(path.join(skillRoot, 'skill-release.json'), 'utf8'));
-  assert.equal(local.updateManifestUrl, expectedManifestUrl);
-  assert.equal(local.source.repository, expectedRepository);
+  assert.equal(Object.hasOwn(local, 'updateManifestUrl'), false);
+  assert.equal(local.skillId, 'archify-ja');
+  assert.equal(local.source.repository, 'https://github.com/microtaro/archify-ja');
 });
 
 test('SemVer comparison handles stable, prerelease, and downgrade ordering', () => {
@@ -3230,49 +3230,29 @@ test('disabled CLI returns one silent JSON line and never needs the network', ()
   assert.equal(result.stdout.trim().split('\n').length, 1);
 });
 
-test('CLI acknowledgement emits the documented one-line success schema', async (t) => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-update-cli-ack-'));
+test('a release without a manifest disables update checks before the runtime or network is used', async (t) => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-update-offline-'));
   t.after(() => fs.rmSync(root, { recursive: true, force: true }));
-  const home = path.join(root, 'home');
-  const xdg = path.join(root, 'xdg-cache');
-  const localData = path.join(root, 'local-data');
-  for (const directory of [home, xdg, localData]) fs.mkdirSync(directory, { recursive: true });
-  const cacheDirectory = process.platform === 'win32'
-    ? path.join(localData, 'archify-skill')
-    : process.platform === 'darwin'
-      ? path.join(home, 'Library', 'Caches', 'archify-skill')
-      : path.join(xdg, 'archify-skill');
-  const releasePath = path.join(skillRoot, 'skill-release.json');
-  const installedRelease = JSON.parse(fs.readFileSync(releasePath, 'utf8'));
-  const [major, minor, patch] = parseSemver(installedRelease.version).core;
-  const candidateVersion = `${major}.${minor}.${BigInt(patch) + 1n}`;
-  const offered = await checkForUpdate({
-    releasePath,
-    cacheDirectory,
-    fetchImpl: async () => response(remoteReleaseForVersion(candidateVersion)),
-    now: () => baseTime,
-    random: () => 0.5,
-    timeoutMs: 50,
+  const releasePath = path.join(root, 'skill-release.json');
+  writeJson(releasePath, {
+    schemaVersion: 1,
+    skillId: 'archify-ja',
+    channel: 'development',
+    version: '2.16.0-ja.1',
+    source: { repository: 'https://github.com/microtaro/archify-ja' },
   });
-  assert.equal(offered.status, 'update_available');
+  let requests = 0;
 
-  const acknowledgement = spawnSync(process.execPath, [checkerPath, '--ack', offered.eventKey], {
-    cwd: skillRoot,
-    encoding: 'utf8',
-    env: {
-      ...process.env,
-      HOME: home,
-      USERPROFILE: home,
-      XDG_CACHE_HOME: xdg,
-      LOCALAPPDATA: localData,
+  const result = await checkForUpdate({
+    releasePath,
+    fetchImpl: async () => {
+      requests += 1;
+      throw new Error('offline Japanese edition must not fetch');
     },
   });
-  assert.equal(acknowledgement.status, 0, acknowledgement.stderr);
-  assert.deepEqual(JSON.parse(acknowledgement.stdout), {
-    status: 'acknowledged',
-    eventKey: offered.eventKey,
-  });
-  assert.equal(acknowledgement.stdout.trim().split('\n').length, 1);
+
+  assert.deepEqual(result, { status: 'silent', reason: 'disabled' });
+  assert.equal(requests, 0);
 });
 
 test('CLI entry detection survives a realpath or symlink alias', (t) => {

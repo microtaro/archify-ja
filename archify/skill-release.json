@@ -1,10 +1,9 @@
 {
   "schemaVersion": 1,
-  "skillId": "archify",
-  "channel": "stable",
-  "version": "2.16.0",
+  "skillId": "archify-ja",
+  "channel": "development",
+  "version": "2.16.0-ja.1",
   "source": {
-    "repository": "https://github.com/tt-a1i/archify"
-  },
-  "updateManifestUrl": "https://tt-a1i.github.io/archify/skill-updates/archify/stable.json"
+    "repository": "https://github.com/microtaro/archify-ja"
+  }
 }

@@ -1,6 +1,6 @@
 {
-  "name": "archify",
-  "version": "2.16.0",
+  "name": "archify-ja",
+  "version": "2.16.0-ja.1",
   "private": true,
   "type": "module",
   "description": "JSON-IR diagram renderers (architecture / workflow / sequence / dataflow / lifecycle).",

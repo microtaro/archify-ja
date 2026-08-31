@@ -1440,10 +1440,20 @@ export async function checkForUpdate({
   random = Math.random,
   timeoutMs = DEFAULT_TIMEOUT_MS,
 } = {}) {
+  let localReleaseSource;
+  try {
+    localReleaseSource = await readJsonFile(releasePath, MAX_LOCAL_RELEASE_BYTES);
+  } catch {
+    return silent('invalid-local-release');
+  }
+  if (localReleaseSource?.skillId === 'archify-ja'
+    && !Object.hasOwn(localReleaseSource, 'updateManifestUrl')) {
+    return silent('disabled');
+  }
   if (typeof fetchImpl !== 'function') return silent('runtime-unavailable');
   let localRelease;
   try {
-    localRelease = validateLocalRelease(await readJsonFile(releasePath, MAX_LOCAL_RELEASE_BYTES));
+    localRelease = validateLocalRelease(localReleaseSource);
   } catch {
     return silent('invalid-local-release');
   }

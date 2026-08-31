@@ -484,3 +484,10 @@ test('stable public-page templates reject development labels on version-bearing 
     fs.rmSync(fixture, { recursive: true, force: true });
   }
 });
+
+test('the checked-in Japanese edition has one exact offline release identity', () => {
+  const result = runCheck(repoRoot);
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(result.stdout.trim(), 'release identity ok: archify-ja 2.16.0-ja.1');
+});

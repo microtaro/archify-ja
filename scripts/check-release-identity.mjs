@@ -151,6 +151,57 @@ function checkRoadmap(relativePath, source, version, isDevelopment) {
 }
 
 const packageJson = readJson('archify/package.json');
+if (packageJson.name === 'archify-ja') {
+  const expectedVersion = '2.16.0-ja.1';
+  if (packageJson.version !== expectedVersion) {
+    fail(`archify/package.json must identify archify-ja ${expectedVersion}.`);
+  }
+
+  const lock = readJson('archify/package-lock.json');
+  if (lock.name !== 'archify-ja' || lock.version !== expectedVersion
+    || lock.packages?.['']?.name !== 'archify-ja'
+    || lock.packages?.['']?.version !== expectedVersion) {
+    fail(`archify/package-lock.json must identify archify-ja ${expectedVersion} at the root and packages[""].`);
+  }
+
+  const skill = read('archify/SKILL.md');
+  const skillVersion = skill.match(/^\s*version:\s*["']?([^"'\s]+)["']?\s*$/m)?.[1];
+  if (skillVersion !== '2.16' || !/^# Archify-ja$/m.test(skill)
+    || !/^\s*author:\s*microtaro\s*$/m.test(skill)) {
+    fail('archify/SKILL.md must identify the Archify-ja 2.16 Japanese edition by title, author, and metadata version.');
+  }
+
+  const release = readJson('archify/skill-release.json');
+  const exactReleaseKeys = ['channel', 'schemaVersion', 'skillId', 'source', 'version'];
+  if (Object.keys(release).sort().join('\0') !== exactReleaseKeys.join('\0')
+    || Object.keys(release.source ?? {}).sort().join('\0') !== 'repository'
+    || release.schemaVersion !== 1
+    || release.skillId !== 'archify-ja'
+    || release.channel !== 'development'
+    || release.version !== expectedVersion
+    || release.source?.repository !== 'https://github.com/microtaro/archify-ja') {
+    fail('archify/skill-release.json must identify archify-ja 2.16.0-ja.1 at https://github.com/microtaro/archify-ja without an update manifest.');
+  }
+
+  const rendererTemplate = read('archify/assets/template.html');
+  const generatorVersions = [...rendererTemplate.matchAll(/<meta\s+name="generator"\s+content="archify-ja\s+([^"]+)"\s*\/?>/g)]
+    .map((match) => match[1]);
+  if (generatorVersions.length !== 1 || generatorVersions[0] !== expectedVersion) {
+    fail(`archify/assets/template.html generator must be archify-ja ${expectedVersion}.`);
+  }
+
+  if (fs.existsSync(path.join(repoRoot, 'docs/skill-updates/archify/stable.json'))) {
+    fail('docs/skill-updates/archify/stable.json must not ship with the offline Japanese edition.');
+  }
+
+  if (failures.length > 0) {
+    for (const message of failures) console.error(`release identity: ${message}`);
+    process.exit(1);
+  }
+  console.log(`release identity ok: archify-ja ${expectedVersion}`);
+  process.exit(0);
+}
+
 const changelog = read('CHANGELOG.md');
 const unreleasedStart = changelog.search(/^## \[Unreleased\][^\n]*(?:\n|$)/m);
 const afterUnreleased = unreleasedStart === -1
