@@ -38,6 +38,20 @@ function assertEnglishOnlySite(html, label) {
   assert.doesNotMatch(html, HAN, `${label}: Chinese product copy remains`);
 }
 
+function assertNoProductChineseLocale(source, label) {
+  for (const pattern of [
+    /README_ZH\.md/,
+    /data-zh\b/,
+    /\bbtn-lang\b/,
+    /中文/,
+    /zh-CN/,
+    /ArchifySiteLanguage|site-language\.js|archify-(?:lang|gallery-language|guide-language)/,
+    /[?&]lang=zh|searchParams\.(?:get|set)\(['"]lang['"]|\blang(?:uage)?\s*===?\s*['"]zh['"]/,
+  ]) {
+    assert.doesNotMatch(source, pattern, `${label}: product Chinese locale residue ${pattern}`);
+  }
+}
+
 test('renderer publishes English as its only Viewer locale', () => {
   assert.equal(DEFAULT_LOCALE, 'en');
   assert.deepEqual(SUPPORTED_LOCALES, ['en']);
@@ -116,4 +130,29 @@ test('English READMEs and release identity no longer depend on a Chinese README'
 
   const result = run('scripts/check-release-identity.mjs');
   assert.equal(result.status, 0, result.stderr || result.stdout);
+});
+
+test('product-facing source and generated docs contain no Chinese locale routes or controls', () => {
+  const surfaces = [
+    'README.md',
+    'README_EN.md',
+    'docs/assets/site-navigation.css',
+    'scripts/index-template.html',
+    'scripts/gallery-template.html',
+    'scripts/guide-template.html',
+    'scripts/start-template.html',
+    'scripts/build-index.mjs',
+    'scripts/build-gallery.mjs',
+    'scripts/build-guide.mjs',
+    'scripts/build-start.mjs',
+    'scripts/site-copy.mjs',
+    'scripts/copy-site-assets.mjs',
+    'docs/index.html',
+    'docs/gallery.html',
+    'docs/guide.html',
+    'docs/start.html',
+  ];
+  for (const relative of surfaces) {
+    assertNoProductChineseLocale(fs.readFileSync(path.join(repoRoot, relative), 'utf8'), relative);
+  }
 });

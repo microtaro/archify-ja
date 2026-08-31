@@ -70,10 +70,36 @@ bytes   41195
 match   exact
 ```
 
-README English mirrors remain byte-identical to each other. Their only change is deletion of the separator and deleted Chinese README link after the retained `<strong>English</strong>` label.
+README English mirrors remain byte-identical to each other. The initial change deleted the separator and deleted Chinese README link after the retained `<strong>English</strong>` label; the authorized follow-up also deleted `|zh-CN` from the locale contract while preserving the rest of that English sentence.
 
 ## Concerns and boundaries
 
-- Per the explicit no-English-rewrite constraint, existing English documentation sentences in `README.md`, `README_EN.md`, `archify/SKILL.md`, `archify/references/authoring-contract.md`, and `archify/schemas/README.md` that describe the historical `zh-CN` option were not rewritten. Runtime/schema/site behavior is English-only, so those English prose references are now stale and require a separately authorized English documentation edit.
+- Existing English documentation sentences in `archify/SKILL.md`, `archify/references/authoring-contract.md`, and `archify/schemas/README.md` that describe the historical `zh-CN` option remain outside this product-facing README/site cleanup. Runtime/schema/site behavior is English-only, so those prose references require a separately authorized packaged-contract documentation edit.
 - CJK text still present in width/Unicode/layout/browser fixtures, authored-content fallback coverage, brand aliases, and release-design evidence is intentionally retained and is not a product Chinese locale.
 - Real Chrome-only tests remained explicitly skipped because `ARCHIFY_CHROME` was not configured; non-browser generated/runtime tests passed.
+
+## Follow-up completion audit
+
+The completion audit found one product-facing contract leak in both English README mirrors and one dead site-control CSS rule.
+
+### RED
+
+```text
+cd archify && node --test --test-name-pattern="product-facing source" test/english-only-localization.test.mjs
+```
+
+Observed: 1 test, 0 pass, 1 fail. `README.md` still contained `meta.locale=en|zh-CN`. The same audit inventory also exposed the unused `.btn-lang` navigation rule.
+
+### GREEN
+
+- Changed both README mirrors to the English-only `meta.locale=en` contract without altering the remainder of the sentence.
+- Removed the unused `.btn-lang` and hover CSS blocks from `docs/assets/site-navigation.css`.
+- Added a bounded product-facing residual audit across README mirrors, site templates/build sources, shared site CSS, and the four generated docs pages. It rejects `README_ZH`, `data-zh`, `btn-lang`, `中文`, `zh-CN`, language runtime/storage assets, and zh URL/query branches. Rejection fixtures, history/spec documents, and CJK safety fixtures are not scanned.
+
+Focused command:
+
+```text
+cd archify && node --test test/english-only-localization.test.mjs test/landing.test.mjs test/gallery.test.mjs test/readme-showcase.test.mjs test/release-identity.test.mjs
+```
+
+Observed: 33 tests, 33 pass, 0 fail, 0 skip.
