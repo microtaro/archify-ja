@@ -14,6 +14,8 @@ const skillRoot = path.resolve(__dirname, '..');
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-cli-'));
 const cli = path.join(skillRoot, 'bin/archify.mjs');
 const cliMessageReview = path.join(skillRoot, 'references', 'cli-messages.ja-review.md');
+const cliBaseEnglishFixture = path.join(skillRoot, 'test', 'fixtures', 'cli-message-sources.en.json');
+const cliDownstreamEnglishFixture = path.join(skillRoot, 'test', 'fixtures', 'cli-message-downstream-sources.en.json');
 
 function run(args, options = {}) {
   return spawnSync(process.execPath, [cli, ...args], {
@@ -25,6 +27,13 @@ function run(args, options = {}) {
 
 function sha256(file) {
   return createHash('sha256').update(fs.readFileSync(file)).digest('hex');
+}
+
+function englishMessageFixtures() {
+  return {
+    ...JSON.parse(fs.readFileSync(cliBaseEnglishFixture, 'utf8')),
+    ...JSON.parse(fs.readFileSync(cliDownstreamEnglishFixture, 'utf8')),
+  };
 }
 
 function makeFakeOpeners(name, { exitCode = 0 } = {}) {
@@ -121,6 +130,15 @@ test('cli: option requirements and command-specific usage are Japanese without t
   }
 });
 
+test('cli: propagated brand capture validation is Japanese while retaining HTTP(S)', () => {
+  const result = run(['brands', 'capture', 'ftp://example.com/favicon.ico']);
+
+  assert.equal(result.status, 2);
+  assert.equal(result.stdout, '');
+  assert.match(result.stderr, /brand capture には HTTP\(S\) URL を 1 つ指定してください。/);
+  assert.doesNotMatch(result.stderr, /requires one HTTP/);
+});
+
 test('cli: Japanese review table records exact English source and direct translation', () => {
   const markdown = fs.readFileSync(cliMessageReview, 'utf8');
   const rows = markdown.split('\n')
@@ -136,12 +154,15 @@ test('cli: Japanese review table records exact English source and direct transla
     });
   const reviewed = new Map(rows.map((row) => [row.key, row]));
 
-  const expectedKeys = Object.keys(CLI_MESSAGE_SOURCES).sort();
+  const englishFixtures = englishMessageFixtures();
+  const expectedKeys = Object.keys(englishFixtures).sort();
+  assert.deepEqual(Object.keys(CLI_MESSAGE_SOURCES).sort(), expectedKeys);
   assert.deepEqual(Object.keys(CLI_MESSAGES_JA).sort(), expectedKeys);
   assert.deepEqual([...reviewed.keys()].sort(), expectedKeys);
   assert.equal(new Set(rows.map((row) => row.key)).size, rows.length);
   for (const row of rows) {
-    assert.equal(row.english, CLI_MESSAGE_SOURCES[row.key], `English source: ${row.key}`);
+    assert.equal(row.english, englishFixtures[row.key], `English source fixture: ${row.key}`);
+    assert.equal(CLI_MESSAGE_SOURCES[row.key], englishFixtures[row.key], `Production English source: ${row.key}`);
     assert.equal(row.japanese, CLI_MESSAGES_JA[row.key], `Japanese review: ${row.key}`);
     const englishVariables = [...row.english.matchAll(/\{([a-zA-Z0-9_]+)\}/g)].map((match) => match[1]).sort();
     const japaneseVariables = [...row.japanese.matchAll(/\{([a-zA-Z0-9_]+)\}/g)].map((match) => match[1]).sort();
@@ -170,23 +191,31 @@ test('cli: Japanese review table records exact English source and direct transla
 });
 
 test('cli: e827188 English producer fixture independently pins the complete reviewed catalog', () => {
-  const canonical = JSON.stringify(Object.fromEntries(
-    Object.keys(CLI_MESSAGE_SOURCES).sort().map((key) => [key, CLI_MESSAGE_SOURCES[key]]),
-  ));
-  assert.equal(Object.keys(CLI_MESSAGE_SOURCES).length, 177);
+  const baseBytes = fs.readFileSync(cliBaseEnglishFixture);
+  const downstreamBytes = fs.readFileSync(cliDownstreamEnglishFixture);
+  const base = JSON.parse(baseBytes);
+  const downstream = JSON.parse(downstreamBytes);
+  const canonical = JSON.stringify(Object.fromEntries(Object.entries(base).sort(([left], [right]) => left.localeCompare(right))));
+
+  assert.equal(Object.keys(base).length, 177);
+  assert.equal(Object.keys(downstream).length, 16);
+  assert.equal(createHash('sha256').update(baseBytes).digest('hex'), 'f87df7ba4f1d4d455baa886b0ab9372e42699298cd260c1cda35463c9bd3d736');
+  assert.equal(createHash('sha256').update(downstreamBytes).digest('hex'), 'b9f8dfa1b3308f81f8fb607698cf0f5e35233b96b33f66cbda49d44508841576');
   assert.equal(
     createHash('sha256').update(canonical).digest('hex'),
-    'ab7ddf1a5ce74ec53ddb5d840d100a85b7be153016802156ec75200d84a0b613',
+    'a2b586de10d658fb6569b2d3c0d37b264031b0cd6cf3a3b2103338589ca6681d',
   );
-  assert.equal(CLI_MESSAGE_SOURCES['error.quality-required'], '--quality requires standard or showcase.');
-  assert.equal(CLI_MESSAGE_SOURCES['error.receipt-required'], '--receipt requires a JSON output path.');
-  assert.equal(CLI_MESSAGE_SOURCES['error.lang-values'], '--lang must be "en" or "zh".');
-  assert.equal(CLI_MESSAGE_SOURCES['usage.brands-capture'], 'Usage: archify brands capture <url> [--json]');
-  assert.equal(CLI_MESSAGE_SOURCES['error.to-schema-required'], '--to-schema requires a schema version.');
-  assert.equal(CLI_MESSAGE_SOURCES['doctor.file-missing.one'], '{count} required file missing');
-  assert.equal(CLI_MESSAGE_SOURCES['doctor.file-missing.other'], '{count} required files missing');
-  assert.equal(CLI_MESSAGE_SOURCES['doctor.runtime-failed.one'], '{count} runtime check failed');
-  assert.equal(CLI_MESSAGE_SOURCES['doctor.runtime-failed.other'], '{count} runtime checks failed');
+  assert.equal(base['error.quality-required'], '--quality requires standard or showcase.');
+  assert.equal(base['error.receipt-required'], '--receipt requires a JSON output path.');
+  assert.equal(base['error.lang-values'], '--lang must be "en" or "zh".');
+  assert.equal(base['usage.brands-capture'], 'Usage: archify brands capture <url> [--json]');
+  assert.equal(base['error.to-schema-required'], '--to-schema requires a schema version.');
+  assert.equal(base['doctor.file-missing.one'], '{count} required file missing');
+  assert.equal(base['doctor.file-missing.other'], '{count} required files missing');
+  assert.equal(base['doctor.runtime-failed.one'], '{count} runtime check failed');
+  assert.equal(base['doctor.runtime-failed.other'], '{count} runtime checks failed');
+  assert.equal(downstream['brand.http-only'], 'only HTTP(S) brand links are supported');
+  assert.equal(downstream['checker.single-svg-detail'], 'found {count} <svg> block(s)');
 });
 
 test('cli: every fixed human-facing producer routes through the reviewed Japanese catalog', () => {
@@ -211,6 +240,21 @@ test('cli: every fixed human-facing producer routes through the reviewed Japanes
     .filter((line) => !/supportedFixes:\s*(?:details|outputDiagnostic|diagnosticEntry|\[\.\.\.)/.test(line))
     .map((line) => line.trim());
   assert.deepEqual(violations, []);
+});
+
+test('cli: downstream producer fixture is mapped at the propagation boundary', () => {
+  const binSource = fs.readFileSync(cli, 'utf8');
+  const downstreamSource = [
+    fs.readFileSync(path.join(skillRoot, 'renderers', 'shared', 'brand-marks.mjs'), 'utf8'),
+    fs.readFileSync(path.join(skillRoot, 'scripts', 'check-render-output.mjs'), 'utf8'),
+  ].join('\n');
+  const fixture = JSON.parse(fs.readFileSync(cliDownstreamEnglishFixture, 'utf8'));
+
+  for (const [key, english] of Object.entries(fixture)) {
+    const anchor = english.split(/\{[a-zA-Z0-9_]+\}/).sort((left, right) => right.length - left.length)[0];
+    assert.ok(anchor.length >= 8 && downstreamSource.includes(anchor), `downstream English producer: ${key}`);
+    assert.ok(binSource.includes(`'${key}'`), `propagation mapping: ${key}`);
+  }
 });
 
 test('cli: help lists commands and diagram types', () => {
@@ -629,6 +673,8 @@ test('cli: deliver preserves the previous artifact when the final check fails', 
   assert.equal(failure.stage, 'check');
   assert.equal(failure.diagnostics[0].code, 'artifact/single-svg');
   assert.equal(failure.diagnostics[0].subject.check, 'single_svg');
+  assert.equal(failure.diagnostics[0].message, '<svg> ブロックが 2 個見つかりました');
+  assert.deepEqual(failure.diagnostics[0].evidence.details, ['found 2 <svg> block(s)']);
   assert.ok(failure.diagnostics[0].supportedFixes.some((fix) => fix.includes('ダイアグラム SVG が 1 つだけ')));
   assert.equal(failure.checker.checks.find((entry) => entry.name === 'single_svg').ok, false);
   assert.equal(fs.readFileSync(out, 'utf8'), trustedPriorArtifact);

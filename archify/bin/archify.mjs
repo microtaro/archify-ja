@@ -8,8 +8,9 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 let translateCliMessage;
+let CLI_MESSAGE_SOURCES = {};
 try {
-  ({ translateCliMessage } = await import('../renderers/shared/i18n.mjs'));
+  ({ CLI_MESSAGE_SOURCES, translateCliMessage } = await import('../renderers/shared/i18n.mjs'));
 } catch (error) {
   if (error?.code !== 'ERR_MODULE_NOT_FOUND') throw error;
   // `doctor` must still diagnose a severely incomplete installation where
@@ -230,7 +231,9 @@ function localizeRendererDiagnostic(diagnosticEntry) {
     evidence: { ...(diagnosticEntry.evidence || {}) },
     supportedFixes: [...(diagnosticEntry.supportedFixes || [])],
   };
-  if (entry.code === 'input/json-parse') {
+  if (entry.message === CLI_MESSAGE_SOURCES['runtime.unclassified-failure']) {
+    entry.message = translateCliMessage('runtime.unclassified-failure');
+  } else if (entry.code === 'input/json-parse') {
     entry.message = translateCliMessage('input.json-parse.message', {
       reason: entry.evidence.reason || entry.message,
     });
@@ -318,6 +321,37 @@ const COMPOSITION_FIXES = {
   'composition/short-interior-segment': [translateCliMessage('fix.short-interior-segment')],
 };
 
+function localizeCheckerDetail(check) {
+  const detail = (check.details || []).find(Boolean);
+  if (!detail) return null;
+  if (check.name === 'single_svg') {
+    const match = detail.match(/^found (\d+) <svg> block\(s\)$/);
+    if (match) return translateCliMessage('checker.single-svg-detail', { count: match[1] });
+  }
+  if (check.name === 'orthogonal_arrows') {
+    const match = detail.match(/^(\S+) (\d+) segment (\d+): ([\s\S]+)$/);
+    if (match) {
+      return translateCliMessage('checker.orthogonal-detail', {
+        kind: match[1],
+        index: match[2],
+        segment: match[3],
+        raw: match[4],
+      });
+    }
+  }
+  if (check.name === 'legend_clearance') {
+    const match = detail.match(/^(\S+) (\d+) crosses legend ([\s\S]+)$/);
+    if (match) {
+      return translateCliMessage('checker.legend-detail', {
+        kind: match[1],
+        index: match[2],
+        label: match[3],
+      });
+    }
+  }
+  return detail;
+}
+
 function checkerDiagnostics(checker) {
   const diagnostics = [];
   for (const issue of checker?.composition?.issues || []) {
@@ -336,7 +370,7 @@ function checkerDiagnostics(checker) {
     if (check.ok || COMPOSITION_CHECKS.has(check.name)) continue;
     diagnostics.push(diagnostic({
       code: `artifact/${check.name.replaceAll('_', '-')}`,
-      message: (check.details || []).find(Boolean) || translateCliMessage('artifact.failed-check', { check: check.name }),
+      message: localizeCheckerDetail(check) || translateCliMessage('artifact.failed-check', { check: check.name }),
       subject: { check: check.name },
       evidence: { details: check.details || [] },
       supportedFixes: CHECK_FIXES[check.name] || [],
@@ -1535,7 +1569,7 @@ async function commandBrands(args) {
     try {
       capture = await captureBrandReference(positional[1]);
     } catch (error) {
-      fail(error.message);
+      fail(localizeBrandCaptureError(error.message));
     }
     const result = {
       schemaVersion: 1,
@@ -1577,6 +1611,35 @@ async function commandBrands(args) {
   for (const [category, entries] of grouped) {
     console.log(`${category}: ${entries.map((mark) => mark.id).join(', ')}`);
   }
+}
+
+function localizeBrandCaptureError(message) {
+  const exact = {
+    'brand capture requires one HTTP(S) URL': 'brand.capture-url-required',
+    'only HTTP(S) brand links are supported': 'brand.http-only',
+    'brand links cannot contain credentials': 'brand.credentials',
+    'brand links must use a standard web port': 'brand.standard-port',
+    'private brand links are not fetched': 'brand.private',
+    'brand capture timed out': 'brand.timeout',
+    'brand link redirected too many times': 'brand.redirects',
+    'brand asset is too large': 'brand.asset-too-large',
+    'no usable site icon was found': 'brand.no-icon',
+  }[message];
+  if (exact) return translateCliMessage(exact);
+
+  let match = message.match(/^brand link returned HTTP (\d+)$/);
+  if (match) return translateCliMessage('brand.http-status', { status: match[1] });
+  match = message.match(/^unsupported brand image type (.+)$/);
+  if (match) return translateCliMessage('brand.unsupported-image', { contentType: match[1] });
+  match = message.match(/^brand asset bytes do not match (.+)$/);
+  if (match) return translateCliMessage('brand.bytes-mismatch', { contentType: match[1] });
+  match = message.match(/^brand capture failed: ([\s\S]+)$/);
+  if (match) {
+    return translateCliMessage('brand.capture-failed', {
+      reason: localizeBrandCaptureError(match[1]),
+    });
+  }
+  return message;
 }
 
 function commandDemo(args) {

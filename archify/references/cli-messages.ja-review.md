@@ -7,8 +7,24 @@
 | `artifact.failed-check` | "Final artifact failed {check}." | "最終成果物が {check} に合格しませんでした。" |
 | `artifact.failed-code` | "Final artifact failed {code}." | "最終成果物が {code} に合格しませんでした。" |
 | `artifact.unclassified` | "Final artifact check failed without a classified diagnostic." | "最終成果物の検査に失敗しましたが、診断を分類できませんでした。" |
+| `brand.asset-too-large` | "brand asset is too large" | "brand アセットが大きすぎます。" |
+| `brand.bytes-mismatch` | "brand asset bytes do not match {contentType}" | "brand アセットのバイト列が {contentType} と一致しません。" |
+| `brand.capture-failed` | "brand capture failed: {reason}" | "brand capture に失敗しました: {reason}" |
+| `brand.capture-url-required` | "brand capture requires one HTTP(S) URL" | "brand capture には HTTP(S) URL を 1 つ指定してください。" |
+| `brand.credentials` | "brand links cannot contain credentials" | "brand リンクに認証情報を含めることはできません。" |
+| `brand.http-only` | "only HTTP(S) brand links are supported" | "brand リンクは HTTP(S) のみ使用できます。" |
+| `brand.http-status` | "brand link returned HTTP {status}" | "brand リンクが HTTP {status} を返しました。" |
+| `brand.no-icon` | "no usable site icon was found" | "使用可能なサイトアイコンが見つかりませんでした" |
+| `brand.private` | "private brand links are not fetched" | "private brand リンクは取得しません。" |
+| `brand.redirects` | "brand link redirected too many times" | "brand リンクのリダイレクト回数が多すぎます。" |
+| `brand.standard-port` | "brand links must use a standard web port" | "brand リンクには標準の Web ポートを使用してください。" |
+| `brand.timeout` | "brand capture timed out" | "brand capture がタイムアウトしました。" |
+| `brand.unsupported-image` | "unsupported brand image type {contentType}" | "未対応の brand 画像形式です: {contentType}" |
 | `brands.capture-fallback` | "Run \"archify brands capture <url> --json\", then use the returned digest-pinned brand value." | "\"archify brands capture <url> --json\" を実行し、返された digest 固定の brand 値を使用してください。" |
 | `brands.no-match` | "No built-in brand matched \"{query}\". Run \"archify brands capture <url> --json\", then use the returned digest-pinned brand value." | "組み込み brand に \"{query}\" と一致するものがありません。\"archify brands capture <url> --json\" を実行し、返された digest 固定の brand 値を使用してください。" |
+| `checker.legend-detail` | "{kind} {index} crosses legend {label}" | "{kind} {index} が凡例 {label} と交差しています" |
+| `checker.orthogonal-detail` | "{kind} {index} segment {segment}: {raw}" | "{kind} {index} の線分 {segment}: {raw}" |
+| `checker.single-svg-detail` | "found {count} <svg> block(s)" | "<svg> ブロックが {count} 個見つかりました" |
 | `common.receipt` | "receipt {path}" | "receipt {path}" |
 | `compare.base-validation` | "Base snapshot failed validation: {reason}" | "base スナップショットの検証に失敗しました: {reason}" |
 | `compare.candidate-directory` | "Could not create compare candidate: {reason}" | "比較候補を作成できませんでした: {reason}" |
@@ -108,7 +124,6 @@
 | `guided-view.unknown-semantic-id` | "{path} references unknown semantic id {id}" | "{path} が不明なセマンティック ID {id} を参照しています" |
 | `guided-view.validation-failed` | "Guided view validation failed" | "ガイド表示の検証に失敗しました" |
 | `i18n.invalid-message` | "Invalid Archify i18n message {key} for {locale}" | "Archify の i18n メッセージ {key} は {locale} で無効です" |
-| `i18n.missing-cli-message` | "CLI message key {key} is not defined" | "CLI メッセージキー {key} は定義されていません" |
 | `i18n.missing-message` | "Missing Archify i18n message {key} for {locale}" | "Archify の i18n メッセージ {key} が {locale} にありません" |
 | `input.json-parse.fix` | "repair the JSON syntax and run validation again" | "JSON の構文を修正してから、もう一度検証してください" |
 | `input.json-parse.message` | "Input JSON could not be parsed: {reason}" | "入力 JSON を解析できませんでした: {reason}" |
@@ -141,6 +156,7 @@
 | `renderer.unknown-diagram-type` | "writeDiagram: unknown diagram type {type}" | "writeDiagram: 不明なダイアグラム種類 {type}" |
 | `runtime.renderer-process` | "Renderer process could not start." | "レンダラープロセスを開始できませんでした。" |
 | `runtime.renderer-unclassified` | "Renderer failed before emitting a structured diagnostic." | "レンダラーが構造化診断を出力する前に失敗しました。" |
+| `runtime.unclassified-failure` | "Archify could not classify this failure." | "Archify はこの失敗を分類できませんでした。" |
 | `schema.additional-properties.fix` | "remove unsupported property {property}" | "未対応のプロパティ {property} を削除してください" |
 | `schema.additional-properties.message` | "{path} must NOT have additional properties {details}" | "{path} に未対応のプロパティを含めることはできません {details}" |
 | `schema.enum.fix` | "choose one of {values}" | "{values} のいずれかを選択してください" |

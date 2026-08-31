@@ -1,0 +1,18 @@
+{
+  "brand.asset-too-large": "brand asset is too large",
+  "brand.bytes-mismatch": "brand asset bytes do not match {contentType}",
+  "brand.capture-failed": "brand capture failed: {reason}",
+  "brand.capture-url-required": "brand capture requires one HTTP(S) URL",
+  "brand.credentials": "brand links cannot contain credentials",
+  "brand.http-only": "only HTTP(S) brand links are supported",
+  "brand.http-status": "brand link returned HTTP {status}",
+  "brand.no-icon": "no usable site icon was found",
+  "brand.private": "private brand links are not fetched",
+  "brand.redirects": "brand link redirected too many times",
+  "brand.standard-port": "brand links must use a standard web port",
+  "brand.timeout": "brand capture timed out",
+  "brand.unsupported-image": "unsupported brand image type {contentType}",
+  "checker.legend-detail": "{kind} {index} crosses legend {label}",
+  "checker.orthogonal-detail": "{kind} {index} segment {segment}: {raw}",
+  "checker.single-svg-detail": "found {count} <svg> block(s)"
+}

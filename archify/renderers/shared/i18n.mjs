@@ -1107,6 +1107,7 @@ export const CLI_MESSAGE_SOURCES = Object.freeze({
   'usage.migrate': 'Usage: archify migrate workflow <old.json> <new.json> --to-schema 2 [--json]',
   'runtime.renderer-process': 'Renderer process could not start.',
   'runtime.renderer-unclassified': 'Renderer failed before emitting a structured diagnostic.',
+  'runtime.unclassified-failure': 'Archify could not classify this failure.',
   'artifact.failed-code': 'Final artifact failed {code}.',
   'artifact.failed-check': 'Final artifact failed {check}.',
   'artifact.unclassified': 'Final artifact check failed without a classified diagnostic.',
@@ -1205,6 +1206,22 @@ export const CLI_MESSAGE_SOURCES = Object.freeze({
   'validate.final-check-failed': 'Final artifact check failed.',
   'validate.engineering-pass': '; engineering {profile}: pass',
   'validate.success': 'ok {type} {input} ({checks} artifact checks; composition {profile}: {errors} errors, {warnings} warnings{engineering})',
+  'brand.capture-url-required': 'brand capture requires one HTTP(S) URL',
+  'brand.http-only': 'only HTTP(S) brand links are supported',
+  'brand.credentials': 'brand links cannot contain credentials',
+  'brand.standard-port': 'brand links must use a standard web port',
+  'brand.private': 'private brand links are not fetched',
+  'brand.timeout': 'brand capture timed out',
+  'brand.redirects': 'brand link redirected too many times',
+  'brand.http-status': 'brand link returned HTTP {status}',
+  'brand.asset-too-large': 'brand asset is too large',
+  'brand.unsupported-image': 'unsupported brand image type {contentType}',
+  'brand.bytes-mismatch': 'brand asset bytes do not match {contentType}',
+  'brand.capture-failed': 'brand capture failed: {reason}',
+  'brand.no-icon': 'no usable site icon was found',
+  'checker.single-svg-detail': 'found {count} <svg> block(s)',
+  'checker.orthogonal-detail': '{kind} {index} segment {segment}: {raw}',
+  'checker.legend-detail': '{kind} {index} crosses legend {label}',
   'diagnostic.fix-label': 'Fix:',
   'input.json-parse.message': 'Input JSON could not be parsed: {reason}',
   'input.json-parse.fix': 'repair the JSON syntax and run validation again',
@@ -1260,7 +1277,6 @@ export const CLI_MESSAGE_SOURCES = Object.freeze({
   'guided-view.unknown-semantic-id': '{path} references unknown semantic id {id}',
   'i18n.invalid-message': 'Invalid Archify i18n message {key} for {locale}',
   'i18n.missing-message': 'Missing Archify i18n message {key} for {locale}',
-  'i18n.missing-cli-message': 'CLI message key {key} is not defined',
   'renderer.unknown-diagram-type': 'writeDiagram: unknown diagram type {type}',
 });
 
@@ -1287,6 +1303,7 @@ export const CLI_MESSAGES_JA = Object.freeze({
   'usage.migrate': '使い方: archify migrate workflow <old.json> <new.json> --to-schema 2 [--json]',
   'runtime.renderer-process': 'レンダラープロセスを開始できませんでした。',
   'runtime.renderer-unclassified': 'レンダラーが構造化診断を出力する前に失敗しました。',
+  'runtime.unclassified-failure': 'Archify はこの失敗を分類できませんでした。',
   'artifact.failed-code': '最終成果物が {code} に合格しませんでした。',
   'artifact.failed-check': '最終成果物が {check} に合格しませんでした。',
   'artifact.unclassified': '最終成果物の検査に失敗しましたが、診断を分類できませんでした。',
@@ -1385,6 +1402,22 @@ export const CLI_MESSAGES_JA = Object.freeze({
   'validate.final-check-failed': '最終成果物の検査に失敗しました。',
   'validate.engineering-pass': '、engineering {profile}: 合格',
   'validate.success': 'ok {type} {input}（成果物検査 {checks} 件、composition {profile}: エラー {errors} 件、警告 {warnings} 件{engineering}）',
+  'brand.capture-url-required': 'brand capture には HTTP(S) URL を 1 つ指定してください。',
+  'brand.http-only': 'brand リンクは HTTP(S) のみ使用できます。',
+  'brand.credentials': 'brand リンクに認証情報を含めることはできません。',
+  'brand.standard-port': 'brand リンクには標準の Web ポートを使用してください。',
+  'brand.private': 'private brand リンクは取得しません。',
+  'brand.timeout': 'brand capture がタイムアウトしました。',
+  'brand.redirects': 'brand リンクのリダイレクト回数が多すぎます。',
+  'brand.http-status': 'brand リンクが HTTP {status} を返しました。',
+  'brand.asset-too-large': 'brand アセットが大きすぎます。',
+  'brand.unsupported-image': '未対応の brand 画像形式です: {contentType}',
+  'brand.bytes-mismatch': 'brand アセットのバイト列が {contentType} と一致しません。',
+  'brand.capture-failed': 'brand capture に失敗しました: {reason}',
+  'brand.no-icon': '使用可能なサイトアイコンが見つかりませんでした',
+  'checker.single-svg-detail': '<svg> ブロックが {count} 個見つかりました',
+  'checker.orthogonal-detail': '{kind} {index} の線分 {segment}: {raw}',
+  'checker.legend-detail': '{kind} {index} が凡例 {label} と交差しています',
   'diagnostic.fix-label': '修正:',
   'input.json-parse.message': '入力 JSON を解析できませんでした: {reason}',
   'input.json-parse.fix': 'JSON の構文を修正してから、もう一度検証してください',
@@ -1440,7 +1473,6 @@ export const CLI_MESSAGES_JA = Object.freeze({
   'guided-view.unknown-semantic-id': '{path} が不明なセマンティック ID {id} を参照しています',
   'i18n.invalid-message': 'Archify の i18n メッセージ {key} は {locale} で無効です',
   'i18n.missing-message': 'Archify の i18n メッセージ {key} が {locale} にありません',
-  'i18n.missing-cli-message': 'CLI メッセージキー {key} は定義されていません',
   'renderer.unknown-diagram-type': 'writeDiagram: 不明なダイアグラム種類 {type}',
 });
 
@@ -1467,8 +1499,9 @@ export function formatMessage(template, values = {}) {
 
 export function translateCliMessage(key, values = {}) {
   if (!Object.hasOwn(CLI_MESSAGES_JA, key)) {
-    throw new Error(formatMessage(CLI_MESSAGES_JA['i18n.missing-cli-message'], {
+    throw new Error(formatMessage(CLI_MESSAGES_JA['i18n.missing-message'], {
       key: JSON.stringify(key),
+      locale: 'CLI catalog',
     }));
   }
   return formatMessage(CLI_MESSAGES_JA[key], values);
