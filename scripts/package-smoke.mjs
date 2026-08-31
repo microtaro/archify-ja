@@ -99,7 +99,8 @@ try {
   }
 
   const skill = fs.readFileSync(path.join(skillRoot, 'SKILL.md'), 'utf8');
-  if (!/^# Archify-ja$/m.test(skill)
+  if (!/^name:\s*archify-ja$/m.test(skill)
+    || !/^# Archify-ja(?: 日本語版)?$/m.test(skill)
     || !/^\s*version:\s*["']?2\.16["']?\s*$/m.test(skill)
     || !/^\s*author:\s*microtaro\s*$/m.test(skill)) {
     throw new Error('packaged SKILL.md does not identify the Japanese edition');

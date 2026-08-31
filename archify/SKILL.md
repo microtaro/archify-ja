@@ -1,5 +1,5 @@
 ---
-name: archify
+name: archify-ja
 description: 洗練され、検証済みの architecture、workflow、sequence、data-flow、lifecycle/state ダイアグラムを作成する。成果物はインラインSVG、ダーク/ライトテーマ、任意のトレースモーション、PNG/JPEG/WebP/SVG/WebM書き出しを備えた、探索可能で自己完結した standalone HTML。自然言語の要件、または貼り付けられた Mermaid の flowchart、sequenceDiagram、stateDiagram を入力として受け付ける。実在するコードを反映する場合は repository evidence を調査する。システム構成、インフラ、クラウド/セキュリティ/ネットワーク構成、技術的な処理手順、API呼び出し順序、リクエストのライフサイクル、データパイプライン、ETL/ELT、データリネージ、ステートマシンの可視化、または Mermaid の変換・美化をユーザーが求めた場合に利用する。
 license: MIT
 metadata:

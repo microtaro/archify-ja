@@ -11,6 +11,7 @@ const frontmatter = skill.match(/^---\n([\s\S]*?)\n---/);
 
 test('skill description is portable across 1024-character runtimes and remains searchable', () => {
   assert.ok(frontmatter, 'SKILL.md must start with YAML frontmatter');
+  assert.match(frontmatter[1], /^name:\s*archify-ja$/m, 'frontmatter must expose the installable skill as archify-ja');
   const description = frontmatter[1].match(/^description:\s*(.+)$/m)?.[1]?.trim();
   assert.ok(description, 'frontmatter must include a one-line description');
   assert.ok(description.length <= 1024, `description is ${description.length} characters; maximum is 1024`);

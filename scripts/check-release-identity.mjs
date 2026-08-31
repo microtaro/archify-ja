@@ -165,10 +165,11 @@ if (packageJson.name === 'archify-ja') {
   }
 
   const skill = read('archify/SKILL.md');
+  const skillName = skill.match(/^name:\s*([^\s]+)\s*$/m)?.[1];
   const skillVersion = skill.match(/^\s*version:\s*["']?([^"'\s]+)["']?\s*$/m)?.[1];
-  if (skillVersion !== '2.16' || !/^# Archify-ja$/m.test(skill)
+  if (skillName !== 'archify-ja' || skillVersion !== '2.16' || !/^# Archify-ja(?: 日本語版)?$/m.test(skill)
     || !/^\s*author:\s*microtaro\s*$/m.test(skill)) {
-    fail('archify/SKILL.md must identify the Archify-ja 2.16 Japanese edition by title, author, and metadata version.');
+    fail('archify/SKILL.md must identify the installable archify-ja 2.16 Japanese edition by name, title, author, and metadata version.');
   }
 
   const release = readJson('archify/skill-release.json');
