@@ -98,33 +98,6 @@ function checkDocument(relativePath, source, version, isDevelopment) {
   }
 }
 
-function checkRavenBoundary(relativePath, source) {
-  const installParent = String.raw`~\/\.raven\/workspace\/skills`;
-  const installedRoot = `${installParent}\/archify`;
-  const pathBoundary = String.raw`(?=$|[\s\x60'"<>,.;:，；。])`;
-  const hasEnglishManual = /manual ZIP/i.test(source);
-  const englishExtractsIntoParent = new RegExp(
-    String.raw`(?:extract|unpack)[^\n]{0,180}archify\.zip[^\n]{0,180}(?:into|to)\s*[\x60'"<]*${installParent}${pathBoundary}`,
-    'i',
-  ).test(source);
-  const englishExplainsInstalledRoot = new RegExp(
-    String.raw`(?:yields?|creates?|produces?|results? in)[^\n]{0,120}${installedRoot}`,
-    'i',
-  ).test(source);
-  const hasCorrectDestination = englishExtractsIntoParent && englishExplainsInstalledRoot;
-  const nestedDestination = new RegExp(
-    String.raw`\b(?:extract|unpack)[^\n]{0,220}(?:into|to)\s*[\x60'"<]*${installedRoot}`,
-    'i',
-  ).test(source);
-  const inventsSwitcher = /data-agent=["']raven["']/i.test(source)
-    || /--agent\s+raven\b/i.test(source)
-    || /[?&]agent=raven\b/i.test(source);
-  if (!/Raven/i.test(source) || !hasEnglishManual || !hasCorrectDestination
-    || nestedDestination || inventsSwitcher) {
-    fail(`${relativePath}: Raven must remain a manual ZIP installation outside the agent switcher: extract archify.zip into ~/.raven/workspace/skills, yielding ~/.raven/workspace/skills/archify.`);
-  }
-}
-
 function checkIdentityTemplate(relativePath, source, isDevelopment) {
   const hasHardcodedVersion = /\b\d+\.\d+\.\d+(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?\b/.test(source);
   const identity = isDevelopment ? 'development' : 'stable';
@@ -282,8 +255,6 @@ if (hasSupportedVersion) {
   const englishMirror = read('README_EN.md');
   checkReadme('README.md', english, version, isDevelopment);
   checkReadme('README_EN.md', englishMirror, version, isDevelopment);
-  checkRavenBoundary('README.md', english);
-  checkRavenBoundary('README_EN.md', englishMirror);
   if (english !== englishMirror) fail('README_EN.md must remain byte-identical to README.md.');
 
   if (newestStableLabel && isDevelopment) {
@@ -295,7 +266,6 @@ if (hasSupportedVersion) {
 
   const landing = read('docs/index.html');
   checkDocument('docs/index.html', landing, version, isDevelopment);
-  checkRavenBoundary('docs/index.html', landing);
   const proofCounts = [...landing.matchAll(/\b\d+\/\d+\b/g)].map((match) => match[0]);
   const staleProofCounts = [...new Set(proofCounts.filter((count) => count !== '9/9'))];
   if (proofCounts.length === 0 || staleProofCounts.length > 0) {
@@ -304,7 +274,6 @@ if (hasSupportedVersion) {
   }
   const start = read('docs/start.html');
   checkDocument('docs/start.html', start, version, isDevelopment);
-  checkRavenBoundary('docs/start.html', start);
   checkRoadmap('ROADMAP.md', read('ROADMAP.md'), version, isDevelopment);
 
   for (const templatePath of [

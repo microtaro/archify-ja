@@ -104,15 +104,11 @@ node scripts/build-gallery.mjs docs
 node scripts/build-guide.mjs docs/guide.html
 node scripts/build-start.mjs docs/start.html
 node scripts/build-readme-showcase.mjs
-scripts/build-zip.sh /tmp/archify-contrib.zip
 ```
 
-The runtime follows the Node range in `archify/package.json`, but canonical
-`archify.zip` container bytes are built only with Node 22. The builder rejects
-other Node majors so a different bundled zlib cannot publish a second byte
-representation of the same package contents.
+The runtime follows the Node range in `archify/package.json`.
 
-Bundled example or viewer changes normally require the Gallery rebuild. Skill runtime, schema, renderer, or published `SKILL.md` changes require checking `archify.zip` freshness and committing a rebuilt archive when the checked-in package contents differ.
+Bundled example or viewer changes normally require the Gallery rebuild.
 
 List every regenerated file in the PR description. Do not regenerate unrelated HTML, GIFs, screenshots, manifests, or archives merely to make the branch look current. Generated artifacts are evidence and delivery payloads, not a substitute for reviewing the source change.
 

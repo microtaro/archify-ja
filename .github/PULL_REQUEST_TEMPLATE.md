@@ -24,7 +24,7 @@ For visible changes, attach before/after final-artifact screenshots and state wh
 
 ## Generated artifacts
 
-List regenerated files such as Gallery pages, guides, README proofs, or `archify.zip`. If none changed, explain why they remain fresh.
+List regenerated files such as Gallery pages, guides, or README proofs. If none changed, explain why they remain fresh.
 
 ## Checklist
 

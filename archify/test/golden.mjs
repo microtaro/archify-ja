@@ -91,7 +91,7 @@ for (const [mode, input, golden] of GOLDEN) {
     check(`${mode}: ${golden}`, normalizeNewlines(fresh) === normalizeNewlines(checked),
       `fresh render differs from examples/${golden}; if the change is intentional, re-render the examples and commit them`);
     check(`${mode}: packaged ${golden}`, normalizeNewlines(fresh) === normalizeNewlines(packaged),
-      `fresh render differs from archify/examples/${golden}; re-render the packaged examples and rebuild archify.zip`);
+      `fresh render differs from archify/examples/${golden}; re-render the packaged examples`);
   } catch (err) {
     check(`${mode}: ${golden}`, false, String(err.stderr || err.message).slice(0, 300));
   }
@@ -174,7 +174,7 @@ check('template generator meta matches package.json version',
 const lock = JSON.parse(fs.readFileSync(path.join(skillRoot, 'package-lock.json'), 'utf8'));
 check('package-lock.json version matches package.json',
   lock.version === pkg.version && lock.packages?.['']?.version === pkg.version,
-  `lockfile says ${lock.version} — run npm install and rebuild the zip`);
+  `lockfile says ${lock.version} — run npm install`);
 
 const skillMd = fs.readFileSync(path.join(skillRoot, 'SKILL.md'), 'utf8');
 const skillVersion = (skillMd.match(/^\s*version:\s*"([^"]+)"/m) || [])[1];

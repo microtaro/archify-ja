@@ -24,7 +24,6 @@ body:
       options:
         - npm package
         - Git clone
-        - Downloaded archify.zip
         - Uploaded skill archive
         - Other
     validations:
