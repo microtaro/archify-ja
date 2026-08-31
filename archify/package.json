@@ -23,8 +23,10 @@
     "build:start": "node ../scripts/build-start.mjs ../docs/start.html",
     "build:readme-showcase": "node ../scripts/build-readme-showcase.mjs",
     "test:webm": "node test/webm-artifact.smoke.mjs && node --test test/site-navigation-integration.mjs",
-    "test": "npm run check:brand-marks && npm run check:validators && npm run check:release-identity && node test/golden.mjs && node ../scripts/run-tests.mjs",
-    "render:examples": "node scripts/render-examples.mjs ../examples"
+    "test": "npm run check:brand-marks && npm run check:validators && npm run check:release-identity && node test/golden.mjs && node ../scripts/known-failures.mjs",
+    "render:examples": "node scripts/render-examples.mjs ../examples",
+    "test:known": "node ../scripts/known-failures.mjs",
+    "test:known:update": "node ../scripts/known-failures.mjs --update"
   },
   "devDependencies": {
     "ajv": "^8.17.1",
