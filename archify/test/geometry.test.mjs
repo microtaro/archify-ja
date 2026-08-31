@@ -38,6 +38,7 @@ import {
   suggestComponentSeparation,
 } from '../renderers/shared/geometry.mjs';
 import { textUnits, applyTemplate, renderSemanticSigil } from '../renderers/shared/utils.mjs';
+import { DEFAULT_LANG } from './helpers/viewer-copy.mjs';
 
 const rect = (x, y, w, h) => ({ x, y, width: w, height: h, cx: x + w / 2, cy: y + h / 2 });
 
@@ -686,7 +687,7 @@ test('suggestComponentSeparation proposes nudged pos', () => {
 });
 
 test('applyTemplate preserves dollar sequences in titles', () => {
-  const template = `<html lang="en" data-theme="dark" data-preset="[VISUAL PRESET]">
+  const template = `<html lang="${DEFAULT_LANG}" data-theme="dark" data-preset="[VISUAL PRESET]">
 <title>[PROJECT NAME] Architecture Diagram</title>
 <h1>[PROJECT NAME] Architecture</h1>
 <p class="subtitle">[Subtitle description]</p>
@@ -704,7 +705,7 @@ test('applyTemplate preserves dollar sequences in titles', () => {
 });
 
 test('applyTemplate omits the subtitle row when no subtitle is authored', () => {
-  const template = `<html lang="en" data-theme="dark" data-preset="[VISUAL PRESET]">
+  const template = `<html lang="${DEFAULT_LANG}" data-theme="dark" data-preset="[VISUAL PRESET]">
 <title>[PROJECT NAME] Architecture Diagram</title>
 <h1>[PROJECT NAME] Architecture</h1>
 <p class="subtitle">[Subtitle description]</p>
@@ -722,7 +723,7 @@ test('applyTemplate omits the subtitle row when no subtitle is authored', () => 
 });
 
 test('applyTemplate requires the new evidence slot only when evidence is present', () => {
-  const legacyTemplate = `<html lang="en" data-theme="dark" data-preset="[VISUAL PRESET]">
+  const legacyTemplate = `<html lang="${DEFAULT_LANG}" data-theme="dark" data-preset="[VISUAL PRESET]">
 <title>[PROJECT NAME] Architecture Diagram</title>
 <h1>[PROJECT NAME] Architecture</h1>
 <p class="subtitle">[Subtitle description]</p>

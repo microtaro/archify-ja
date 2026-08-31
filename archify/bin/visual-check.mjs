@@ -8,6 +8,7 @@ import {
   DESKTOP_READABILITY_VIEWPORT,
   MIN_PROJECTED_NODE_TEXT_PX,
 } from '../renderers/shared/desktop-readability.mjs';
+import { translateCliMessage } from '../renderers/shared/i18n.mjs';
 
 export const VISUAL_CHECK_VIEWPORTS = Object.freeze([
   DESKTOP_READABILITY_VIEWPORT,
@@ -155,7 +156,7 @@ class PipeCdp {
     child.once('error', (error) => this.failAll(this.failure('process launch', error)));
     child.once('close', (code, signal) => {
       const ending = signal ? `signal ${signal}` : `exit code ${code}`;
-      this.failAll(this.failure('process exit', new Error(`Chrome closed with ${ending}`)));
+      this.failAll(this.failure('process exit', new Error(translateCliMessage('vc.chrome-closed', { ending }))));
     });
   }
 
@@ -179,7 +180,7 @@ class PipeCdp {
       try {
         message = JSON.parse(raw);
       } catch (error) {
-        this.failAll(new Error(`Chrome DevTools returned invalid JSON: ${error.message}`));
+        this.failAll(new Error(translateCliMessage('vc.invalid-json', { reason: error.message })));
         continue;
       }
       if (message.id) {
@@ -208,7 +209,7 @@ class PipeCdp {
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
         this.pending.delete(id);
-        reject(new Error(`${method}: timed out after ${timeoutMs}ms`));
+        reject(new Error(translateCliMessage('vc.method-timeout', { method, timeoutMs })));
       }, timeoutMs);
       this.pending.set(id, { method, resolve, reject, timer });
       try {
@@ -226,7 +227,7 @@ class PipeCdp {
       const waiter = { method, sessionId, resolve, reject, timer: null };
       waiter.timer = setTimeout(() => {
         this.waiters.splice(this.waiters.indexOf(waiter), 1);
-        reject(new Error(`${method}: event timed out after ${timeoutMs}ms`));
+        reject(new Error(translateCliMessage('vc.event-timeout', { method, timeoutMs })));
       }, timeoutMs);
       this.waiters.push(waiter);
     });
@@ -350,7 +351,7 @@ export class ChromeVisualBrowser {
     url.searchParams.set('theme', theme);
     const loaded = this.cdp.waitFor('Page.loadEventFired', sessionId);
     const navigation = await this.cdp.send('Page.navigate', { url: url.href }, sessionId);
-    if (navigation.errorText) throw new Error(`Chrome navigation failed: ${navigation.errorText}`);
+    if (navigation.errorText) throw new Error(translateCliMessage('vc.navigation-failed', { reason: navigation.errorText }));
     await loaded;
     await evaluate(this.cdp, sessionId, `(function () {
       document.documentElement.setAttribute('data-motion', 'still');
@@ -457,7 +458,7 @@ export class ChromeVisualBrowser {
       };
     })()`);
     if (!metrics || !Number.isFinite(metrics.scrollWidth) || !Number.isFinite(metrics.scrollHeight)) {
-      throw new Error('Chrome returned incomplete containment metrics.');
+      throw new Error(translateCliMessage('vc.incomplete-metrics'));
     }
 
     if (screenshotPath) {
@@ -466,7 +467,7 @@ export class ChromeVisualBrowser {
         fromSurface: true,
         captureBeyondViewport: false,
       }, sessionId, 20000);
-      if (!capture.data) throw new Error('Chrome returned an empty screenshot.');
+      if (!capture.data) throw new Error(translateCliMessage('vc.empty-screenshot'));
       fs.writeFileSync(screenshotPath, Buffer.from(capture.data, 'base64'));
     }
     return metrics;
@@ -595,7 +596,7 @@ function observationDiagnostics({ artifact, allObservations, readabilityObservat
     if (!entry.ok) {
       diagnostics.push(failureDiagnostic({
         code: 'viewer/viewport-overflow',
-        message: `The rendered artifact overflows the ${entry.width}x${entry.height} ${entry.theme} viewport.`,
+        message: translateCliMessage('vc.overflow', { width: entry.width, height: entry.height, theme: entry.theme }),
         subject: viewportSubject(artifact, entry),
         evidence: {
           innerWidth: entry.innerWidth,
@@ -606,18 +607,18 @@ function observationDiagnostics({ artifact, allObservations, readabilityObservat
           overflowY: entry.overflowY,
         },
         supportedFixes: [
-          `contain the rendered layout within ${entry.width}x${entry.height}, then rerun visual-check`,
+          translateCliMessage('vc.fix.contain', { width: entry.width, height: entry.height }),
         ],
       }));
     }
     if (entry.legendDockIntersectionArea > 0.5) {
       diagnostics.push(failureDiagnostic({
         code: 'viewer/chrome-legend-clearance',
-        message: `The navigation Dock obscures the SVG Legend at ${entry.width}x${entry.height} (${entry.theme}).`,
+        message: translateCliMessage('vc.legend-obscured', { width: entry.width, height: entry.height, theme: entry.theme }),
         subject: viewportSubject(artifact, entry),
         evidence: { legendDockIntersectionArea: entry.legendDockIntersectionArea },
         supportedFixes: [
-          'move the SVG Legend or Viewer Dock until legendDockIntersectionArea is 0, then rerun visual-check',
+          translateCliMessage('vc.fix.move-legend'),
         ],
       }));
     }
@@ -635,7 +636,7 @@ function observationDiagnostics({ artifact, allObservations, readabilityObservat
           requiredDockStageGap: entry.requiredDockStageGap,
         },
         supportedFixes: [
-          `adjust Viewer stage reservation or clipping until dockStageGap is at least ${entry.requiredDockStageGap} and dockStageIntersectionArea is 0, then rerun visual-check`,
+          translateCliMessage('vc.fix.dock-gap', { requiredDockStageGap: entry.requiredDockStageGap }),
         ],
       }));
     }
@@ -653,7 +654,7 @@ function observationDiagnostics({ artifact, allObservations, readabilityObservat
         minimumRequiredNodeTextPx: entry.minimumRequiredNodeTextPx,
       },
       supportedFixes: [
-        `increase projected node text to at least ${entry.minimumRequiredNodeTextPx}px at ${entry.width}x${entry.height}, then rerun visual-check`,
+        translateCliMessage('vc.fix.node-text', { minimumRequiredNodeTextPx: entry.minimumRequiredNodeTextPx, width: entry.width, height: entry.height }),
       ],
     }));
   }
@@ -696,9 +697,9 @@ export async function runVisualCheck({
   resolveChrome = findChrome,
   browserFactory = async (resolvedChrome) => new ChromeVisualBrowser(resolvedChrome),
 } = {}) {
-  if (!artifactPath) throw new Error('visual-check requires one delivered HTML artifact.');
+  if (!artifactPath) throw new Error(translateCliMessage('vc.artifact-required'));
   const artifact = path.resolve(artifactPath);
-  if (!/\.html?$/i.test(artifact)) throw new Error('visual-check requires an .html artifact.');
+  if (!/\.html?$/i.test(artifact)) throw new Error(translateCliMessage('vc.html-required'));
   const artifactBytes = fs.readFileSync(artifact);
   const outputs = sidecarPaths(artifact);
   cleanupCaptureSidecars(outputs);
@@ -727,7 +728,7 @@ export async function runVisualCheck({
       message: receipt.error,
       subject: { artifact },
       evidence: { executable: null },
-      supportedFixes: ['set ARCHIFY_CHROME to a Chrome or Chromium executable and rerun visual-check'],
+      supportedFixes: [translateCliMessage('vc.fix.set-chrome')],
     })];
     persistReceipt(outputs, receipt);
     return { exitCode: EXIT.skipped, receipt };
@@ -767,7 +768,7 @@ export async function runVisualCheck({
 
     const afterBytes = fs.readFileSync(artifact);
     if (sha256(afterBytes) !== receipt.artifact.sha256 || afterBytes.byteLength !== receipt.artifact.bytes) {
-      throw new Error('The delivered artifact changed while visual-check was running.');
+      throw new Error(translateCliMessage('vc.artifact-changed'));
     }
 
     receipt.containment.viewports = VISUAL_CHECK_VIEWPORTS.map(({ width, height }) => (
@@ -815,10 +816,10 @@ export async function runVisualCheck({
     receipt.captures.contactSheet = null;
     receipt.diagnostics = [failureDiagnostic({
       code: 'viewer/visual-check-runtime',
-      message: 'visual-check could not complete its Chrome inspection.',
+      message: translateCliMessage('vc.inspection-failed'),
       subject: { artifact },
       evidence: { reason: error.message },
-      supportedFixes: ['resolve the reported Chrome inspection error, then rerun visual-check'],
+      supportedFixes: [translateCliMessage('vc.fix.resolve-chrome')],
     })];
     persistReceipt(outputs, receipt);
     return { exitCode: EXIT.fail, receipt };

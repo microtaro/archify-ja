@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { copyPattern } from './helpers/viewer-copy.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const skillRoot = path.resolve(__dirname, '..');
@@ -53,9 +54,9 @@ test('semantic zoom exposes MAP, READ, and FULL at deterministic thresholds', ()
   assert.match(html, /container\.setAttribute\('data-detail-level', detail\)/);
   assert.match(html, /var levelLabel = viewerText\('viewer\.nav\.level\.' \+ detail\)/);
   assert.match(html, /var resolvedLevel = semantic \? viewerText\('viewer\.nav\.level\.auto'\) : levelLabel/);
-  assert.match(html, /Zoom in to reveal relationship labels and node context/);
-  assert.match(html, /Zoom in again to reveal tags and annotations/);
-  assert.match(html, /Full diagram detail/);
+  assert.match(html, new RegExp(copyPattern('viewer.nav.detail.map')));
+  assert.match(html, new RegExp(copyPattern('viewer.nav.detail.read')));
+  assert.match(html, new RegExp(copyPattern('viewer.nav.detail.full')));
 });
 
 test('reading depth stays quiet at overview and yields to semantic intent', () => {

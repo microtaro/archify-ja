@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { copyPattern } from './helpers/viewer-copy.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const skillRoot = path.resolve(__dirname, '..');
@@ -36,7 +37,7 @@ test('all typed renderers inherit one viewer-only Diagram Guide', () => {
   for (const [mode, example] of Object.entries(CASES)) {
     const html = render(mode, example);
     assert.match(html, /id="diagram-guide" hidden role="dialog" aria-modal="false" aria-labelledby="diagram-guide-title"/, mode);
-    assert.match(html, /id="btn-diagram-guide"[^>]+aria-label="Open diagram guide"[^>]+aria-haspopup="dialog"[^>]+aria-expanded="false"/, mode);
+    assert.match(html, new RegExp(`id="btn-diagram-guide"[^>]+aria-label="${copyPattern('viewer.nav.guide')}"[^>]+aria-haspopup="dialog"[^>]+aria-expanded="false"`), mode);
     assert.match(html, /Archify\.guide = \(function \(\)/, mode);
     assert.match(html, /Diagram Guide — a factual command deck over existing interactions/, mode);
     assert.doesNotMatch(canonicalSvg(html), /diagram-guide|Archify\.guide|Explore this system/, mode);

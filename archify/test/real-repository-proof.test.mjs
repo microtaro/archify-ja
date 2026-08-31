@@ -6,6 +6,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { verifyRepositoryEvidence } from '../renderers/shared/repository-evidence.mjs';
+import { cliFragment } from './helpers/viewer-copy.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const skillRoot = path.resolve(__dirname, '..');
@@ -184,7 +185,7 @@ test('MCO public proof is source-backed, valid, and linked from every README', (
       '--json',
     ], { encoding: 'utf8' });
     assert.equal(result.status, 1);
-    assert.match(JSON.parse(result.stdout).error, /Pass --repo-root/);
+    assert.match(JSON.parse(result.stdout).error, new RegExp(cliFragment('evidence.root-required')));
     assert.equal(fs.existsSync(output), false);
   } finally {
     fs.rmSync(noRootTmp, { recursive: true, force: true });

@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { copyPattern } from './helpers/viewer-copy.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const skillRoot = path.resolve(__dirname, '..');
@@ -35,7 +36,7 @@ function canonicalSvg(html) {
 test('all guided renderers expose one runtime-built named chapter rail', () => {
   for (const mode of Object.keys(CASES)) {
     const html = render(mode);
-    assert.match(html, /<nav class="guided-view-index" id="guided-view-index" aria-label="Story chapters">/, mode);
+    assert.match(html, new RegExp(`<nav class="guided-view-index" id="guided-view-index" aria-label="${copyPattern('viewer.guided.chapters')}">`), mode);
     assert.match(html, /<ol class="guided-view-chapters" id="guided-view-chapters"><\/ol>/, mode);
     assert.match(html, /function buildChapterIndex\(\)/, mode);
     assert.match(html, /views\.forEach\(function \(view, index\)/, mode);

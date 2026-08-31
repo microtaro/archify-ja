@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 
 import { openLoopbackUrl } from './open-artifact.mjs';
 import { resolveOutputPath } from '../renderers/shared/output-path.mjs';
+import { translateCliMessage } from '../renderers/shared/i18n.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const cliPath = path.join(here, 'archify.mjs');
@@ -445,7 +446,7 @@ export async function startPreview(options) {
       candidate = fs.readFileSync(candidatePath);
       const digest = sha256(candidate);
       if (digest !== receipt?.artifact?.sha256) {
-        throw new Error('Verified candidate bytes do not match the delivery receipt.');
+        throw new Error(translateCliMessage('preview.bytes-mismatch'));
       }
       resolveOutputPath(outputRequest);
       const sameArtifact = state.lastVerified?.sha256 === digest;
@@ -593,7 +594,7 @@ export async function startPreview(options) {
       });
     } catch (error) {
       await stop();
-      throw new Error(`Could not watch the input directory: ${error.message}`);
+      throw new Error(translateCliMessage('preview.watch-failed', { reason: error.message }));
     }
   }
   pollTimer = setInterval(() => observeSource(), pollMs);
@@ -626,7 +627,7 @@ export async function runPreview(options) {
   console.log(`watching ${preview.input}`);
   console.log(`output ${preview.output}`);
   if (preview.opener && preview.opener.status !== 'opened') {
-    console.error(`Could not open the preview (${preview.opener.status}). Open it manually: ${preview.url}`);
+    console.error(translateCliMessage('preview.open-failed', { status: preview.opener.status, url: preview.url }));
   }
 
   let signalCount = 0;
@@ -636,7 +637,7 @@ export async function runPreview(options) {
       console.log('\nstopping preview…');
       preview.stop();
     } else {
-      console.log('\nforcing preview shutdown…');
+      console.log(`\n${translateCliMessage('preview.forcing-shutdown')}`);
       preview.stop({ force: true });
     }
   };

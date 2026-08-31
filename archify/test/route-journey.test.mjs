@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { copyPattern } from './helpers/viewer-copy.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const skillRoot = path.resolve(__dirname, '..');
@@ -38,11 +39,11 @@ test('all five renderers inherit native Route Journey controls outside canonical
   for (const [mode, example] of Object.entries(CASES)) {
     const { result, html } = render(mode, example);
     assert.equal(result.status, 0, result.stderr);
-    assert.match(html, /id="route-journey-controls" hidden role="group" aria-label="Route journey controls"/i, mode);
-    assert.match(html, /id="route-journey-prev"[^>]+aria-label="Previous route position"/i, mode);
-    assert.match(html, /id="route-journey-play"[^>]+aria-label="Play route journey"[^>]+aria-pressed="false"/i, mode);
-    assert.match(html, /id="route-journey-next"[^>]+aria-label="Next route position"/i, mode);
-    assert.match(html, /id="route-journey-overview"[^>]+aria-label="Show complete route overview"/i, mode);
+    assert.match(html, new RegExp(`id="route-journey-controls" hidden role="group" aria-label="${copyPattern('viewer.route.controls')}"`, 'i'), mode);
+    assert.match(html, new RegExp(`id="route-journey-prev"[^>]+aria-label="${copyPattern('viewer.route.previous')}"`, 'i'), mode);
+    assert.match(html, new RegExp(`id="route-journey-play"[^>]+aria-label="${copyPattern('viewer.route.play')}"[^>]+aria-pressed="false"`, 'i'), mode);
+    assert.match(html, new RegExp(`id="route-journey-next"[^>]+aria-label="${copyPattern('viewer.route.next')}"`, 'i'), mode);
+    assert.match(html, new RegExp(`id="route-journey-overview"[^>]+aria-label="${copyPattern('viewer.route.overview.aria')}"`, 'i'), mode);
     assert.match(html, /document\.createElement\(options\.interactive === true \? 'button' : 'span'\)/, mode);
     assert.doesNotMatch(canonicalSvg(html), /data-route-journey|route-journey-(?:flow|overlay)/, mode);
   }

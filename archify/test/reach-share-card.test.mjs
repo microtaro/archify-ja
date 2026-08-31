@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { copyPattern } from './helpers/viewer-copy.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const skillRoot = path.resolve(__dirname, '..');
@@ -117,7 +118,7 @@ test('Reach Share Card reuses the 1200x630 seam and publishes a truthful scoped 
   assert.match(html, /recordExportReceipt\('share-card', blob, false, \{ width: SHARE_CARD_WIDTH, height: SHARE_CARD_HEIGHT \}, 'reach', false, true\)/);
   assert.match(html, /'-' \+ snapshot\.direction \+ '-reach-share-card\.png'/);
   assert.match(html, /data-last-export-reach-state-clean/);
-  assert.match(html, /Trace authored reach before exporting a Reach Share Card/);
+  assert.match(html, new RegExp(copyPattern('viewer.export.reachRequired')));
   assert.match(html, /downloadReachShareCard: runReachShareCard/);
 });
 
@@ -131,7 +132,7 @@ test('Skill, product docs, and READMEs keep the optional truthful boundary expli
 
   for (const readme of ['README.md', 'README_EN.md']) {
     const text = fs.readFileSync(path.join(repoRoot, readme), 'utf8');
-    assert.match(text, /Reach Share Card/, readme);
+    assert.match(text, new RegExp(copyPattern('viewer.export.reachShareCard')), readme);
     assert.match(text, /docs\/assets\/mco-runtime-reach-share-card\.png/, readme);
   }
   const png = fs.readFileSync(path.join(repoRoot, 'docs/assets/mco-runtime-reach-share-card.png'));
@@ -141,8 +142,8 @@ test('Skill, product docs, and READMEs keep the optional truthful boundary expli
 
   const product = fs.readFileSync(path.join(repoRoot, 'PRODUCT.md'), 'utf8');
   const design = fs.readFileSync(path.join(repoRoot, 'DESIGN.md'), 'utf8');
-  assert.match(product, /Reach Share Card/);
-  assert.match(design, /Reach Share Card/);
+  assert.match(product, new RegExp(copyPattern('viewer.export.reachShareCard')));
+  assert.match(design, new RegExp(copyPattern('viewer.export.reachShareCard')));
   assert.match(design, /not (?:runtime )?(?:impact|causality|breakage)/i);
 });
 

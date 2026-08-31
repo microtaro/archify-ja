@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { copyPattern } from './helpers/viewer-copy.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const skillRoot = path.resolve(here, '..');
@@ -90,7 +91,7 @@ test('Copy Share Card fails closed when image clipboard writing is unavailable',
   const html = render('workflow');
   assert.match(html, /it\.dataset\.action === 'copy-share-card'[\s\S]*?!canCopyImage\(\)/);
   assert.match(html, /function runCopyShareCard\(\)[\s\S]*?if \(!canCopyImage\(\)\)/);
-  assert.match(html, /Clipboard image write not supported by this browser/);
+  assert.match(html, new RegExp(copyPattern('viewer.export.clipboardUnsupported')));
   assert.match(html, /button\[data-action="copy-share-card"\]/);
   assert.match(html, /document\.documentElement\.removeAttribute\('data-last-export-format'\)/);
   assert.match(html, /data-last-export-error-format', 'share-card'/);
@@ -119,11 +120,11 @@ test('the skill and every README make the optional Share Card discoverable', () 
   assert.match(viewer, /optional 1200(?:×|x)630 Share Card PNG/i);
   assert.match(viewer, /current theme and visual preset/i);
   assert.match(viewer, /never claim(?:s|ing)? validation/i);
-  assert.match(viewer, /Copy Share Card/i);
+  assert.match(viewer, new RegExp(copyPattern('viewer.export.copyShareCard'), 'i'));
 
   for (const readme of ['README.md', 'README_EN.md']) {
     const text = fs.readFileSync(path.join(repoRoot, readme), 'utf8');
-    assert.match(text, /Share Card/i, readme);
+    assert.match(text, new RegExp(copyPattern('viewer.export.shareCard'), 'i'), readme);
     assert.match(text, /1200(?:×|x)630/, readme);
     assert.match(text, /copy|复制/i, readme);
   }

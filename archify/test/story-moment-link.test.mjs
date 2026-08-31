@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { copyPattern } from './helpers/viewer-copy.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const skillRoot = path.resolve(__dirname, '..');
@@ -37,7 +38,7 @@ test('all five renderers inherit one viewer-only Story Moment Link control', () 
   for (const [mode, example] of Object.entries(CASES)) {
     const { result, html } = render(mode, example);
     assert.equal(result.status, 0, result.stderr);
-    assert.match(html, /id="guided-view-beat-link"[^>]+aria-label="Select a Story Beat to copy its exact link"[^>]+disabled/);
+    assert.match(html, new RegExp(`id="guided-view-beat-link"[^>]+aria-label="${copyPattern('viewer.guided.selectBeatLink')}"[^>]+disabled`));
     assert.match(html, /id="guided-view-beat-link-label">Copy moment<\/span>/);
     assert.doesNotMatch(canonicalSvg(html), /data-story-moment|guided-view-beat-link|#view=/);
   }

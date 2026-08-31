@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { cliFragment } from './helpers/viewer-copy.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const skillRoot = path.resolve(__dirname, '..');
@@ -95,7 +96,7 @@ test('relationship id syntax is schema-checked before viewer output is written',
   const { result, html } = run('workflow', doc, 'invalid-id');
   assert.notEqual(result.status, 0);
   assert.match(result.stderr, /\/edges\/0\/id/);
-  assert.match(result.stderr, /must match pattern/);
+  assert.match(result.stderr, new RegExp(cliFragment('schema.pattern.message')));
   assert.equal(html, '');
 });
 

@@ -7,6 +7,7 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { ChromeVisualBrowser, findChrome } from '../bin/visual-check.mjs';
+import { DEFAULT_LANG } from './helpers/viewer-copy.mjs';
 
 import {
   DEFAULT_LOCALE,
@@ -203,7 +204,7 @@ test('explicit English artifacts preserve every authored field and keep the Engl
     const authoredSubtitle = document.meta.subtitle;
     const result = run(type, document);
     assert.equal(result.status, 0, `${type}: ${result.stderr || result.stdout}`);
-    assert.match(result.html, /^<!DOCTYPE html>\n<html lang="en"/);
+    assert.match(result.html, new RegExp(`^<!DOCTYPE html>\n<html lang="${DEFAULT_LANG}"`));
     assert.ok(result.html.includes(`<title>${authoredTitle} Diagram</title>`), `${type}: authored title changed`);
     assert.ok(result.html.includes(`<h1>${authoredTitle}</h1>`), `${type}: authored heading changed`);
     assert.ok(result.html.includes(`<p class="subtitle">${authoredSubtitle}</p>`), `${type}: authored subtitle changed`);

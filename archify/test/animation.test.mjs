@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { DEFAULT_LANG, copyPattern } from './helpers/viewer-copy.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const skillRoot = path.resolve(__dirname, '..');
@@ -54,21 +55,21 @@ test('static output omits animation attributes', () => {
 
 test('classic preset remains the default for existing diagrams', () => {
   const html = render('architecture', CASES.architecture, null, null);
-  assert.match(html, /<html lang="en" data-theme="dark" data-preset="classic">/);
+  assert.match(html, new RegExp(`<html lang="${DEFAULT_LANG}" data-theme="dark" data-preset="classic">`));
   assert.match(svgBlock(html), /data-preset="classic"/);
 });
 
 test('signal-flow preset reaches the page, SVG, and motion export surface', () => {
   const html = render('workflow', CASES.workflow, 'trace', 'signal-flow');
-  assert.match(html, /<html lang="en" data-theme="dark" data-preset="signal-flow">/);
+  assert.match(html, new RegExp(`<html lang="${DEFAULT_LANG}" data-theme="dark" data-preset="signal-flow">`));
   assert.match(svgBlock(html), /data-preset="signal-flow"/);
   assert.match(html, /content: attr\(data-preset-badge-signal-flow\)/);
-  assert.match(html, /data-preset-badge-signal-flow="SIGNAL FLOW"/);
+  assert.match(html, new RegExp(`data-preset-badge-signal-flow="${copyPattern('viewer.preset.badge.signalFlow')}"`));
   assert.match(html, /data-format="webm"/);
   assert.match(html, /data-last-motion-bytes/);
   assert.match(html, /Archify\.motion = \{ canRecord: canRecordMotion, recordWebm: recordWebm \}/);
   assert.match(html, /recorder\.requestData\(\)/);
-  assert.match(html, /aria-label="Diagram view controls"/);
+  assert.match(html, new RegExp(`aria-label="${copyPattern('viewer.nav.controls')}"`));
   assert.match(html, /Archify\.focus = \(function \(\)/);
   assert.match(html, /Archify\.view = \(function \(\)/);
   assert.match(html, /clone\.style\.removeProperty\('transform'\)/);
@@ -76,8 +77,8 @@ test('signal-flow preset reaches the page, SVG, and motion export surface', () =
   assert.match(html, /data-last-export-canonical/);
   assert.match(html, /data-last-export-error-format/);
   assert.match(html, /data-last-export-error/);
-  assert.match(html, /WebM unavailable in this browser/);
-  assert.match(html, /Motion capture unavailable in this browser/);
+  assert.match(html, new RegExp(copyPattern('viewer.export.webmUnavailable')));
+  assert.match(html, new RegExp(copyPattern('viewer.export.motionUnavailable')));
   assert.match(html, /canonicalStateClean: canonicalStateClean/);
   assert.match(html, /recordExportReceipt\('svg', blob, d\.canonicalStateClean\)/);
 });
@@ -98,10 +99,10 @@ test('webm renders an explicit time-varying canvas scene instead of replaying on
 
 test('blueprint preset reaches every visual surface without changing the default', () => {
   const html = render('architecture', CASES.architecture, null, 'blueprint');
-  assert.match(html, /<html lang="en" data-theme="dark" data-preset="blueprint">/);
+  assert.match(html, new RegExp(`<html lang="${DEFAULT_LANG}" data-theme="dark" data-preset="blueprint">`));
   assert.match(svgBlock(html), /data-preset="blueprint"/);
   assert.match(html, /content: attr\(data-preset-badge-blueprint\)/);
-  assert.match(html, /data-preset-badge-blueprint="BLUEPRINT \/ REV 01"/);
+  assert.match(html, new RegExp(`data-preset-badge-blueprint="${copyPattern('viewer.preset.badge.blueprint')}"`));
   assert.match(html, /\[data-preset="blueprint"\]\[data-theme="dark"\]/);
   assert.match(html, /svg\[data-preset="blueprint"\] \.c-grid/);
   assert.match(html, /html\[data-preset="blueprint"\] \.guided-views/);
@@ -119,12 +120,12 @@ test('blueprint preset is accepted by all five typed renderers', () => {
 test('editorial preset reaches every visual surface and all five typed renderers', () => {
   for (const [mode, example] of Object.entries(CASES)) {
     const html = render(mode, example, null, 'editorial');
-    assert.match(html, /<html lang="en" data-theme="dark" data-preset="editorial">/, mode);
+    assert.match(html, new RegExp(`<html lang="${DEFAULT_LANG}" data-theme="dark" data-preset="editorial">`), mode);
     assert.match(svgBlock(html), /data-preset="editorial"/, mode);
     assert.match(html, /content: attr\(data-preset-badge-editorial\)/, mode);
-    assert.match(html, /data-preset-badge-editorial="EDITORIAL \/ FIELD NOTE"/, mode);
+    assert.match(html, new RegExp(`data-preset-badge-editorial="${copyPattern('viewer.preset.badge.editorial')}"`), mode);
     assert.match(html, /content: attr\(data-preset-badge-editorial-plate\)/, mode);
-    assert.match(html, /data-preset-badge-editorial-plate="ARCHIFY \/ PLATE 04"/, mode);
+    assert.match(html, new RegExp(`data-preset-badge-editorial-plate="${copyPattern('viewer.preset.badge.editorialPlate')}"`), mode);
     assert.match(html, /\[data-preset="editorial"\]\[data-theme="dark"\]/, mode);
     assert.match(html, /html\[data-preset="editorial"\] \.diagram-container/, mode);
     assert.match(html, /svg\[data-preset="editorial"\] \.story-trail-flow/, mode);

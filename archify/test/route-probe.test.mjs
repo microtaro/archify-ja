@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { copyPattern } from './helpers/viewer-copy.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const skillRoot = path.resolve(__dirname, '..');
@@ -36,7 +37,7 @@ test('all typed renderers inherit one viewer-only Route Probe', () => {
   for (const [mode, example] of Object.entries(CASES)) {
     const html = render(mode, example);
     assert.match(html, /id="route-probe" hidden role="region" aria-labelledby="route-probe-title"/, mode);
-    assert.match(html, /id="btn-route-probe"[^>]+aria-label="Trace a directed route"[^>]+aria-pressed="false"[^>]+aria-controls="route-probe"/, mode);
+    assert.match(html, new RegExp(`id="btn-route-probe"[^>]+aria-label="${copyPattern('viewer.nav.route')}"[^>]+aria-pressed="false"[^>]+aria-controls="route-probe"`), mode);
     assert.match(html, /Archify\.routeProbe = \(function \(\)/, mode);
     assert.match(html, /Route Probe — shortest directed path over compiled semantics/, mode);
     assert.equal((html.match(/<svg\b/g) || []).length, 1, `${mode} keeps one static canonical SVG`);
@@ -71,12 +72,12 @@ test('Route Probe turns a two-node question into a readable route receipt and st
   assert.match(html, /#route=' \+ encodeURIComponent\(startId\) \+ '~' \+ encodeURIComponent\(endId\)/);
   assert.match(html, /new URLSearchParams\(location\.hash\.replace/);
   assert.match(html, /Archify\.view\.reveal\(result\.nodes, \{ includeNeighbors: false, reason: 'route' \}\)/);
-  assert.match(html, /shortest authored route/);
+  assert.match(html, new RegExp(copyPattern('viewer.route.overview.status')));
 });
 
 test('Route Probe hands large-diagram endpoint selection to a reachability-aware Finder', () => {
   const html = render('dataflow', CASES.dataflow);
-  assert.match(html, /id="route-probe-find"[^>]+aria-label="Find a route start"[^>]+data-node-finder-trigger/);
+  assert.match(html, new RegExp(`id="route-probe-find"[^>]+aria-label="${copyPattern('viewer.route.start.find.aria')}"[^>]+data-node-finder-trigger`));
   assert.match(html, /function hopDistancesFrom\(source\)/);
   assert.match(html, /kind: 'route-source'/);
   assert.match(html, /outgoing\[id\] && outgoing\[id\]\.length/);

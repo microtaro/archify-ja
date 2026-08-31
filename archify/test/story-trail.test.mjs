@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { copyPattern } from './helpers/viewer-copy.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const skillRoot = path.resolve(__dirname, '..');
@@ -32,7 +33,7 @@ for (const [mode, example] of Object.entries(CASES)) {
   test(`${mode}: guided paths expose a viewer-only Story Trail`, () => {
     const { result, html } = render(mode, example);
     assert.equal(result.status, 0, result.stderr);
-    assert.match(html, /id="guided-view-trail" hidden role="group" aria-label="Story trail"/);
+    assert.match(html, new RegExp(`id="guided-view-trail" hidden role="group" aria-label="${copyPattern('viewer.guided.trail')}"`));
     assert.match(html, /function renderStoryTrail\(view\)/);
     assert.match(html, /document\.createElement\('button'\)/);
     assert.match(html, /stop\.type = 'button'/);

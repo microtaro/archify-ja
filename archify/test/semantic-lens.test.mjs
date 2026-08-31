@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { copyPattern } from './helpers/viewer-copy.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const skillRoot = path.resolve(__dirname, '..');
@@ -36,7 +37,7 @@ test('all typed renderers inherit one viewer-only Semantic Lens', () => {
   for (const [mode, example] of Object.entries(CASES)) {
     const html = render(mode, example);
     assert.match(html, /id="semantic-lens" hidden role="dialog" aria-modal="false" aria-labelledby="semantic-lens-title"/, mode);
-    assert.match(html, /id="btn-semantic-lens"[^>]+aria-label="Open semantic lens"[^>]+aria-expanded="false"[^>]+aria-controls="semantic-lens"/, mode);
+    assert.match(html, new RegExp(`id="btn-semantic-lens"[^>]+aria-label="${copyPattern('viewer.nav.lens')}"[^>]+aria-expanded="false"[^>]+aria-controls="semantic-lens"`), mode);
     assert.match(html, /Archify\.semanticLens = \(function \(\)/, mode);
     assert.match(html, /svg\.querySelectorAll\('\[data-node-id\]\[data-node-kind\]'\)/, mode);
     assert.doesNotMatch(canonicalSvg(html), /semantic-lens-overlay|data-lens-active|data-lens-match/, mode);
@@ -47,7 +48,7 @@ test('Semantic Lens derives honest kind counts and compares at most two roles', 
   const html = render('workflow', CASES.workflow);
   assert.match(html, /function collectKinds\(\)/);
   assert.match(html, /kind\.nodes\.push\(node\)/);
-  assert.match(html, /Choose up to two semantic kinds/);
+  assert.match(html, new RegExp(copyPattern('viewer.lens.instruction')));
   assert.match(html, /if \(selectedKinds\.length >= 2\) return false/);
   assert.match(html, /var crossKind = selectedKinds\.length === 2/);
   assert.match(html, /fromKind === selectedKinds\[0\] && toKind === selectedKinds\[1\]/);
