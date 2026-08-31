@@ -44,7 +44,7 @@ test('the zero-dependency archive works from the canonical Cursor-visible agent 
     const installed = path.join(agentSkills, 'archify');
     const cli = path.join(installed, 'bin', 'archify.mjs');
     const doctor = execFileSync(process.execPath, [cli, 'doctor'], { encoding: 'utf8' });
-    assert.match(doctor, /Archify is ready\./);
+    assert.match(doctor, /Archify を使用できます。/);
 
     const fixtures = {
       architecture: 'web-app.architecture.json',

@@ -89,6 +89,38 @@ test('cli: unknown command is Japanese while preserving the command and exit con
   assert.match(result.stderr, /^不明なコマンド "frobnicate"。\n\n使い方:/);
 });
 
+test('cli: option requirements and command-specific usage are Japanese without translating options', () => {
+  const cases = [
+    {
+      args: ['compare', 'architecture', 'base.json', 'head.json', '--receipt'],
+      expected: /--receipt には JSON 出力パスが必要です。/,
+    },
+    {
+      args: ['guide', '--lang', 'ja'],
+      expected: /--lang には "en" または "zh" を指定してください。/,
+    },
+    {
+      args: ['brands', 'capture'],
+      expected: /使い方: archify brands capture <url> \[--json\]/,
+    },
+    {
+      args: ['migrate', 'workflow', 'old.json', 'new.json', '--to-schema'],
+      expected: /--to-schema にはスキーマバージョンが必要です。/,
+    },
+    {
+      args: ['validate', 'workflow', 'input.json', '--quality'],
+      expected: /--quality には standard または showcase が必要です。/,
+    },
+  ];
+
+  for (const { args, expected } of cases) {
+    const result = run(args);
+    assert.equal(result.status, 2, args.join(' '));
+    assert.equal(result.stdout, '');
+    assert.match(result.stderr, expected);
+  }
+});
+
 test('cli: Japanese review table records exact English source and direct translation', () => {
   const markdown = fs.readFileSync(cliMessageReview, 'utf8');
   const rows = markdown.split('\n')
@@ -135,6 +167,50 @@ test('cli: Japanese review table records exact English source and direct transla
     english: 'remove unsupported property {property}',
     japanese: '未対応のプロパティ {property} を削除してください',
   });
+});
+
+test('cli: e827188 English producer fixture independently pins the complete reviewed catalog', () => {
+  const canonical = JSON.stringify(Object.fromEntries(
+    Object.keys(CLI_MESSAGE_SOURCES).sort().map((key) => [key, CLI_MESSAGE_SOURCES[key]]),
+  ));
+  assert.equal(Object.keys(CLI_MESSAGE_SOURCES).length, 177);
+  assert.equal(
+    createHash('sha256').update(canonical).digest('hex'),
+    'ab7ddf1a5ce74ec53ddb5d840d100a85b7be153016802156ec75200d84a0b613',
+  );
+  assert.equal(CLI_MESSAGE_SOURCES['error.quality-required'], '--quality requires standard or showcase.');
+  assert.equal(CLI_MESSAGE_SOURCES['error.receipt-required'], '--receipt requires a JSON output path.');
+  assert.equal(CLI_MESSAGE_SOURCES['error.lang-values'], '--lang must be "en" or "zh".');
+  assert.equal(CLI_MESSAGE_SOURCES['usage.brands-capture'], 'Usage: archify brands capture <url> [--json]');
+  assert.equal(CLI_MESSAGE_SOURCES['error.to-schema-required'], '--to-schema requires a schema version.');
+  assert.equal(CLI_MESSAGE_SOURCES['doctor.file-missing.one'], '{count} required file missing');
+  assert.equal(CLI_MESSAGE_SOURCES['doctor.file-missing.other'], '{count} required files missing');
+  assert.equal(CLI_MESSAGE_SOURCES['doctor.runtime-failed.one'], '{count} runtime check failed');
+  assert.equal(CLI_MESSAGE_SOURCES['doctor.runtime-failed.other'], '{count} runtime checks failed');
+});
+
+test('cli: every fixed human-facing producer routes through the reviewed Japanese catalog', () => {
+  const source = fs.readFileSync(cli, 'utf8');
+  const candidates = source.split('\n').filter((line) => (
+    /\b(?:fail|console\.(?:log|error))\s*\(/.test(line)
+    || /\b(?:message|error|supportedFixes):/.test(line)
+    || /\bconst message\s*=/.test(line)
+  ));
+  const literalProducers = candidates.filter((line) => /['"`]/.test(line));
+  const allowedMachineOnly = [
+    "console.log('  archify render architecture <input.json> <output.html>');",
+    "console.log(`[${check.ok ? 'ok' : (check.failureLabel || 'missing')}] ${check.label}`);",
+  ];
+  const violations = literalProducers
+    .filter((line) => !line.includes('translateCliMessage('))
+    .filter((line) => !line.includes('JSON.stringify('))
+    .filter((line) => !line.includes('fail(usage())'))
+    .filter((line) => !line.includes('entries.map((mark) => mark.id)'))
+    .filter((line) => !allowedMachineOnly.includes(line.trim()))
+    .filter((line) => !/\b(?:message|error):\s*(?:error|failure|payload|primary|outputDiagnostic|diagnosticEntry)\b/.test(line))
+    .filter((line) => !/supportedFixes:\s*(?:details|outputDiagnostic|diagnosticEntry|\[\.\.\.)/.test(line))
+    .map((line) => line.trim());
+  assert.deepEqual(violations, []);
 });
 
 test('cli: help lists commands and diagram types', () => {
@@ -267,8 +343,8 @@ test('cli: demo creates a ready-to-open diagram in a chosen directory', () => {
   assert.equal(result.status, 0, result.stderr);
   assert.equal(fs.existsSync(output), true);
   assert.match(fs.readFileSync(output, 'utf8'), /Sample Web App のダイアグラム/);
-  assert.match(result.stdout, new RegExp(`Demo ready: ${output.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`));
-  assert.match(result.stdout, /Next: open the HTML in your browser/);
+  assert.match(result.stdout, new RegExp(`デモを用意しました: ${output.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`));
+  assert.match(result.stdout, /次: HTML をブラウザーで開き/);
   assert.match(result.stdout, /archify render architecture/);
 });
 
@@ -376,7 +452,7 @@ test('cli: opener failure does not invalidate a verified delivery or pollute jso
   assert.equal(receipt.ok, true);
   assert.equal(receipt.open.status, 'failed');
   assert.equal(receipt.open.target, out);
-  assert.match(result.stderr, /Could not open the verified artifact/);
+  assert.match(result.stderr, /検証済み成果物を開けませんでした/);
   assert.match(result.stderr, new RegExp(out.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   assert.equal(fs.existsSync(out), true);
   assert.equal(receipt.artifact.sha256, sha256(out));
@@ -419,7 +495,7 @@ test('cli: a missing optional opener module preserves verified delivery with a f
     target: out,
     method: null,
   });
-  assert.match(result.stderr, /Open it manually/);
+  assert.match(result.stderr, /手動で開いてください/);
   assert.equal(receipt.artifact.sha256, sha256(out));
 });
 
@@ -553,7 +629,7 @@ test('cli: deliver preserves the previous artifact when the final check fails', 
   assert.equal(failure.stage, 'check');
   assert.equal(failure.diagnostics[0].code, 'artifact/single-svg');
   assert.equal(failure.diagnostics[0].subject.check, 'single_svg');
-  assert.ok(failure.diagnostics[0].supportedFixes.some((fix) => fix.includes('exactly one diagram SVG')));
+  assert.ok(failure.diagnostics[0].supportedFixes.some((fix) => fix.includes('ダイアグラム SVG が 1 つだけ')));
   assert.equal(failure.checker.checks.find((entry) => entry.name === 'single_svg').ok, false);
   assert.equal(fs.readFileSync(out, 'utf8'), trustedPriorArtifact);
   assert.deepEqual(
@@ -593,7 +669,7 @@ test('cli: deliver reports unreadable input as json without touching the target'
   const failure = JSON.parse(result.stdout);
   assert.equal(failure.ok, false);
   assert.equal(failure.stage, 'input');
-  assert.match(failure.error, /Could not read delivery input/);
+  assert.match(failure.error, /配布入力 .* を読み込めませんでした/);
   assert.equal(fs.readFileSync(out, 'utf8'), trustedPriorArtifact);
 });
 
@@ -630,7 +706,7 @@ test('cli: deliver reports commit failure without a false success receipt', () =
   const failure = JSON.parse(result.stdout);
   assert.equal(failure.ok, false);
   assert.equal(failure.stage, 'commit');
-  assert.match(failure.error, /Could not commit verified delivery/);
+  assert.match(failure.error, /検証済み配布 .* を確定できませんでした/);
   assert.equal(fs.statSync(outputDirectory).isDirectory(), true);
   assert.equal(fs.readdirSync(outputDirectory).length, 0);
 });
@@ -646,7 +722,7 @@ test('cli: deliver reports preparation failure as json without touching the bloc
   const failure = JSON.parse(result.stdout);
   assert.equal(failure.ok, false);
   assert.equal(failure.stage, 'prepare');
-  assert.match(failure.error, /Could not create delivery directory/);
+  assert.match(failure.error, /配布ディレクトリ .* を作成できませんでした/);
   assert.equal(fs.readFileSync(blockingFile, 'utf8'), 'do not replace me');
 });
 
@@ -745,7 +821,7 @@ test('cli: rejects an unknown quality profile', () => {
   const input = path.join(skillRoot, 'examples/agent-tool-call.workflow.json');
   const result = run(['validate', 'workflow', input, '--quality', 'hero']);
   assert.equal(result.status, 2);
-  assert.match(result.stderr, /Expected standard or showcase/);
+  assert.match(result.stderr, /standard または showcase を指定してください/);
 });
 
 test('cli: rejects a quality flag without a value', () => {
@@ -757,7 +833,7 @@ test('cli: rejects a quality flag without a value', () => {
   ]) {
     const result = run(args);
     assert.equal(result.status, 2);
-    assert.match(result.stderr, /--quality requires standard or showcase/);
+    assert.match(result.stderr, /--quality には standard または showcase が必要です/);
   }
 });
 
@@ -806,7 +882,7 @@ test('cli: inspect remains architecture-only while workflow uses validate --layo
   const input = path.join(skillRoot, 'examples', 'agent-tool-call.workflow.json');
   const result = run(['inspect', 'workflow', input]);
   assert.equal(result.status, 2);
-  assert.match(result.stderr, /inspect is currently supported for architecture diagrams only/);
+  assert.match(result.stderr, /inspect は現在 architecture ダイアグラムでのみ使用できます/);
   assert.equal(result.stdout, '');
 });
 
@@ -840,7 +916,7 @@ test('cli: validate rejects an unknown type without leaking a temp directory', (
   });
 
   assert.equal(result.status, 2);
-  assert.match(result.stderr, /Unknown diagram type "unknown"/);
+  assert.match(result.stderr, /不明なダイアグラム種類 "unknown"/);
   assert.deepEqual(fs.readdirSync(validateTmp), []);
 });
 

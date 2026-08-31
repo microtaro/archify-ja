@@ -112,7 +112,7 @@ test('guided views reject duplicate view ids', () => {
   ];
   const { result } = run('workflow', doc, 'duplicate-view-id');
   assert.notEqual(result.status, 0);
-  assert.match(result.stderr, /duplicates view id "same"/);
+  assert.match(result.stderr, /表示 ID "same" が重複しています/);
 });
 
 test('guided views reject dangling semantic ids', () => {
@@ -120,7 +120,7 @@ test('guided views reject dangling semantic ids', () => {
   doc.meta.views = [{ id: 'broken', label: 'Broken', focus: ['ghost'] }];
   const { result } = run('sequence', doc, 'dangling-id');
   assert.notEqual(result.status, 0);
-  assert.match(result.stderr, /references unknown semantic id "ghost"/);
+  assert.match(result.stderr, /不明なセマンティック ID "ghost" を参照しています/);
 });
 
 test('guided views schema enforces collection and focus bounds', () => {
@@ -138,7 +138,7 @@ test('guided views schema enforces collection and focus bounds', () => {
   duplicateFocus.meta.views = [{ id: 'duplicate', label: 'Duplicate', focus: ['web', 'web'] }];
   const duplicate = run('dataflow', duplicateFocus, 'duplicate-focus');
   assert.notEqual(duplicate.result.status, 0);
-  assert.match(duplicate.result.stderr, /duplicates semantic id "web"/);
+  assert.match(duplicate.result.stderr, /セマンティック ID "web" が重複しています/);
 });
 
 process.on('exit', () => fs.rmSync(tmp, { recursive: true, force: true }));

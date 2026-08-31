@@ -459,7 +459,7 @@ test('workflow migration cleanup failure warns without reversing a successful co
   assert.equal(result.status, 0, result.stderr || result.stdout);
   assert.equal(JSON.parse(fs.readFileSync(destination, 'utf8')).schema_version, 2);
   assert.equal(parseJsonOutput(result).ok, true);
-  assert.match(result.stderr, /Warning: could not remove workflow migration staging directory/);
+  assert.match(result.stderr, /警告: workflow 移行用ステージングディレクトリ .* を削除できませんでした/);
   assert.match(result.stderr, /simulated migration cleanup failure/);
 });
 
@@ -577,8 +577,8 @@ test('workflow migration rejects the source path as its destination without chan
   assert.ok(Array.isArray(failure.diagnostics));
   assert.equal(failure.diagnostics.length, 1);
   assert.equal(failure.diagnostics[0].code, 'migration/source-destination');
-  assert.match(failure.error, /source|destination/i);
-  assert.ok(failure.diagnostics[0].supportedFixes.some((fix) => /different.*destination/i.test(fix)));
+  assert.match(failure.error, /移行元.*移行先/);
+  assert.ok(failure.diagnostics[0].supportedFixes.some((fix) => /別の移行先パス/.test(fix)));
 });
 
 test('workflow migration reports a cyclic-symlink destination as structured JSON', () => {

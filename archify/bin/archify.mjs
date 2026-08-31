@@ -40,8 +40,10 @@ try {
     'doctor.ready': 'Archify を使用できます。',
     'doctor.not-ready': 'Archify を使用できません: {problems}。',
     'doctor.node-required': 'Node.js 18 以上が必要です',
-    'doctor.files-missing': '必要なファイルが {count} 件ありません',
-    'doctor.runtime-failed': '実行時検査が {count} 件失敗しました',
+    'doctor.file-missing.one': '必要なファイルが {count} 件ありません',
+    'doctor.file-missing.other': '必要なファイルが {count} 件ありません',
+    'doctor.runtime-failed.one': '実行時検査が {count} 件失敗しました',
+    'doctor.runtime-failed.other': '実行時検査が {count} 件失敗しました',
   };
   translateCliMessage = (key, values = {}) => String(fallbackMessages[key] || key)
     .replace(/\{([a-zA-Z0-9_]+)\}/g, (match, name) => (
@@ -84,7 +86,7 @@ function fail(message, code = 2) {
 
 function rendererPath(type) {
   if (!TYPES.has(type)) {
-    fail(`Unknown diagram type "${type}". Expected one of: ${[...TYPES].join(', ')}`);
+    fail(translateCliMessage('error.unknown-diagram-type', { type, types: [...TYPES].join(', ') }));
   }
   return path.join(skillRoot, 'renderers', type, `render-${type}.mjs`);
 }
@@ -105,19 +107,19 @@ function extractQualityArgs(args) {
     const arg = args[index];
     if (arg === '--quality') {
       quality = args[index + 1];
-      if (!quality || quality.startsWith('--')) fail('--quality requires standard or showcase.');
+      if (!quality || quality.startsWith('--')) fail(translateCliMessage('error.quality-required'));
       index += 1;
       continue;
     }
     if (arg.startsWith('--quality=')) {
       quality = arg.slice('--quality='.length);
-      if (!quality) fail('--quality requires standard or showcase.');
+      if (!quality) fail(translateCliMessage('error.quality-required'));
       continue;
     }
     rest.push(arg);
   }
   if (quality !== undefined && !['standard', 'showcase'].includes(quality)) {
-    fail(`Unknown quality profile "${quality}". Expected standard or showcase.`);
+    fail(translateCliMessage('error.unknown-quality', { quality }));
   }
   return { rest, quality };
 }
@@ -129,13 +131,13 @@ function extractRepoRootArgs(args) {
     const arg = args[index];
     if (arg === '--repo-root') {
       repoRoot = args[index + 1];
-      if (!repoRoot || repoRoot.startsWith('--')) fail('--repo-root requires a repository path.');
+      if (!repoRoot || repoRoot.startsWith('--')) fail(translateCliMessage('error.repo-root-required'));
       index += 1;
       continue;
     }
     if (arg.startsWith('--repo-root=')) {
       repoRoot = arg.slice('--repo-root='.length);
-      if (!repoRoot) fail('--repo-root requires a repository path.');
+      if (!repoRoot) fail(translateCliMessage('error.repo-root-required'));
       continue;
     }
     rest.push(arg);
@@ -167,26 +169,26 @@ function inputDiagnostic(error, inputPath) {
   return diagnostic({
     code: isSyntax ? 'input/json-parse' : 'input/read',
     message: isSyntax
-      ? `Input JSON could not be parsed: ${error.message}`
-      : `Input could not be read: ${error.message}`,
+      ? translateCliMessage('input.json-parse.message', { reason: error.message })
+      : translateCliMessage('input.read.message', { reason: error.message }),
     subject: { input: inputPath },
     evidence: {
       ...(error?.code ? { systemCode: error.code } : {}),
       reason: error.message,
     },
     supportedFixes: [isSyntax
-      ? 'repair the JSON syntax and run validation again'
-      : 'provide one readable JSON input file'],
+      ? translateCliMessage('input.json-parse.fix')
+      : translateCliMessage('input.read.fix')],
   });
 }
 
 function rendererFailure(result) {
   if (result.error) {
     return {
-      error: 'Renderer process could not start.',
+      error: translateCliMessage('runtime.renderer-process'),
       diagnostics: [diagnostic({
         code: 'internal/renderer-process',
-        message: 'Renderer process could not start.',
+        message: translateCliMessage('runtime.renderer-process'),
         evidence: { reason: result.error.message },
       })],
     };
@@ -205,10 +207,10 @@ function rendererFailure(result) {
     // Node stack into a machine receipt when a renderer exits unexpectedly.
   }
   return {
-    error: 'Renderer failed before emitting a structured diagnostic.',
+    error: translateCliMessage('runtime.renderer-unclassified'),
     diagnostics: [diagnostic({
       code: 'internal/unclassified',
-      message: 'Renderer failed before emitting a structured diagnostic.',
+      message: translateCliMessage('runtime.renderer-unclassified'),
       evidence: { exitCode: result.status ?? 1 },
     })],
   };
@@ -283,9 +285,10 @@ function localizeRendererError(error, diagnostics) {
   const primary = diagnostics[0];
   if (primary?.code === 'input/json-parse' || primary?.code === 'input/read') return primary.message;
   if (primary?.code?.startsWith('schema/')) {
-    return `${translateCliMessage('schema.validation-failed', {
+    const heading = translateCliMessage('schema.validation-failed', {
       type: primary.subject?.diagramType || 'diagram',
-    })}\n  ${primary.message}`;
+    });
+    return `${heading}\n${diagnostics.map((entry) => `  ${entry.message}`).join('\n')}`;
   }
   return error || primary?.message;
 }
@@ -299,20 +302,20 @@ const COMPOSITION_CHECKS = new Set([
 ]);
 
 const CHECK_FIXES = {
-  single_svg: ['remove additional SVG roots so the artifact contains exactly one diagram SVG'],
-  finite_svg: ['replace non-finite coordinates before rendering again'],
-  orthogonal_arrows: ['use renderer-supported orthogonal routing controls'],
-  legend_clearance: ['move the route or enlarge the viewBox so relationships do not enter the legend'],
+  single_svg: [translateCliMessage('fix.single-svg')],
+  finite_svg: [translateCliMessage('fix.finite-svg')],
+  orthogonal_arrows: [translateCliMessage('fix.orthogonal-arrows')],
+  legend_clearance: [translateCliMessage('fix.legend-clearance')],
 };
 
 const COMPOSITION_FIXES = {
-  'composition/proper-crossing': ['adjust route/via or channel coordinates so unrelated relationships use separate corridors'],
-  'composition/ambiguous-corridor': ['adjust route/via or channel coordinates so unrelated relationships do not visually merge'],
-  'composition/container-border-run': ['route across the frame perpendicularly through a clear opening'],
-  'composition/label-route-clearance': ['adjust labelAt, labelDx, labelDy, labelSegment, message y, or the other relationship route'],
-  'composition/desktop-readability': ['reduce the viewBox width, shorten node copy, widen affected nodes, or split the diagram so node context remains at least 6px at a 1440px desktop viewport'],
-  'composition/micro-segment': ['move the route/channel/via point so every visible segment is at least 8px'],
-  'composition/short-interior-segment': ['move the route/channel/via point so every interior turn has at least 16px'],
+  'composition/proper-crossing': [translateCliMessage('fix.proper-crossing')],
+  'composition/ambiguous-corridor': [translateCliMessage('fix.ambiguous-corridor')],
+  'composition/container-border-run': [translateCliMessage('fix.container-border-run')],
+  'composition/label-route-clearance': [translateCliMessage('fix.label-route-clearance')],
+  'composition/desktop-readability': [translateCliMessage('fix.desktop-readability')],
+  'composition/micro-segment': [translateCliMessage('fix.micro-segment')],
+  'composition/short-interior-segment': [translateCliMessage('fix.short-interior-segment')],
 };
 
 function checkerDiagnostics(checker) {
@@ -323,7 +326,7 @@ function checkerDiagnostics(checker) {
     diagnostics.push(diagnostic({
       code,
       severity,
-      message: `Final artifact failed ${code}.`,
+      message: translateCliMessage('artifact.failed-code', { code }),
       subject: relationship ? { relationship } : { check: 'composition' },
       evidence,
       supportedFixes: COMPOSITION_FIXES[code] || [],
@@ -333,7 +336,7 @@ function checkerDiagnostics(checker) {
     if (check.ok || COMPOSITION_CHECKS.has(check.name)) continue;
     diagnostics.push(diagnostic({
       code: `artifact/${check.name.replaceAll('_', '-')}`,
-      message: (check.details || []).find(Boolean) || `Final artifact failed ${check.name}.`,
+      message: (check.details || []).find(Boolean) || translateCliMessage('artifact.failed-check', { check: check.name }),
       subject: { check: check.name },
       evidence: { details: check.details || [] },
       supportedFixes: CHECK_FIXES[check.name] || [],
@@ -341,7 +344,7 @@ function checkerDiagnostics(checker) {
   }
   return diagnostics.length ? diagnostics : [diagnostic({
     code: 'artifact/check-failed',
-    message: 'Final artifact check failed without a classified diagnostic.',
+    message: translateCliMessage('artifact.unclassified'),
     subject: { check: 'unknown' },
     evidence: {},
   })];
@@ -362,7 +365,7 @@ function formatDiagnostics(error, diagnostics = []) {
 
 function assertEvidenceType(type, repoRoot) {
   if (repoRoot && type !== 'architecture') {
-    fail('--repo-root is currently supported for architecture diagrams only.');
+    fail(translateCliMessage('error.repo-root-architecture-only'));
   }
 }
 
@@ -405,13 +408,13 @@ function extractCompareOptions(args) {
     }
     if (arg === '--receipt') {
       receipt = args[index + 1];
-      if (!receipt || receipt.startsWith('--')) fail('--receipt requires a JSON output path.');
+      if (!receipt || receipt.startsWith('--')) fail(translateCliMessage('error.receipt-required'));
       index += 1;
       continue;
     }
     if (arg.startsWith('--receipt=')) {
       receipt = arg.slice('--receipt='.length);
-      if (!receipt) fail('--receipt requires a JSON output path.');
+      if (!receipt) fail(translateCliMessage('error.receipt-required'));
       continue;
     }
     if (arg.startsWith('--')) fail(translateCliMessage('error.unknown-option', { command: 'compare', option: arg }));
@@ -435,8 +438,8 @@ function compareCommitError(message, code, details = {}) {
 
 function commitComparePair({ htmlCandidate, receiptCandidate, outputPath, receiptPath, stagingDirectory }) {
   const targets = [
-    { label: 'HTML artifact', target: outputPath, candidate: htmlCandidate, backup: path.join(stagingDirectory, '.previous-output') },
-    { label: 'receipt', target: receiptPath, candidate: receiptCandidate, backup: path.join(stagingDirectory, '.previous-receipt') },
+    { label: translateCliMessage('compare.target-html'), target: outputPath, candidate: htmlCandidate, backup: path.join(stagingDirectory, '.previous-output') },
+    { label: translateCliMessage('compare.target-receipt'), target: receiptPath, candidate: receiptCandidate, backup: path.join(stagingDirectory, '.previous-receipt') },
   ];
 
   // Preflight the whole pair before moving either trusted target. This avoids
@@ -447,12 +450,12 @@ function commitComparePair({ htmlCandidate, receiptCandidate, outputPath, receip
     const existing = fs.lstatSync(item.target);
     if (!existing.isFile()) {
       throw compareCommitError(
-        `Could not commit Architecture Delta: existing ${item.label} target is not a regular file.`,
+        translateCliMessage('compare.commit-target', { label: item.label }),
         'delta/commit-target',
         {
           target: path.basename(item.target),
           targetType: existing.isDirectory() ? 'directory' : 'non-file',
-          supportedFixes: [`choose a regular-file path for the ${item.label}`],
+          supportedFixes: [translateCliMessage('compare.fix.regular-file', { label: item.label })],
         },
       );
     }
@@ -476,7 +479,7 @@ function commitComparePair({ htmlCandidate, receiptCandidate, outputPath, receip
       try {
         fs.rmSync(item.target, { force: true });
       } catch (error) {
-        rollbackErrors.push(`${item.label}: remove failed (${error.message})`);
+        rollbackErrors.push(translateCliMessage('compare.rollback-remove', { label: item.label, reason: error.message }));
       }
     }
     for (const item of [...backedUp].reverse()) {
@@ -484,18 +487,18 @@ function commitComparePair({ htmlCandidate, receiptCandidate, outputPath, receip
         if (fs.existsSync(item.target)) fs.rmSync(item.target, { force: true });
         fs.renameSync(item.backup, item.target);
       } catch (error) {
-        rollbackErrors.push(`${item.label}: restore failed (${error.message})`);
+        rollbackErrors.push(translateCliMessage('compare.rollback-restore', { label: item.label, reason: error.message }));
       }
     }
     throw compareCommitError(
       rollbackErrors.length
-        ? 'Architecture Delta pair commit failed and its previous files could not be fully restored.'
-        : 'Architecture Delta pair commit failed; the previous files were restored.',
+        ? translateCliMessage('compare.commit-rollback-failed')
+        : translateCliMessage('compare.commit-failed'),
       rollbackErrors.length ? 'delta/commit-rollback-failed' : 'delta/commit-failed',
       {
         reason: cause.message,
         ...(rollbackErrors.length ? { rollbackErrors } : {}),
-        supportedFixes: ['check that both output paths are writable regular files, then retry'],
+        supportedFixes: [translateCliMessage('compare.fix.writable-pair')],
       },
     );
   }
@@ -516,7 +519,7 @@ function renderValidatedArchitecture(inputPath, outputPath, quality, repoRoot) {
   }
   const check = runNode([path.join(skillRoot, 'scripts/check-render-output.mjs'), outputPath], { stdio: 'pipe' });
   if (check.status !== 0) {
-    const error = new Error('Validated snapshot failed final artifact checks.');
+    const error = new Error(translateCliMessage('compare.snapshot-check-failed'));
     error.compareStage = 'check';
     error.compareStatus = check.status ?? 1;
     try {
@@ -547,7 +550,7 @@ async function commandCompare(args) {
   try {
     deltaRuntime = await import(pathToFileURL(path.join(skillRoot, 'delta/architecture-delta.mjs')).href);
   } catch (error) {
-    reportCompareFailure({ json: options.json, stage: 'prepare', error: 'Architecture compare runtime is unavailable.', code: 'delta/runtime-missing', details: { reason: error.message, supportedFixes: ['install the complete Archify skill package'] } });
+    reportCompareFailure({ json: options.json, stage: 'prepare', error: translateCliMessage('compare.runtime-unavailable'), code: 'delta/runtime-missing', details: { reason: error.message, supportedFixes: [translateCliMessage('compare.fix.install-package')] } });
     return;
   }
   const {
@@ -582,7 +585,7 @@ async function commandCompare(args) {
       details: {
         ...(outputDiagnostic?.subject || {}),
         ...(outputDiagnostic?.evidence || {}),
-        supportedFixes: outputDiagnostic?.supportedFixes || ['choose a safe output path and retry'],
+        supportedFixes: outputDiagnostic?.supportedFixes || [translateCliMessage('compare.fix.safe-output')],
       },
     });
     return;
@@ -605,7 +608,7 @@ async function commandCompare(args) {
       details: {
         ...(outputDiagnostic?.subject || {}),
         ...(outputDiagnostic?.evidence || {}),
-        supportedFixes: outputDiagnostic?.supportedFixes || ['choose a safe receipt path and retry'],
+        supportedFixes: outputDiagnostic?.supportedFixes || [translateCliMessage('compare.fix.safe-receipt')],
       },
     });
     return;
@@ -618,26 +621,26 @@ async function commandCompare(args) {
     baseBuffer = fs.readFileSync(basePath);
     base = JSON.parse(baseBuffer.toString('utf8'));
   } catch (error) {
-    reportCompareFailure({ json: options.json, stage: 'input', error: `Could not read base input: ${error.message}`, code: 'delta/base-input', details: { side: 'base', reason: error.message } });
+    reportCompareFailure({ json: options.json, stage: 'input', error: translateCliMessage('compare.read-base', { reason: error.message }), code: 'delta/base-input', details: { side: 'base', reason: error.message } });
     return;
   }
   try {
     headBuffer = fs.readFileSync(headPath);
     head = JSON.parse(headBuffer.toString('utf8'));
   } catch (error) {
-    reportCompareFailure({ json: options.json, stage: 'input', error: `Could not read head input: ${error.message}`, code: 'delta/head-input', details: { side: 'head', reason: error.message } });
+    reportCompareFailure({ json: options.json, stage: 'input', error: translateCliMessage('compare.read-head', { reason: error.message }), code: 'delta/head-input', details: { side: 'head', reason: error.message } });
     return;
   }
 
   const outputDirectory = path.dirname(outputPath);
   if (path.dirname(receiptPath) !== outputDirectory) {
-    reportCompareFailure({ json: options.json, stage: 'prepare', error: 'The compare receipt must be written beside the HTML artifact.', code: 'delta/receipt-directory', details: { supportedFixes: ['choose a --receipt path in the same directory as output.html'] } });
+    reportCompareFailure({ json: options.json, stage: 'prepare', error: translateCliMessage('compare.receipt-directory'), code: 'delta/receipt-directory', details: { supportedFixes: [translateCliMessage('compare.fix.receipt-directory')] } });
     return;
   }
   try {
     fs.mkdirSync(outputDirectory, { recursive: true });
   } catch (error) {
-    reportCompareFailure({ json: options.json, stage: 'prepare', error: `Could not create compare output directory: ${error.message}`, code: 'delta/output-directory', details: { reason: error.message } });
+    reportCompareFailure({ json: options.json, stage: 'prepare', error: translateCliMessage('compare.output-directory', { reason: error.message }), code: 'delta/output-directory', details: { reason: error.message } });
     return;
   }
 
@@ -645,7 +648,7 @@ async function commandCompare(args) {
   try {
     stagingDirectory = fs.mkdtempSync(path.join(outputDirectory, '.archify-compare-'));
   } catch (error) {
-    reportCompareFailure({ json: options.json, stage: 'prepare', error: `Could not create compare candidate: ${error.message}`, code: 'delta/candidate-directory', details: { reason: error.message } });
+    reportCompareFailure({ json: options.json, stage: 'prepare', error: translateCliMessage('compare.candidate-directory', { reason: error.message }), code: 'delta/candidate-directory', details: { reason: error.message } });
     return;
   }
 
@@ -668,7 +671,7 @@ async function commandCompare(args) {
       reportCompareFailure({
         json: options.json,
         stage: error.compareStage || 'validate',
-        error: `Base snapshot failed validation: ${error.message}`,
+        error: translateCliMessage('compare.base-validation', { reason: error.message }),
         code: diagnosticEntry?.code || 'delta/base-validation',
         details: { side: 'base', ...(diagnosticEntry?.subject?.path ? { path: diagnosticEntry.subject.path } : {}), ...(diagnosticEntry?.evidence || {}), supportedFixes: diagnosticEntry?.supportedFixes || [] },
         status: error.compareStatus || 1,
@@ -682,7 +685,7 @@ async function commandCompare(args) {
       reportCompareFailure({
         json: options.json,
         stage: error.compareStage || 'validate',
-        error: `Head snapshot failed validation: ${error.message}`,
+        error: translateCliMessage('compare.head-validation', { reason: error.message }),
         code: diagnosticEntry?.code || 'delta/head-validation',
         details: { side: 'head', ...(diagnosticEntry?.subject?.path ? { path: diagnosticEntry.subject.path } : {}), ...(diagnosticEntry?.evidence || {}), supportedFixes: diagnosticEntry?.supportedFixes || [] },
         status: error.compareStatus || 1,
@@ -778,7 +781,7 @@ async function commandCompare(args) {
         details: {
           ...(outputDiagnostic?.subject || {}),
           ...(outputDiagnostic?.evidence || {}),
-          supportedFixes: outputDiagnostic?.supportedFixes || ['restore safe output paths and retry'],
+          supportedFixes: outputDiagnostic?.supportedFixes || [translateCliMessage('compare.fix.restore-paths')],
         },
       });
       return;
@@ -787,9 +790,9 @@ async function commandCompare(args) {
     commitComparePair({ htmlCandidate, receiptCandidate, outputPath, receiptPath, stagingDirectory });
     if (options.json) console.log(JSON.stringify(finalReceipt, null, 2));
     else {
-      console.log(`compared architecture ${outputPath}`);
-      console.log(`${finalReceipt.validation.checksPassed}/${finalReceipt.validation.checkCount} checks; completeness ${finalReceipt.completeness}; ${finalReceipt.proofLevel}; sha256 ${finalReceipt.artifact.sha256.slice(0, 12)}`);
-      console.log(`receipt ${receiptPath}`);
+      console.log(translateCliMessage('compare.success', { output: outputPath }));
+      console.log(translateCliMessage('compare.summary', { passed: finalReceipt.validation.checksPassed, count: finalReceipt.validation.checkCount, completeness: finalReceipt.completeness, proofLevel: finalReceipt.proofLevel, sha256: finalReceipt.artifact.sha256.slice(0, 12) }));
+      console.log(translateCliMessage('common.receipt', { path: receiptPath }));
     }
   } catch (error) {
     if (error instanceof ArchitectureDeltaError) {
@@ -803,13 +806,13 @@ async function commandCompare(args) {
         details: error.compareDetails,
       });
     } else {
-      reportCompareFailure({ json: options.json, stage: 'internal', error: 'Architecture compare failed before commit.', code: 'delta/internal', details: { reason: error.message } });
+      reportCompareFailure({ json: options.json, stage: 'internal', error: translateCliMessage('compare.internal'), code: 'delta/internal', details: { reason: error.message } });
     }
   } finally {
     try {
       fs.rmSync(stagingDirectory, { recursive: true, force: true });
     } catch (error) {
-      console.error(`Warning: could not remove compare staging directory: ${error.message}`);
+      console.error(translateCliMessage('compare.cleanup-warning', { reason: error.message }));
     }
   }
 }
@@ -858,7 +861,7 @@ function sourceEvidenceFromArtifact(artifact) {
   if (!match) return null;
   const evidence = JSON.parse(match[1]);
   if (evidence?.verified !== true || !evidence.repository?.url || !evidence.repository?.revision || !Number.isInteger(evidence.referenceCount)) {
-    throw new Error('Rendered source evidence receipt is incomplete.');
+    throw new Error(translateCliMessage('delivery.evidence-incomplete'));
   }
   return evidence;
 }
@@ -897,7 +900,7 @@ async function commandDeliver(args) {
       type,
       input: inputPath,
       output: path.resolve(requestedOutput || `${type}.html`),
-      error: `Could not read delivery input "${inputPath}": ${error.message}`,
+      error: translateCliMessage('delivery.read-input', { input: inputPath, reason: error.message }),
       diagnostics: [repair],
     });
     return;
@@ -928,7 +931,7 @@ async function commandDeliver(args) {
         message: error.message,
         subject: { output: attemptedOutput },
         evidence: { ...(error?.code ? { systemCode: error.code } : {}) },
-        supportedFixes: ['choose a safe output path and retry'],
+        supportedFixes: [translateCliMessage('compare.fix.safe-output')],
       })],
     });
     return;
@@ -937,7 +940,7 @@ async function commandDeliver(args) {
   try {
     fs.mkdirSync(outputDirectory, { recursive: true });
   } catch (error) {
-    const message = `Could not create delivery directory "${outputDirectory}": ${error.message}`;
+    const message = translateCliMessage('delivery.prepare-directory', { directory: outputDirectory, reason: error.message });
     reportDeliveryFailure({
       json,
       stage: 'prepare',
@@ -950,7 +953,7 @@ async function commandDeliver(args) {
         message,
         subject: { outputDirectory },
         evidence: { ...(error?.code ? { systemCode: error.code } : {}), reason: error.message },
-        supportedFixes: ['choose a writable output directory'],
+        supportedFixes: [translateCliMessage('delivery.fix.writable-directory')],
       })],
     });
     return;
@@ -963,7 +966,7 @@ async function commandDeliver(args) {
   try {
     stagingDirectory = fs.mkdtempSync(path.join(outputDirectory, '.archify-delivery-'));
   } catch (error) {
-    const message = `Could not create a delivery candidate beside "${outputPath}": ${error.message}`;
+    const message = translateCliMessage('delivery.prepare-candidate', { output: outputPath, reason: error.message });
     reportDeliveryFailure({
       json,
       stage: 'prepare',
@@ -976,7 +979,7 @@ async function commandDeliver(args) {
         message,
         subject: { output: outputPath },
         evidence: { ...(error?.code ? { systemCode: error.code } : {}), reason: error.message },
-        supportedFixes: ['choose a writable output directory on the target filesystem'],
+        supportedFixes: [translateCliMessage('delivery.fix.writable-target-filesystem')],
       })],
     });
     return;
@@ -988,7 +991,7 @@ async function commandDeliver(args) {
     try {
       fs.writeFileSync(specificationSnapshotPath, specification, { flag: 'wx' });
     } catch (error) {
-      const message = `Could not freeze the delivery specification: ${error.message}`;
+      const message = translateCliMessage('delivery.freeze-specification', { reason: error.message });
       reportDeliveryFailure({
         json,
         stage: 'prepare',
@@ -1001,7 +1004,7 @@ async function commandDeliver(args) {
           message,
           subject: { input: inputPath },
           evidence: { ...(error?.code ? { systemCode: error.code } : {}), reason: error.message },
-          supportedFixes: ['choose a writable output directory on the target filesystem'],
+          supportedFixes: [translateCliMessage('delivery.fix.writable-target-filesystem')],
         })],
       });
       return;
@@ -1044,7 +1047,7 @@ async function commandDeliver(args) {
         type,
         input: inputPath,
         output: outputPath,
-        error: 'Final artifact check failed; the previous artifact was preserved.',
+        error: translateCliMessage('delivery.artifact-preserved'),
         diagnostics: checkerDiagnostics(checker),
         status: check.status ?? 1,
         checker,
@@ -1056,7 +1059,7 @@ async function commandDeliver(args) {
     try {
       result = JSON.parse(check.stdout);
     } catch (error) {
-      const message = `Could not parse the successful artifact-check receipt: ${error.message}`;
+      const message = translateCliMessage('delivery.receipt-invalid', { reason: error.message });
       reportDeliveryFailure({
         json,
         stage: 'receipt',
@@ -1077,7 +1080,7 @@ async function commandDeliver(args) {
     try {
       artifact = fs.readFileSync(candidatePath);
     } catch (error) {
-      const message = `Could not read the verified delivery candidate: ${error.message}`;
+      const message = translateCliMessage('delivery.candidate-unreadable', { reason: error.message });
       reportDeliveryFailure({
         json,
         stage: 'receipt',
@@ -1098,7 +1101,7 @@ async function commandDeliver(args) {
     try {
       sourceEvidence = sourceEvidenceFromArtifact(artifact);
     } catch (error) {
-      const message = `Could not read the repository evidence receipt: ${error.message}`;
+      const message = translateCliMessage('delivery.evidence-invalid', { reason: error.message });
       reportDeliveryFailure({
         json,
         stage: 'receipt',
@@ -1170,7 +1173,7 @@ async function commandDeliver(args) {
           message: error.message,
           subject: { output: outputPath },
           evidence: { ...(error?.code ? { systemCode: error.code } : {}) },
-          supportedFixes: ['restore a safe output path and retry'],
+          supportedFixes: [translateCliMessage('compare.fix.restore-paths')],
         })],
       });
       return;
@@ -1179,7 +1182,7 @@ async function commandDeliver(args) {
     try {
       fs.renameSync(candidatePath, outputPath);
     } catch (error) {
-      const message = `Could not commit verified delivery "${outputPath}": ${error.message}`;
+      const message = translateCliMessage('delivery.commit', { output: outputPath, reason: error.message });
       reportDeliveryFailure({
         json,
         stage: 'commit',
@@ -1192,7 +1195,7 @@ async function commandDeliver(args) {
           message,
           subject: { output: outputPath },
           evidence: { ...(error?.code ? { systemCode: error.code } : {}), reason: error.message },
-          supportedFixes: ['choose a replaceable file target on the same writable filesystem'],
+          supportedFixes: [translateCliMessage('delivery.fix.replaceable-target')],
         })],
       });
       return;
@@ -1211,25 +1214,25 @@ async function commandDeliver(args) {
         };
       }
       if (receipt.open.status !== 'opened') {
-        console.error(`Could not open the verified artifact (${receipt.open.status}). Open it manually: ${outputPath}`);
+        console.error(translateCliMessage('delivery.open-failed', { status: receipt.open.status, output: outputPath }));
       }
     }
 
     if (json) {
       console.log(JSON.stringify(receipt, null, 2));
     } else {
-      console.log(`delivered ${type} ${outputPath}`);
+      console.log(translateCliMessage('delivery.success', { type, output: outputPath }));
       const engineering = receipt.validation.engineeringProfile
-        ? `; engineering ${receipt.validation.engineeringProfile}: pass`
+        ? translateCliMessage('delivery.engineering-pass', { profile: receipt.validation.engineeringProfile })
         : '';
-      console.log(`${receipt.validation.checksPassed}/${receipt.validation.checkCount} artifact checks; composition ${receipt.validation.compositionProfile}: ${receipt.validation.compositionStatus}${engineering}; sha256 ${receipt.artifact.sha256.slice(0, 12)}`);
-      if (receipt.open?.status === 'opened') console.log(`opened ${outputPath}`);
+      console.log(translateCliMessage('delivery.summary', { passed: receipt.validation.checksPassed, count: receipt.validation.checkCount, profile: receipt.validation.compositionProfile, status: receipt.validation.compositionStatus, engineering, sha256: receipt.artifact.sha256.slice(0, 12) }));
+      if (receipt.open?.status === 'opened') console.log(translateCliMessage('delivery.opened', { output: outputPath }));
     }
   } finally {
     try {
       fs.rmSync(stagingDirectory, { recursive: true, force: true });
     } catch (error) {
-      console.error(`Warning: could not remove delivery staging directory "${stagingDirectory}": ${error.message}`);
+      console.error(translateCliMessage('delivery.cleanup-warning', { directory: stagingDirectory, reason: error.message }));
     }
   }
 }
@@ -1251,7 +1254,7 @@ async function commandPreview(args) {
   try {
     ({ runPreview } = await import('./preview.mjs'));
   } catch (error) {
-    fail(`Could not load live preview: ${error.message}`, 1);
+    fail(translateCliMessage('preview.load-failed', { reason: error.message }), 1);
   }
   try {
     await runPreview({
@@ -1263,7 +1266,7 @@ async function commandPreview(args) {
       open: !noOpen,
     });
   } catch (error) {
-    fail(`Could not start live preview: ${error.message}`, 1);
+    fail(translateCliMessage('preview.start-failed', { reason: error.message }), 1);
   }
 }
 
@@ -1286,7 +1289,7 @@ async function commandVisualCheck(args) {
   try {
     ({ runVisualCheck } = await import('./visual-check.mjs'));
   } catch (error) {
-    fail(`Could not load visual-check: ${error.message}`, 1);
+    fail(translateCliMessage('visual-check.load-failed', { reason: error.message }), 1);
   }
 
   let result;
@@ -1304,7 +1307,7 @@ async function commandVisualCheck(args) {
         error: error.message,
       }, null, 2));
     } else {
-      console.error(`visual-check failed: ${error.message}`);
+      console.error(translateCliMessage('visual-check.failed', { reason: error.message }));
     }
     process.exitCode = 1;
     return;
@@ -1313,11 +1316,11 @@ async function commandVisualCheck(args) {
   if (json) {
     console.log(JSON.stringify(result.receipt, null, 2));
   } else {
-    console.log(`visual-check ${result.receipt.status}: ${result.receipt.artifact.path}`);
-    console.log(`containment ${result.receipt.containment.status}; captures ${result.receipt.captures.status}; visual review pending`);
-    console.log(`receipt ${path.join(path.dirname(result.receipt.artifact.path), result.receipt.sidecars.receipt)}`);
+    console.log(translateCliMessage('visual-check.success', { status: result.receipt.status, path: result.receipt.artifact.path }));
+    console.log(translateCliMessage('visual-check.summary', { containment: result.receipt.containment.status, captures: result.receipt.captures.status }));
+    console.log(translateCliMessage('common.receipt', { path: path.join(path.dirname(result.receipt.artifact.path), result.receipt.sidecars.receipt) }));
     if (result.receipt.captures.contactSheet) {
-      console.log(`contact sheet ${path.join(path.dirname(result.receipt.artifact.path), result.receipt.captures.contactSheet)}`);
+      console.log(translateCliMessage('visual-check.contact-sheet', { path: path.join(path.dirname(result.receipt.artifact.path), result.receipt.captures.contactSheet) }));
     }
     if (result.receipt.error) console.error(result.receipt.error);
   }
@@ -1461,8 +1464,8 @@ async function commandDoctor() {
 
   const problems = [];
   if (nodeFailed) problems.push(translateCliMessage('doctor.node-required'));
-  if (missingFiles) problems.push(translateCliMessage('doctor.files-missing', { count: missingFiles }));
-  if (invalidRuntime) problems.push(translateCliMessage('doctor.runtime-failed', { count: invalidRuntime }));
+  if (missingFiles) problems.push(translateCliMessage(`doctor.file-missing.${missingFiles === 1 ? 'one' : 'other'}`, { count: missingFiles }));
+  if (invalidRuntime) problems.push(translateCliMessage(`doctor.runtime-failed.${invalidRuntime === 1 ? 'one' : 'other'}`, { count: invalidRuntime }));
   console.error(`\n${translateCliMessage('doctor.not-ready', { problems: problems.join('、') })}`);
   process.exitCode = 1;
 }
@@ -1478,12 +1481,12 @@ async function commandGuide(args) {
       json = true;
     } else if (arg === '--lang') {
       const value = args[index + 1];
-      if (value !== 'en' && value !== 'zh') fail('--lang must be "en" or "zh".');
+      if (value !== 'en' && value !== 'zh') fail(translateCliMessage('error.lang-values'));
       lang = value;
       index += 1;
     } else if (arg.startsWith('--lang=')) {
       const value = arg.slice('--lang='.length);
-      if (value !== 'en' && value !== 'zh') fail('--lang must be "en" or "zh".');
+      if (value !== 'en' && value !== 'zh') fail(translateCliMessage('error.lang-values'));
       lang = value;
     } else if (arg.startsWith('--')) {
       fail(translateCliMessage('error.unknown-option', { command: 'guide', option: arg }));
@@ -1497,7 +1500,7 @@ async function commandGuide(args) {
   try {
     guide = await import(pathToFileURL(guidePath).href);
   } catch (error) {
-    fail(`Could not load the scenario recipe guide: ${error.message}`, 1);
+    fail(translateCliMessage('guide.load-failed', { reason: error.message }), 1);
   }
 
   const query = queryParts.join(' ').trim();
@@ -1526,7 +1529,7 @@ async function commandBrands(args) {
   if (unknown.length) fail(translateCliMessage('error.unknown-option', { command: 'brands', option: unknown[0] }));
   const positional = args.filter((arg) => arg !== '--json');
   if (positional[0] === 'capture') {
-    if (positional.length !== 2) fail('Usage: archify brands capture <url> [--json]');
+    if (positional.length !== 2) fail(translateCliMessage('usage.brands-capture'));
     const { captureBrandReference } = await import('../renderers/shared/brand-marks.mjs');
     let capture;
     try {
@@ -1560,12 +1563,12 @@ async function commandBrands(args) {
       query,
       count: marks.length,
       marks,
-      fallback: 'Run "archify brands capture <url> --json", then use the returned digest-pinned brand value.',
+      fallback: translateCliMessage('brands.capture-fallback'),
     }, null, 2));
     return;
   }
   if (!marks.length) {
-    console.log(`No built-in brand matched "${query}". Run "archify brands capture <url> --json", then use the returned digest-pinned brand value.`);
+    console.log(translateCliMessage('brands.no-match', { query }));
     return;
   }
   const grouped = Map.groupBy
@@ -1586,14 +1589,14 @@ function commandDemo(args) {
   try {
     fs.mkdirSync(outputDirectory, { recursive: true });
   } catch (error) {
-    fail(`Could not create demo directory "${outputDirectory}": ${error.message}`, 1);
+    fail(translateCliMessage('demo.create-directory', { directory: outputDirectory, reason: error.message }), 1);
   }
 
   const result = runNode([rendererPath('architecture'), input, output]);
   if (result.status !== 0) exitFrom(result);
 
-  console.log(`\nDemo ready: ${output}`);
-  console.log('Next: open the HTML in your browser, then render your own diagram:');
+  console.log(`\n${translateCliMessage('demo.ready', { output })}`);
+  console.log(translateCliMessage('demo.next'));
   console.log('  archify render architecture <input.json> <output.html>');
 }
 
@@ -1608,13 +1611,13 @@ function migrationPathDiagnostics(error, sourcePath, destinationPath) {
   }
   return [diagnostic({
     code: 'migration/path-preflight',
-    message: 'Could not verify that the workflow migration paths are distinct.',
+    message: translateCliMessage('migration.path-preflight'),
     subject: { source: sourcePath, destination: destinationPath },
     evidence: {
       ...(error?.code ? { systemCode: error.code } : {}),
       reason: error?.message || String(error),
     },
-    supportedFixes: ['remove unsafe path aliases or choose a different destination path'],
+    supportedFixes: [translateCliMessage('migration.fix.path-preflight')],
   })];
 }
 
@@ -1668,7 +1671,7 @@ function migrationReport({
     if (!report.diagnostics.length) {
       report.diagnostics.push(diagnostic({
         code: 'migration/internal',
-        message: 'Workflow migration failed without a classified diagnostic.',
+        message: translateCliMessage('migration.unclassified'),
       }));
     }
     report.error = report.diagnostics[0].message;
@@ -1688,13 +1691,13 @@ function extractMigrationOptions(args) {
     }
     if (arg === '--to-schema') {
       toSchema = args[index + 1];
-      if (!toSchema || toSchema.startsWith('--')) fail('--to-schema requires a schema version.');
+      if (!toSchema || toSchema.startsWith('--')) fail(translateCliMessage('error.to-schema-required'));
       index += 1;
       continue;
     }
     if (arg.startsWith('--to-schema=')) {
       toSchema = arg.slice('--to-schema='.length);
-      if (!toSchema) fail('--to-schema requires a schema version.');
+      if (!toSchema) fail(translateCliMessage('error.to-schema-required'));
       continue;
     }
     if (arg.startsWith('--')) fail(translateCliMessage('error.unknown-option', { command: 'migrate', option: arg }));
@@ -1713,7 +1716,7 @@ async function commandMigrate(args) {
     || options.positional.length !== 3
     || options.toSchema !== '2'
   ) {
-    fail('Usage: archify migrate workflow <old.json> <new.json> --to-schema 2 [--json]');
+    fail(translateCliMessage('usage.migrate'));
   }
 
   const sourcePath = path.resolve(sourceArgument);
@@ -1761,9 +1764,9 @@ async function commandMigrate(args) {
     reportMigrationFailure({
       migrationDiagnostics: [diagnostic({
         code: 'migration/source-destination',
-        message: 'Workflow migration source and destination must be different files.',
+        message: translateCliMessage('migration.distinct-files'),
         subject: { source: sourcePath, destination: destinationPath },
-        supportedFixes: ['choose a different destination path and keep the source unchanged'],
+        supportedFixes: [translateCliMessage('migration.fix.distinct-files')],
       })],
     });
     return;
@@ -1778,9 +1781,9 @@ async function commandMigrate(args) {
       ok: false,
       migrationDiagnostics: [diagnostic({
         code: 'migration/internal',
-        message: 'Workflow migration failed unexpectedly.',
+        message: translateCliMessage('migration.unexpected'),
         evidence: { reason: error.message },
-        supportedFixes: ['report the source workflow and this diagnostic to the Archify maintainers'],
+        supportedFixes: [translateCliMessage('migration.fix.report')],
       })],
     };
   }
@@ -1795,9 +1798,9 @@ async function commandMigrate(args) {
       ...migration,
       migrationDiagnostics: [...migration.migrationDiagnostics, diagnostic({
         code: 'migration/destination-type',
-        message: 'Workflow migration destination must be a regular file path.',
+        message: translateCliMessage('migration.destination-type'),
         subject: { destination: destinationPath },
-        supportedFixes: ['choose a destination path that is absent or names a regular file'],
+        supportedFixes: [translateCliMessage('migration.fix.destination-type')],
       })],
     });
     return;
@@ -1813,10 +1816,10 @@ async function commandMigrate(args) {
       ...migration,
       migrationDiagnostics: [...migration.migrationDiagnostics, diagnostic({
         code: 'migration/prepare-destination',
-        message: 'Could not prepare the workflow migration destination.',
+        message: translateCliMessage('migration.prepare-destination'),
         subject: { destination: destinationPath },
         evidence: { ...(error?.code ? { systemCode: error.code } : {}), reason: error.message },
-        supportedFixes: ['choose a writable destination directory'],
+        supportedFixes: [translateCliMessage('migration.fix.destination-directory')],
       })],
     });
     return;
@@ -1867,9 +1870,9 @@ async function commandMigrate(args) {
         ...migration,
         migrationDiagnostics: [...migration.migrationDiagnostics, diagnostic({
           code: 'migration/source-destination',
-          message: 'Workflow migration source and destination resolved to the same file before commit.',
+          message: translateCliMessage('migration.alias-before-commit'),
           subject: { source: sourcePath, destination: destinationPath },
-          supportedFixes: ['choose a different destination path and retry'],
+          supportedFixes: [translateCliMessage('migration.fix.retry-destination')],
         })],
       });
       return;
@@ -1880,9 +1883,9 @@ async function commandMigrate(args) {
         ...migration,
         migrationDiagnostics: [...migration.migrationDiagnostics, diagnostic({
           code: 'migration/source-changed',
-          message: 'Workflow migration source changed while the destination was being verified.',
+          message: translateCliMessage('migration.source-changed'),
           subject: { source: sourcePath },
-          supportedFixes: ['retry the migration from a stable workflow source file'],
+          supportedFixes: [translateCliMessage('migration.fix.stable-source')],
         })],
       });
       return;
@@ -1899,19 +1902,19 @@ async function commandMigrate(args) {
     });
     if (options.json) console.log(JSON.stringify(report, null, 2));
     else if (sourceDocument.schema_version === 1) {
-      console.log(`migrated workflow schema v1→v2: ${sourcePath} → ${destinationPath}`);
+      console.log(translateCliMessage('migration.success-v1', { source: sourcePath, destination: destinationPath }));
     } else {
-      console.log(`verified workflow schema v2 migration: ${sourcePath} → ${destinationPath}`);
+      console.log(translateCliMessage('migration.success-v2', { source: sourcePath, destination: destinationPath }));
     }
   } catch (error) {
     const migrationDiagnostics = Array.isArray(error?.archifyDiagnostics)
       ? migrationPathDiagnostics(error, sourcePath, destinationPath)
       : [diagnostic({
         code: 'migration/commit',
-        message: 'Could not commit the verified workflow migration.',
+        message: translateCliMessage('migration.commit'),
         subject: { destination: destinationPath },
         evidence: { ...(error?.code ? { systemCode: error.code } : {}), reason: error.message },
-        supportedFixes: ['choose a writable regular-file destination and retry'],
+        supportedFixes: [translateCliMessage('migration.fix.commit')],
       })];
     reportMigrationFailure({
       ...migration,
@@ -1921,7 +1924,7 @@ async function commandMigrate(args) {
     try {
       fs.rmSync(stagingDirectory, { recursive: true, force: true });
     } catch (error) {
-      console.error(`Warning: could not remove workflow migration staging directory "${stagingDirectory}": ${error.message}`);
+      console.error(translateCliMessage('migration.cleanup-warning', { directory: stagingDirectory, reason: error.message }));
     }
   }
 }
@@ -1945,7 +1948,7 @@ function commandValidate(args) {
 
   if (layoutJson) {
     if (!['architecture', 'workflow'].includes(type)) {
-      fail('--layout-json is currently supported for architecture and workflow diagrams only.');
+      fail(translateCliMessage('error.layout-json-types'));
     }
     const result = runNode([renderer, input, '/dev/null', '--layout-json'], {
       stdio: 'pipe',
@@ -2008,14 +2011,14 @@ function commandValidate(args) {
           checker = JSON.parse(check.stdout);
           checker.file = path.resolve(input);
         } catch {
-          checker = { ok: false, diagnostic: 'Artifact checker failed without a parseable receipt.' };
+          checker = { ok: false, diagnostic: translateCliMessage('validate.checker-unparseable') };
         }
         reportValidateFailure({
           json,
           stage: 'check',
           type,
           input: path.resolve(input),
-          error: 'Final artifact check failed.',
+          error: translateCliMessage('validate.final-check-failed'),
           diagnostics: checkerDiagnostics(checker),
           checker,
           status: check.status ?? 1,
@@ -2037,9 +2040,9 @@ function commandValidate(args) {
           }, null, 2));
         } else {
           const engineering = engineeringProfile
-            ? `; engineering ${engineeringProfile}: pass`
+            ? translateCliMessage('validate.engineering-pass', { profile: engineeringProfile })
             : '';
-          console.log(`ok ${type} ${path.resolve(input)} (${result.checks.length} artifact checks; composition ${result.composition.profile}: ${result.composition.summary.errors} errors, ${result.composition.summary.warnings} warnings${engineering})`);
+          console.log(translateCliMessage('validate.success', { type, input: path.resolve(input), checks: result.checks.length, profile: result.composition.profile, errors: result.composition.summary.errors, warnings: result.composition.summary.warnings, engineering }));
         }
       }
     }
@@ -2079,7 +2082,7 @@ switch (command) {
     break;
   case 'inspect':
     if (args[0] !== 'architecture') {
-      fail('inspect is currently supported for architecture diagrams only.');
+      fail(translateCliMessage('error.inspect-architecture-only'));
     }
     commandValidate([...args, '--layout-json']);
     break;

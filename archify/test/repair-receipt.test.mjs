@@ -126,6 +126,31 @@ test('repair receipt: Japanese schema error preserves JSON shape and diagnostic 
   ]);
 });
 
+test('repair receipt: Japanese top-level error retains every schema violation and secondary evidence', () => {
+  const source = JSON.parse(fs.readFileSync(path.join(skillRoot, 'examples/agent-tool-call.workflow.json'), 'utf8'));
+  delete source.meta.title;
+  source.meta.output = 17;
+  source.nodes[0].unexpected = true;
+  const input = writeFixture('multiple-schema-errors.workflow.json', source);
+  const result = run(['validate', 'workflow', input, '--json']);
+
+  assert.equal(result.status, 1);
+  assert.equal(result.stderr, '');
+  const failure = receipt(result);
+  const codes = failure.diagnostics.map(({ code }) => code);
+  assert.ok(codes.includes('schema/required'), JSON.stringify(failure, null, 2));
+  assert.ok(codes.includes('schema/type'), JSON.stringify(failure, null, 2));
+  assert.ok(codes.includes('schema/additionalProperties'), JSON.stringify(failure, null, 2));
+  for (const diagnostic of failure.diagnostics) {
+    assert.ok(failure.error.includes(diagnostic.message), diagnostic.code);
+  }
+  const outputType = failure.diagnostics.find((entry) => entry.code === 'schema/type' && entry.subject.path === '/meta/output');
+  assert.ok(outputType);
+  assert.equal(outputType.evidence.type, 'string');
+  const unexpected = failure.diagnostics.find((entry) => entry.code === 'schema/additionalProperties');
+  assert.equal(unexpected.evidence.additionalProperty, 'unexpected');
+});
+
 test('repair receipt: validate and deliver share exact Clean Flow evidence while delivery preserves the trusted artifact', () => {
   const source = JSON.parse(fs.readFileSync(path.join(skillRoot, 'examples/web-app.architecture.json'), 'utf8'));
   source.connections[0] = {
@@ -207,7 +232,7 @@ test('repair receipt: public validate reports borderline desktop readability wit
   assert.ok(repair);
   assert.deepEqual(repair.subject, { check: 'composition' });
   assert.ok(repair.evidence.projectedFontPx < repair.evidence.minimumProjectedFontPx);
-  assert.ok(repair.supportedFixes.some((fix) => fix.includes('reduce the viewBox width')));
+  assert.ok(repair.supportedFixes.some((fix) => fix.includes('viewBox の幅を縮める')));
 });
 
 process.on('exit', () => fs.rmSync(tmp, { recursive: true, force: true }));

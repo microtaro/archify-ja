@@ -84,8 +84,8 @@ test('relationship ids stay optional and duplicate ids fail closed in the shared
     duplicate[CASES[mode].collection][1].id = duplicate[CASES[mode].collection][0].id;
     const rejected = run(mode, duplicate, 'duplicate');
     assert.notEqual(rejected.result.status, 0, mode);
-    assert.match(rejected.result.stderr, /Relationship identity validation failed/);
-    assert.match(rejected.result.stderr, /duplicates relationship id/);
+    assert.match(rejected.result.stderr, /関係 ID の検証に失敗しました/);
+    assert.match(rejected.result.stderr, /関係 ID .* が重複しています/);
   }
 });
 

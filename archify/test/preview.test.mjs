@@ -123,7 +123,7 @@ test('preview: invalid candidates preserve the last verified artifact and repair
     const failed = await waitForState(preview.url, (state) => state.status === 'needs-fix' && state.generation === 3, 'invalid source did not report failure');
     assert.equal(failed.revision, 1);
     assert.equal(failed.failure.stage, 'input');
-    assert.match(failed.failure.message, /Could not read delivery input/);
+    assert.match(failed.failure.message, /配布入力 .* を読み込めませんでした/);
     assert.doesNotMatch(JSON.stringify(failed), new RegExp(input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
     assert.equal(sha256(output), firstSha, 'invalid input replaced the last verified output');
     assert.equal(await (await fetch(new URL('/artifact.html', preview.url))).text(), firstArtifact);
@@ -132,7 +132,7 @@ test('preview: invalid candidates preserve the last verified artifact and repair
     fs.writeFileSync(input, JSON.stringify(source));
     const schemaFailed = await waitForState(preview.url, (state) => state.status === 'needs-fix' && state.generation === 4, 'schema failure did not report render stage');
     assert.equal(schemaFailed.failure.stage, 'render');
-    assert.match(schemaFailed.failure.message, /\/components\/0.*additional properties/i);
+    assert.match(schemaFailed.failure.message, /\/components\/0.*未対応のプロパティ/);
     assert.doesNotMatch(schemaFailed.failure.message, /file:\/\/|\/Users\/|node:internal/);
     assert.equal(sha256(output), firstSha, 'schema failure replaced the last verified output');
 
