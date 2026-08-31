@@ -95,7 +95,7 @@
 | `viewer.motion.still` | "Still" | "静止" |
 | `viewer.motion.pause` | "Pause motion" | "モーションを一時停止" |
 | `viewer.motion.resume` | "Resume motion" | "モーションを再開" |
-| `viewer.motion.reduced` | "Motion paused by reduced-motion preference" | "視差効果を減らす設定によりモーションを一時停止中" |
+| `viewer.motion.reduced` | "Motion paused by reduced-motion preference" | "動きを減らす設定によりモーションを一時停止中" |
 | `viewer.motion.hidden` | "Motion paused while this page is hidden" | "このページが非表示のためモーションを一時停止中" |
 | `viewer.motion.yielding` | "Pause motion; currently yielding to {owner}" | "モーションを一時停止（現在は{owner}を優先）" |
 | `viewer.motion.yielding.title` | "Live preview enabled · yielding to {owner}" | "ライブプレビュー有効 · {owner}を優先中" |
@@ -181,7 +181,7 @@
 | `viewer.export.error.routeState` | "Route Card export could not preserve the resolved route safely" | "ルートカードの書き出しで確定したルートを安全に保持できませんでした" |
 | `viewer.export.error.reachState` | "Reach Card export could not preserve authored reach safely" | "到達範囲カードの書き出しで定義済みの到達範囲を安全に保持できませんでした" |
 | `viewer.export.error.webmRequirements` | "WebM motion export requires a trace animation and browser MediaRecorder support" | "WebM モーションの書き出しには、トレースアニメーションとブラウザーの MediaRecorder 対応が必要です" |
-| `viewer.export.error.mediaRecorder` | "MediaRecorder failed" | "MediaRecorder に失敗しました" |
+| `viewer.export.error.mediaRecorder` | "MediaRecorder failed" | "MediaRecorder での録画に失敗しました" |
 | `viewer.export.error.emptyWebm` | "MediaRecorder produced an empty WebM" | "MediaRecorder が空の WebM を生成しました" |
 | `viewer.export.error.webmBackground` | "SVG background could not be loaded for WebM export" | "WebM の書き出し用に SVG の背景を読み込めませんでした" |
 | `viewer.guided.region` | "Guided diagram views" | "ガイド付きダイアグラム表示" |
@@ -206,7 +206,7 @@
 | `viewer.guided.replayStory` | "Replay story" | "もう一度再生" |
 | `viewer.guided.motionUnavailable` | "Story playback unavailable while motion is Still" | "モーションが静止中のためストーリーを再生できません" |
 | `viewer.guided.enableMotion` | "Switch motion to Live to play the guided story" | "ガイドストーリーを再生するにはモーションをライブに切り替えてください" |
-| `viewer.guided.selectBeatLink` | "Select a Story Beat to copy its exact link" | "正確なリンクをコピーするストーリービートを選択してください" |
+| `viewer.guided.selectBeatLink` | "Select a Story Beat to copy its exact link" | "正確なリンクをコピーするにはストーリービートを選択してください" |
 | `viewer.guided.copyMoment` | "Copy moment" | "この場面をコピー" |
 | `viewer.guided.momentCopied` | "Moment link copied" | "この場面へのリンクをコピーしました" |
 | `viewer.guided.momentCopyFailed` | "Could not copy story moment link" | "ストーリーの場面へのリンクをコピーできませんでした" |
@@ -289,7 +289,7 @@
 | `viewer.guide.shortcut.zoomIn` | "Zoom in" | "拡大" |
 | `viewer.guide.shortcut.zoomOut` | "Zoom out" | "縮小" |
 | `viewer.guide.shortcut.close` | "Close" | "閉じる" |
-| `viewer.guide.facts` | "{nodes} · {relationships} · {views}" | "概要: {nodes} · {relationships} · {views}" |
+| `viewer.guide.facts` | "{nodes} · {relationships} · {views}" | "{nodes} ／ {relationships} ／ {views}" |
 | `viewer.guide.fact.node.one` | "{count} semantic node" | "セマンティックノード {count} 件" |
 | `viewer.guide.fact.node.other` | "{count} semantic nodes" | "セマンティックノード {count} 件" |
 | `viewer.guide.fact.relationship.one` | "{count} relationship" | "関係 {count} 件" |
@@ -318,7 +318,7 @@
 | `viewer.finder.link.other` | "{count} links" | "{count} リンク" |
 | `viewer.finder.result.focus.one` | "Focus {label}, {count} related connection" | "{label} にフォーカス、関連する接続 {count} 件" |
 | `viewer.finder.result.focus.other` | "Focus {label}, {count} related connections" | "{label} にフォーカス、関連する接続 {count} 件" |
-| `viewer.finder.status.filtered` | "{visible} of {available} {noun}" | "{available} {noun}中 {visible}" |
+| `viewer.finder.status.filtered` | "{visible} of {available} {noun}" | "{noun}: 全 {available} 件中 {visible} 件" |
 | `viewer.finder.status.all` | "{available} {noun}" | "全 {available} {noun}" |
 | `viewer.passport.eyebrow` | "Semantic passport" | "セマンティックパスポート" |
 | `viewer.passport.metadata` | "Node metadata" | "ノードのメタデータ" |
@@ -350,8 +350,8 @@
 | `viewer.passport.relationship.count.other` | "{count} relations" | "関係 {count} 件" |
 | `viewer.passport.relationship.show.one` | "Show {count} connected relationship" | "接続している関係 {count} 件を表示" |
 | `viewer.passport.relationship.show.other` | "Show {count} connected relationships" | "接続している関係 {count} 件を表示" |
-| `viewer.passport.relationship.summary` | "{out} outgoing · {in} incoming{loops}" | "出力 {out} · 入力 {in}{loops}" |
-| `viewer.passport.relationship.loops` | " · {count} loop" | " · 自己ループ {count}" |
+| `viewer.passport.relationship.summary` | "{out} outgoing · {in} incoming{loops}" | "出方向 {out} 件 · 入方向 {in} 件{loops}" |
+| `viewer.passport.relationship.loops` | " · {count} loop" | " · 自己ループ {count} 件" |
 | `viewer.passport.relationship.explorer` | "Direct relationship explorer" | "直接関係エクスプローラー" |
 | `viewer.passport.relationship.help` | "Use arrow keys to explore relationships. Press Enter or Space to pin details; Escape clears." | "矢印キーで関係を探索します。Enter または Space で詳細を固定し、Escape で解除します。" |
 | `viewer.passport.relationship.loopsBack` | "loops back" | "自身に戻る" |
@@ -359,12 +359,12 @@
 | `viewer.passport.relationship.connectsFrom` | "connects from" | "接続元" |
 | `viewer.passport.relationship.pinned` | "Pinned relationship · {from} → {to} · {label}" | "固定した関係 · {from} → {to} · {label}" |
 | `viewer.passport.relationship.inspect` | "Inspect relationship {index} of {total}: {from} to {to}, {label}. Press Enter for details." | "関係を確認（{total} 件中 {index} 件目）: {from} から {to}、{label}。Enter で詳細を表示します。" |
-| `viewer.passport.relationship.group.out` | "Outgoing" | "出力" |
-| `viewer.passport.relationship.group.in` | "Incoming" | "入力" |
+| `viewer.passport.relationship.group.out` | "Outgoing" | "出方向" |
+| `viewer.passport.relationship.group.in` | "Incoming" | "入方向" |
 | `viewer.passport.relationship.group.loop` | "Self loops" | "自己ループ" |
 | `viewer.passport.relationship.row` | "{group}: {relationship}, {neighbor}" | "{group}: {relationship}、{neighbor}" |
-| `viewer.passport.relationship.direction.out` | "OUT →" | "出力 →" |
-| `viewer.passport.relationship.direction.in` | "← IN" | "← 入力" |
+| `viewer.passport.relationship.direction.out` | "OUT →" | "出方向 →" |
+| `viewer.passport.relationship.direction.in` | "← IN" | "← 入方向" |
 | `viewer.passport.relationship.direction.loop` | "LOOP" | "自己ループ" |
 | `viewer.passport.sourceCount.one` | "{count} verified source reference" | "検証済みのソース参照 {count} 件" |
 | `viewer.passport.sourceCount.other` | "{count} verified source references" | "検証済みのソース参照 {count} 件" |
@@ -418,7 +418,7 @@
 | `viewer.route.step` | "Step {index} of {total} · {phase} · {label}" | "ステップ {index} / {total} · {phase} · {label}" |
 | `viewer.route.motionRequired` | "Automatic journey requires Live motion" | "自動移動にはライブモーションが必要です" |
 | `viewer.route.trigger.clear` | "Clear traced route" | "探索したルートをクリア" |
-| `viewer.route.overview.status` | "{nodes} · {hops} · shortest authored route" | "{nodes} · {hops} · 作成済みの最短ルート" |
+| `viewer.route.overview.status` | "{nodes} · {hops} · shortest authored route" | "{nodes} · {hops} · 定義済みの最短ルート" |
 | `viewer.route.overview.node.one` | "{count} node" | "{count} ノード" |
 | `viewer.route.overview.node.other` | "{count} nodes" | "{count} ノード" |
 | `viewer.route.overview.hop.one` | "{count} directed hop" | "有向 {count} ホップ" |
@@ -428,7 +428,7 @@
 | `viewer.route.phase.inspecting` | "Inspecting" | "確認中" |
 | `viewer.route.destination.count.one` | "{count} directed destination available. Pick a highlighted node." | "有向の目的地を {count} 件選べます。ハイライトされたノードを選択してください。" |
 | `viewer.route.destination.count.other` | "{count} directed destinations available. Pick a highlighted node." | "有向の目的地を {count} 件選べます。ハイライトされたノードを選択してください。" |
-| `viewer.route.noOutgoing` | "No outgoing route starts here. Clear and choose another source." | "ここから始まる出力ルートはありません。クリアして別の始点を選択してください。" |
+| `viewer.route.noOutgoing` | "No outgoing route starts here. Clear and choose another source." | "ここを始点とする順方向のルートはありません。クリアして別の始点を選択してください。" |
 | `viewer.route.result.title` | "{source} to {target}" | "{source} から {target} へ" |
 | `viewer.route.finder.source.title` | "Choose route start" | "ルートの開始点を選択" |
 | `viewer.route.finder.source.placeholder` | "Search route sources" | "ルートの始点を検索" |
@@ -514,8 +514,8 @@
 | `viewer.nav.level.auto` | "AUTO" | "自動" |
 | `viewer.nav.detail.map` | "Zoom in to reveal relationship labels and node context" | "拡大すると、関係のラベルとノードのコンテキストを表示します" |
 | `viewer.nav.detail.read` | "Zoom in again to reveal tags and annotations" | "さらに拡大すると、タグと注釈を表示します" |
-| `viewer.nav.detail.full` | "Full diagram detail" | "ダイアグラムの全詳細" |
-| `viewer.intent.summary` | "{label}. {out} outgoing, {in} incoming{loops}. {total} connections. Press Enter for details." | "{label}。出力 {out}、入力 {in}{loops}。接続は合計 {total} 件です。Enter で詳細を表示します。" |
+| `viewer.nav.detail.full` | "Full diagram detail" | "ダイアグラムの詳細をすべて表示" |
+| `viewer.intent.summary` | "{label}. {out} outgoing, {in} incoming{loops}. {total} connections. Press Enter for details." | "{label}。出方向 {out} 件、入方向 {in} 件{loops}。接続は合計 {total} 件です。Enter で詳細を表示します。" |
 | `viewer.intent.loops` | ", {count} self loop" | "、自己ループ {count} 件" |
 | `viewer.common.copied` | "Copied" | "コピーしました" |
 | `viewer.common.copyFailed` | "Copy failed" | "コピーに失敗しました" |

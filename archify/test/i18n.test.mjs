@@ -38,6 +38,79 @@ function example(type) {
   return JSON.parse(fs.readFileSync(path.join(skillRoot, 'examples', EXAMPLES[type]), 'utf8'));
 }
 
+const AUTHORED_TEXT_KEYS = new Set([
+  'title',
+  'subtitle',
+  'label',
+  'sublabel',
+  'tag',
+  'note',
+  'classification',
+  'step',
+]);
+
+function authoredExample(type, locale) {
+  const document = example(type);
+  const authored = [];
+  let authoredIndex = 0;
+  const nextAuthoredText = () => {
+    authoredIndex += 1;
+    const value = `著者文${String(authoredIndex).padStart(3, '0')}`;
+    authored.push(value);
+    return value;
+  };
+  const rewrite = (value, pathParts = []) => {
+    if (Array.isArray(value)) {
+      value.forEach((item, index) => rewrite(item, [...pathParts, index]));
+      return;
+    }
+    if (!value || typeof value !== 'object') return;
+    for (const [key, child] of Object.entries(value)) {
+      if (typeof child === 'string' && AUTHORED_TEXT_KEYS.has(key)) {
+        value[key] = nextAuthoredText();
+      } else if (key === 'items' && pathParts.includes('cards') && Array.isArray(child)) {
+        value[key] = child.map((item) => (typeof item === 'string' ? nextAuthoredText() : item));
+      } else {
+        rewrite(child, [...pathParts, key]);
+      }
+    }
+  };
+
+  rewrite(document);
+  document.meta.locale = locale;
+  if (!document.meta.subtitle) document.meta.subtitle = nextAuthoredText();
+  return { document, authored };
+}
+
+const ALLOWED_LATIN_TOKENS = new Set([
+  'ARCHIFY',
+  'Archify',
+  '2D',
+  'Enter',
+  'Escape',
+  'ID',
+  'MediaRecorder',
+  'PII',
+  'PNG',
+  'Space',
+  'SVG',
+  'UI',
+  'WebM',
+  'canvas.toBlob',
+  ...'EFMPLRST',
+]);
+const SIMPLIFIED_CHINESE = /[这为图关闭开节览显实线连达态证库导统们从击钮择页项设网发仅应过还进请对经现将时则无处间边标记录认务输层组转换门径复错继续个汉语]/u;
+
+function assertJapaneseMessage(key, message) {
+  assert.ok(message.trim(), `empty ja-JP message: ${key}`);
+  assert.doesNotMatch(message, SIMPLIFIED_CHINESE, `Simplified Chinese: ${key}`);
+  const literal = message.replace(/\{[a-zA-Z0-9_]+\}/g, '');
+  const latinTokens = [...literal.matchAll(/(?:[0-9]+)?[A-Za-z][A-Za-z0-9]*(?:\.[A-Za-z][A-Za-z0-9]*)*/g)]
+    .map((match) => match[0]);
+  const unexpected = latinTokens.filter((token) => !ALLOWED_LATIN_TOKENS.has(token));
+  assert.deepEqual(unexpected, [], `partial English: ${key}`);
+}
+
 function run(type, document, command = 'render') {
   const id = sequence++;
   const input = path.join(tmp, `${id}-${type}.json`);
@@ -123,6 +196,27 @@ test('locale defaults to Japanese while retaining explicit English support', () 
   }
 });
 
+test('explicit English artifacts preserve every authored field and keep the English Viewer contract', () => {
+  for (const type of Object.keys(EXAMPLES)) {
+    const { document, authored } = authoredExample(type, 'en');
+    const authoredTitle = document.meta.title;
+    const authoredSubtitle = document.meta.subtitle;
+    const result = run(type, document);
+    assert.equal(result.status, 0, `${type}: ${result.stderr || result.stdout}`);
+    assert.match(result.html, /^<!DOCTYPE html>\n<html lang="en"/);
+    assert.ok(result.html.includes(`<title>${authoredTitle} Diagram</title>`), `${type}: authored title changed`);
+    assert.ok(result.html.includes(`<h1>${authoredTitle}</h1>`), `${type}: authored heading changed`);
+    assert.ok(result.html.includes(`<p class="subtitle">${authoredSubtitle}</p>`), `${type}: authored subtitle changed`);
+    assert.match(result.html, /<svg\b[^>]*\blang="en"/);
+    assert.match(result.html, /"locale":"en"/);
+    assert.match(result.html, />Export diagram</);
+    assert.match(result.html, /aria-label="Focus /);
+    for (const value of authored) {
+      assert.ok(result.html.includes(value), `${type}: authored value changed or omitted: ${value}`);
+    }
+  }
+});
+
 test('unsupported locale values fail schema validation in every mode', () => {
   for (const locale of ['fr', 'zh-CN', 'zh-HK']) {
     for (const type of Object.keys(EXAMPLES)) {
@@ -164,20 +258,64 @@ test('Japanese and English catalogs have identical keys and interpolation variab
   }
 });
 
-test('Japanese catalog has no empty values, English fallback, or Simplified Chinese', () => {
-  const simplifiedChinese = /[这为图关闭开节览显实线连达态证库导统们从]/u;
+test('Japanese catalog has no empty values, English fallback, partial English, or Simplified Chinese', () => {
   for (const key of catalogKeys('ja-JP')) {
     const english = translateMessage('en', key);
     const japanese = translateMessage('ja-JP', key);
-    assert.ok(japanese.trim(), `empty ja-JP message: ${key}`);
     assert.notEqual(japanese, english, `English fallback: ${key}`);
-    assert.doesNotMatch(japanese, simplifiedChinese, `Simplified Chinese: ${key}`);
+    assertJapaneseMessage(key, japanese);
   }
+});
+
+test('Japanese catalog lint rejects partial English and Simplified Chinese fixtures', () => {
+  assert.throws(
+    () => assertJapaneseMessage('fixture.partialEnglish', 'Click node を選択'),
+    /partial English: fixture\.partialEnglish/,
+  );
+  assert.throws(
+    () => assertJapaneseMessage('fixture.simplifiedChinese', '点击按钮'),
+    /Simplified Chinese: fixture\.simplifiedChinese/,
+  );
 });
 
 test('Japanese representative literals preserve the reviewed UI meaning', () => {
   assert.equal(translateMessage('ja-JP', 'node.context.sequence'), 'シーケンスの参加者');
   assert.equal(translateMessage('ja-JP', 'viewer.export.share'), '共有');
+  assert.equal(translateMessage('ja-JP', 'viewer.motion.reduced'), '動きを減らす設定によりモーションを一時停止中');
+  assert.equal(translateMessage('ja-JP', 'viewer.export.error.mediaRecorder'), 'MediaRecorder での録画に失敗しました');
+  assert.equal(
+    translateMessage('ja-JP', 'viewer.guided.selectBeatLink'),
+    '正確なリンクをコピーするにはストーリービートを選択してください',
+  );
+  assert.equal(
+    translateMessage('ja-JP', 'viewer.finder.status.filtered', { noun: 'ノード', available: 10, visible: 3 }),
+    'ノード: 全 10 件中 3 件',
+  );
+  assert.equal(
+    translateMessage('ja-JP', 'viewer.passport.relationship.summary', { out: 2, in: 1, loops: ' · 自己ループ 1 件' }),
+    '出方向 2 件 · 入方向 1 件 · 自己ループ 1 件',
+  );
+  assert.equal(translateMessage('ja-JP', 'viewer.passport.relationship.group.out'), '出方向');
+  assert.equal(translateMessage('ja-JP', 'viewer.passport.relationship.group.in'), '入方向');
+  assert.equal(translateMessage('ja-JP', 'viewer.passport.relationship.direction.out'), '出方向 →');
+  assert.equal(translateMessage('ja-JP', 'viewer.passport.relationship.direction.in'), '← 入方向');
+  assert.equal(
+    translateMessage('ja-JP', 'viewer.passport.relationship.loops', { count: 1 }),
+    ' · 自己ループ 1 件',
+  );
+  assert.equal(
+    translateMessage('ja-JP', 'viewer.route.noOutgoing'),
+    'ここを始点とする順方向のルートはありません。クリアして別の始点を選択してください。',
+  );
+  assert.equal(
+    translateMessage('ja-JP', 'viewer.intent.summary', { label: 'API', out: 2, in: 1, loops: '', total: 3 }),
+    'API。出方向 2 件、入方向 1 件。接続は合計 3 件です。Enter で詳細を表示します。',
+  );
+  assert.equal(
+    translateMessage('ja-JP', 'viewer.guide.facts', { nodes: '3 ノード', relationships: '2 件の関係', views: '1 件のガイド表示' }),
+    '3 ノード ／ 2 件の関係 ／ 1 件のガイド表示',
+  );
+  assert.equal(translateMessage('ja-JP', 'viewer.nav.detail.full'), 'ダイアグラムの詳細をすべて表示');
   assert.equal(translateMessage('ja-JP', 'viewer.route.unreachable', { label: 'API' }), 'API への有向ルートはありません');
   assert.equal(
     translateMessage('ja-JP', 'viewer.route.unreachable.detail', { source: 'UI', target: 'DB' }),
@@ -219,7 +357,7 @@ test('runtime labels stay correct after composition', () => {
   const jaNode = translateCount('ja-JP', 'viewer.route.overview.node', 2);
   assert.equal(
     translateMessage('ja-JP', 'viewer.route.overview.status', { nodes: jaNode, hops: jaHop }),
-    '2 ノード · 有向 1 ホップ · 作成済みの最短ルート',
+    '2 ノード · 有向 1 ホップ · 定義済みの最短ルート',
   );
 });
 
