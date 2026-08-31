@@ -21,7 +21,7 @@ test('skill description is portable across 1024-character runtimes and remains s
     assert.match(description, new RegExp(`\\b${trigger}\\b`, 'i'), `description must retain the ${trigger} trigger`);
   }
   assert.match(description, /standalone HTML/i);
-  assert.match(description, /Use when/i);
+  assert.match(description, /(?:場合|とき)に利用する/);
 });
 
 test('literal packaged-skill path references resolve inside the installed skill root', () => {
@@ -50,36 +50,36 @@ test('main skill stays a bounded authoring router with progressive references', 
 
 test('update awareness is notification-only and never replaces the requested workflow', () => {
   assert.match(skill, /`scripts\/check-update\.mjs`/);
-  assert.match(skill, /`silent`[\s\S]*without mentioning/i);
-  assert.match(skill, /`update_available`[\s\S]*compact notice/i);
-  assert.match(skill, /information, not permission/i);
-  assert.match(skill, /`severity` is `security`[\s\S]*security update[\s\S]*emphasis only, never user autonomy/i);
-  assert.match(skill, /continue the user's original task/i);
-  assert.match(skill, /installed version unchanged/i);
+  assert.match(skill, /`silent`[\s\S]*言及せず/);
+  assert.match(skill, /`update_available`[\s\S]*簡潔な通知/);
+  assert.match(skill, /通知は情報であり、許可ではありません/);
+  assert.match(skill, /`severity` が `security`[\s\S]*security update[\s\S]*強調だけ[\s\S]*自律性ではありません/);
+  assert.match(skill, /ユーザーが最初に依頼したtaskを続けます/);
+  assert.match(skill, /インストール済み(?:Skill|version)は変更されて(?:おらず|いません)/);
   assert.doesNotMatch(skill, /npx skills update|gh skill update/i);
 });
 
 test('language behavior stays within the bounded locale contract', () => {
-  assert.match(skill, /one primary authored language/);
-  assert.match(skill, /explicit user choice; otherwise follow the request or conversation's dominant language/);
-  assert.match(skill, /`meta\.locale` controls only renderer-owned Viewer UI/);
-  assert.match(skill, /use `"en"` for the supported Viewer language/);
+  assert.match(skill, /primary authored languageを1つ選びます/);
+  assert.match(skill, /明示されたユーザーの選択[\s\S]*選択がなければ、依頼または会話の主言語/);
+  assert.match(skill, /`meta\.locale` が制御するのはrenderer所有のViewer UIだけ/);
+  assert.match(skill, /対応Viewer言語には `"en"` を使います/);
   assert.doesNotMatch(skill, /zh-CN|Simplified Chinese/);
-  assert.match(skill, /For every other language, omit `meta\.locale`/);
-  assert.match(skill, /fixed Viewer UI and `<html lang>` fall back to English/);
-  assert.match(skill, /renderer never translates authored content/i);
-  assert.match(skill, /product names.*code identifiers.*protocols.*API paths.*environment names/);
-  assert.match(authoringContract, /`meta\.locale` controls only renderer-owned reader surfaces/);
-  assert.match(authoringContract, /outside `en`/);
-  assert.match(authoringContract, /artifact is\s+not fully localized/);
+  assert.match(skill, /それ以外のすべての言語では `meta\.locale` を省略/);
+  assert.match(skill, /固定Viewer UIと `<html lang>` がEnglishへfallback/);
+  assert.match(skill, /rendererがauthored contentを翻訳することはありません/);
+  assert.match(skill, /製品名、code identifier、command、protocol、API path、environment name/);
+  assert.match(authoringContract, /`meta\.locale` が制御するのはrenderer所有のreader surfaceだけ/);
+  assert.match(authoringContract, /`en` 以外の言語/);
+  assert.match(authoringContract, /成果物が完全にはローカライズされない/);
   assert.doesNotMatch(authoringContract, /zh-CN|Simplified Chinese|Chinese locale/);
-  assert.match(authoringContract, /It never translates authored content/);
-  assert.match(authoringContract, /Renderer-owned default legend labels follow `meta\.locale`/);
-  assert.match(authoringContract, /The fallback\s+applies only to renderer-owned surfaces/);
+  assert.match(authoringContract, /authored contentを翻訳することはありません/);
+  assert.match(authoringContract, /renderer所有の既定legend labelは `meta\.locale` に従います/);
+  assert.match(authoringContract, /fallbackが適用されるのはrenderer所有surfaceだけ/);
 });
 
 test('skill keeps the title hierarchy compact by default', () => {
-  assert.match(skill, /Omit `meta\.subtitle` by default/);
-  assert.match(skill, /Never invent a subtitle that restates the title, nodes, or cards/);
-  assert.match(authoringContract, /omitted or blank subtitle must not leave an empty visual row/);
+  assert.match(skill, /`meta\.subtitle` は既定で省略/);
+  assert.match(skill, /title、node、cardの言い換えとなるsubtitleを決して創作してはなりません/);
+  assert.match(authoringContract, /subtitleを省略または空にした際、生成viewerに空のvisual rowが残ってはなりません/);
 });

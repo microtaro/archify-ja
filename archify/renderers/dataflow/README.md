@@ -1,21 +1,18 @@
-# Data Flow Renderer
+# Data Flow Renderer（データフロー）
 
-Render `diagram_type: "dataflow"` JSON files into the standard Archify HTML
-template.
+`diagram_type: "dataflow"` のJSON fileを標準Archify HTML templateへrenderします。
 
 ```bash
 node archify/renderers/dataflow/render-dataflow.mjs input.dataflow.json output.html
 ```
 
-The renderer validates input against `archify/schemas/dataflow.schema.json`
-with the bundled standalone validator. No dependency installation is required.
+rendererは同梱standalone validatorを使い、inputを `archify/schemas/dataflow.schema.json` に対して検証します。dependencyのinstallは不要です。
 
-If `output.html` is omitted, the renderer uses `meta.output` from the JSON file
-or falls back to `dataflow.html` in the current working directory.
+`output.html` を省略した場合、rendererはJSON fileの `meta.output` を使い、それもなければ現在のworking directoryに `dataflow.html` を出力します。
 
-## Input
+## 入力
 
-Data-flow JSON files must set:
+Data-flow JSON fileには次を設定しなければなりません。
 
 ```json
 {
@@ -32,73 +29,43 @@ Data-flow JSON files must set:
 }
 ```
 
-A complete worked example lives at
-`archify/examples/product-analytics.dataflow.json`.
+完全なworked exampleは `archify/examples/product-analytics.dataflow.json` にあります。
 
-The schema lives at:
+schemaは次にあります。
 
 ```text
 archify/schemas/dataflow.schema.json
 ```
 
-## Legend
+## 凡例
 
-The default visual legend derives kinds from `flows[].variant` (omitting
-`variant` means `default`) and adds `database` only when a database node exists.
-Supported `meta.legend.entries` keys, in stable order, are `emphasis`,
-`security`, `dashed`, `database`, and `default`. Flow variants remain
-visual-only because Archify has no compiled edge-kind facts in this slice. A
-present `database` entry is different: it comes from exact
-`nodes[].type: "database"` facts, so it publishes the normal Semantic Legend
-count, accessible name, and keyboard interaction. Forcing `database` visible
-without a database node keeps it visual-only.
+既定のvisual legendは `flows[].variant` からkindを導出し（`variant` を省略すると `default`）、database nodeが存在する場合にだけ `database` を追加します。対応する `meta.legend.entries` keyは、安定した順序で `emphasis`、`security`、`dashed`、`database`、`default` です。このsliceではArchifyにcompiled edge-kind factがないため、flow variantはvisual-onlyのままです。存在する `database` entryは異なります。正確な `nodes[].type: "database"` factから作られるため、通常のSemantic Legend count、accessible name、keyboard interactionを公開します。database nodeなしで `database` をvisibleに強制した場合はvisual-onlyのままです。
 
 ## Layout budget
 
-| Constant | Value |
+| 定数 | 値 |
 |----------|-------|
-| viewBox | default `[940, 720]`; schema minimum `[360, 360]` |
-| Stages (2–5) | centers at x = 100 + stage×215; stage band 168 wide, header at y 46 |
-| Row tops (`row` 0–4) | y = 128, 242, 356, 470, 584 (plus `yOffset`) |
-| Default node | 112×58 |
-| Node area | x within `[24, width − 24]`; y within `[104, height − 74]` |
-| Node spacing | ≥10px between any two nodes (checked across stages and rows) |
-| Flow length | ≥34px between endpoints |
+| viewBox | 既定 `[940, 720]`、schema最小 `[360, 360]` |
+| Stage（2～5） | center x = 100 + stage×215、stage band width 168、header y 46 |
+| Row top（`row` 0～4） | y = 128, 242, 356, 470, 584（`yOffset` を加算） |
+| 既定node | 112×58 |
+| Node area | xは `[24, width − 24]` 内、yは `[104, height − 74]` 内 |
+| Node spacing | 任意の2 node間で10px以上（stageとrowをまたいで検査） |
+| Flow length | endpoint間34px以上 |
 | Legend row | y = height − 36 |
 
-Route presets for flows: `straight`, `vertical-channel`, `bottom-channel`,
-`top-channel`, explicit `via` points, or the default `auto` (midpoint elbow).
+flowのroute presetは `straight`、`vertical-channel`、`bottom-channel`、`top-channel`、明示的 `via` point、または既定の `auto`（midpoint elbow）です。
 
-## Design Rules
+## Design rule
 
-- Use stages for data lifecycle boundaries: source, ingest, process, store,
-  consume.
-- Place nodes by stage index and row index; do not hand-place raw SVG for the
-  common case.
-- Use flow labels to name the data asset, not the transport primitive:
-  `clickstream`, `identity map`, `normalized facts`, `feature vectors`.
-- Use `classification` for short sensitivity or governance context:
-  `PII touch`, `non-PII`, `approved only`, `batch`, `read-only`.
-- Use `security` for PII, policy, consent, access-control, or restricted joins.
-- Use `emphasis` for the primary data path and `dashed` for async or batch
-  derivations.
-- Keep labels short enough to fit in narrow previews.
+- data lifecycle boundary（source、ingest、process、store、consume）にstageを使います。
+- stage indexとrow indexでnodeを配置し、通常のcaseではraw SVGを手作業で配置してはなりません。
+- flow labelにはtransport primitiveではなくdata asset名を使います。例: `clickstream`、`identity map`、`normalized facts`、`feature vectors`。
+- 短いsensitivityまたはgovernance contextには `classification` を使います。例: `PII touch`、`non-PII`、`approved only`、`batch`、`read-only`。
+- PII、policy、consent、access-control、restricted joinには `security` を使います。
+- primary data pathには `emphasis`、asyncまたはbatch derivationには `dashed` を使います。
+- 狭いpreviewに収まるようlabelを短く保ちます。
 
-Schema violations exit non-zero with path-prefixed messages annotated with the
-element's id or label. The renderer additionally fails when it can detect
-layout problems, including missing stages, duplicate node IDs, nodes outside
-the readable diagram area, node overlap, labels colliding with nodes or other
-labels, labels wider than their node, unknown flow endpoints, missing flow
-labels, unreadably short flows, flows crossing unrelated nodes (2px Clean Flow
-clearance), or stages that exceed the viewBox. Stage frames remain intentional
-pass-through containers. Text width
-is estimated CJK-aware: fullwidth glyphs count as two units.
+schema violationは、elementのidまたはlabelを注記したpath-prefix付きmessageを出して非ゼロで終了します。rendererはさらに、検出可能なlayout問題で失敗します。対象にはmissing stage、duplicate node ID、readable diagram area外のnode、node overlap、nodeまたは他labelと衝突するlabel、nodeより広いlabel、unknown flow endpoint、missing flow label、短すぎて読めないflow、関係のないnodeを横切るflow（2px Clean Flow clearance）、viewBoxを超えるstageが含まれます。stage frameは意図的なpass-through containerのままです。text widthはCJK-awareに見積もられ、fullwidth glyphは2 unitとして数えます。
 
-Set `meta.quality_profile` to `showcase` for polished delivery. Unrelated proper
-X crossings then fail with `composition/proper-crossing`; default `standard`
-keeps them as artifact-receipt warnings. Collinear stage corridors are outside
-the proper-X rule, but a separate gate warns in `standard` and fails in
-`showcase` when unrelated flows overlap for at least 8px. Shared semantic
-endpoints, point touches, and shorter overlaps remain valid. Showcase also
-rejects any route segment below 8px and any interior turn segment below 16px;
-ordinary 8–15px endpoint stubs remain valid.
+洗練された配布には `meta.quality_profile` を `showcase` に設定します。その場合、関係のないproper X crossingは `composition/proper-crossing` で失敗します。既定の `standard` ではartifact-receipt warningに留まります。collinear stage corridorはproper-X ruleの対象外ですが、関係のないflowが8px以上overlapすると、別gateが `standard` でwarning、`showcase` でfailureにします。shared semantic endpoint、point touch、より短いoverlapは有効です。showcaseはさらに、8px未満のroute segmentと16px未満のinterior turn segmentを拒否します。通常の8～15px endpoint stubは有効です。

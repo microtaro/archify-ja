@@ -1,31 +1,18 @@
-# Built-in brand marks
+# 組み込みBrand mark
 
-Archify ships a bounded catalogue of 107 commonly used brands for architecture,
-workflow, sequence, data-flow, and lifecycle nodes. The mark is optional authored
-identity: it never replaces the node's semantic `type`, color, label, or
-relationships.
+Archifyはarchitecture、workflow、sequence、data-flow、lifecycleのnode向けに、よく使われるbrand 107件の限定catalogueを同梱します。markは任意のオーサリング済みidentityです。nodeのsemantic `type`、color、label、relationshipを置き換えることはありません。
 
-Unknown sites are handled by an explicit two-stage workflow. Run
-`node bin/archify.mjs brands capture <url> --json`, then author the returned
-digest-pinned `brand` value. Normal render and validate commands do not perform
-an unpinned capture, and changed or unavailable content fails closed.
+未知のsiteは、明示的な2段階workflowで扱います。`node bin/archify.mjs brands capture <url> --json` を実行し、返されたdigest固定済み `brand` 値をオーサリングします。通常のrenderおよびvalidate commandでは固定されていないcaptureを実行せず、変更済みまたは利用不能なcontentはfail closedします。
 
-Most vector paths and brand metadata are generated from Simple Icons 16.28.0.
-The OpenAI mark is traced to OpenAI's official brand guidelines. Every generated
-entry records its source and, when available upstream, its guidelines and license
-metadata in `renderers/shared/generated-brand-marks.mjs`.
+ほとんどのvector pathとbrand metadataはSimple Icons 16.28.0から生成されています。OpenAI markの出典はOpenAI公式brand guidelineです。生成された各entryは、そのsourceと、upstreamで利用できる場合はguidelineおよびlicense metadataを `renderers/shared/generated-brand-marks.mjs` に記録します。
 
-Brand names and logos may be trademarks of their respective owners. Simple
-Icons' CC0 license covers its collection work, not every underlying trademark or
-artwork. Contributors must review the recorded source, current brand guidelines,
-and intended referential use before adding or updating a mark. Archify does not
-imply sponsorship, endorsement, or partnership.
+brand名とlogoは、それぞれのownerのtrademarkである場合があります。Simple IconsのCC0 licenseが対象とするのはcollection作業であり、基礎となるすべてのtrademarkやartworkではありません。contributorはmarkを追加または更新する前に、記録されたsource、現在のbrand guideline、意図する参照用途を確認しなければなりません。Archifyはsponsorship、endorsement、partnershipを示唆しません。
 
-Edit `catalog.json`, then regenerate the committed zero-runtime-dependency bundle:
+`catalog.json` を編集してから、commit対象のzero-runtime-dependency bundleを再生成します。
 
 ```bash
 npm run generate:brand-marks
 npm run check:brand-marks
 ```
 
-Do not hand-edit `renderers/shared/generated-brand-marks.mjs`.
+`renderers/shared/generated-brand-marks.mjs` を手作業で編集してはなりません。

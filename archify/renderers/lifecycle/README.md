@@ -1,21 +1,18 @@
-# Lifecycle Renderer
+# Lifecycle Renderer（ライフサイクル）
 
-Render `diagram_type: "lifecycle"` JSON files into the standard Archify HTML
-template.
+`diagram_type: "lifecycle"` のJSON fileを標準Archify HTML templateへrenderします。
 
 ```bash
 node archify/renderers/lifecycle/render-lifecycle.mjs input.lifecycle.json output.html
 ```
 
-The renderer validates input against `archify/schemas/lifecycle.schema.json`
-with the bundled standalone validator. No dependency installation is required.
+rendererは同梱standalone validatorを使い、inputを `archify/schemas/lifecycle.schema.json` に対して検証します。dependencyのinstallは不要です。
 
-If `output.html` is omitted, the renderer uses `meta.output` from the JSON file
-or falls back to `lifecycle.html` in the current working directory.
+`output.html` を省略した場合、rendererはJSON fileの `meta.output` を使い、それもなければ現在のworking directoryに `lifecycle.html` を出力します。
 
-## Input
+## 入力
 
-Lifecycle JSON files must set:
+Lifecycle JSON fileには次を設定しなければなりません。
 
 ```json
 {
@@ -32,84 +29,48 @@ Lifecycle JSON files must set:
 }
 ```
 
-Lane ids are semantic and reserved: a lane with id `main` is required and maps
-to the top phase band; `terminal` maps to the bottom outcome band; every other
-lane id (up to 4 lanes total) shares the single middle event band. The three
-band headers render from your lane labels — the middle band joins the labels of
-all event lanes with ` + `. A complete worked example lives at
-`archify/examples/agent-run.lifecycle.json`.
+lane idはsemanticかつ予約済みです。id `main` のlaneが必須で、上側phase bandに対応します。`terminal` は下側outcome bandに対応します。それ以外のすべてのlane id（合計最大4 lane）は、中央のevent band 1つを共有します。3つのband headerにはauthorのlane labelが使われ、中央bandはすべてのevent lane labelを ` + ` で結合します。完全なworked exampleは `archify/examples/agent-run.lifecycle.json` にあります。
 
-The schema lives at:
+schemaは次にあります。
 
 ```text
 archify/schemas/lifecycle.schema.json
 ```
 
-## Legend
+## 凡例
 
-The default legend derives kinds from `states[].type`. Supported
-`meta.legend.entries` keys, in stable order, are `start`, `active`, `waiting`,
-`decision`, `success`, `failure`, `neutral`, and `external`. Labels and
-visibility may be overridden through the shared legend contract; only kinds
-backed by rendered states receive Semantic Legend controls.
+既定のlegendは `states[].type` からkindを導出します。対応する `meta.legend.entries` keyは、安定した順序で `start`、`active`、`waiting`、`decision`、`success`、`failure`、`neutral`、`external` です。共有legend契約によってlabelとvisibilityをoverrideできます。render済みstateに裏付けられたkindだけがSemantic Legend controlを受け取ります。
 
 ## Layout budget
 
-| Band | Lane id | Top y | Column centers | Default state |
+| Band | Lane id | Top y | Column center | 既定state |
 |------|---------|-------|----------------|---------------|
-| Phase | `main` (required) | 126 | `col` 0–4 → x = 94, 248, 402, 556, 710 | 118×62 |
-| Event | any other id | 278 | `col` 0–2 → x = 402, 556, 710 | 126×58 |
-| Outcome | `terminal` | 450 | `col` 0–2 → x = 402, 556, 710 | 118×58 |
+| Phase | `main`（必須） | 126 | `col` 0～4 → x = 94, 248, 402, 556, 710 | 118×62 |
+| Event | その他任意のid | 278 | `col` 0～2 → x = 402, 556, 710 | 126×58 |
+| Outcome | `terminal` | 450 | `col` 0～2 → x = 402, 556, 710 | 118×58 |
 
-Event and terminal columns are intentionally offset from the main rail:
-event/terminal `col: N` uses the same x coordinate as main `col: N + 2`.
-For example, lower-band columns 0, 1, and 2 align beneath main columns 2, 3,
-and 4 respectively.
+event columnとterminal columnはmain railから意図的にoffsetされています。event/terminalの `col: N` はmainの `col: N + 2` と同じx coordinateを使います。たとえばlower-band column 0、1、2は、それぞれmain column 2、3、4の下に揃います。
 
-| Constant | Value |
+| 定数 | 値 |
 |----------|-------|
-| viewBox | default `[980, 660]`; schema minimum `[420, 566]` |
-| State area | x within `[32, width − 32]`; state bottom at or above `height − 122` |
-| State spacing | ≥10px between any two states — checked across lanes, because all event lanes share one band; separate same-band states with `col` or `yOffset` |
-| Transition length | ≥32px between endpoints |
-| Legend row | final baseline y = height − 36; extra measured rows wrap upward |
+| viewBox | 既定 `[980, 660]`、schema最小 `[420, 566]` |
+| State area | xは `[32, width − 32]` 内、state bottomは `height − 122` 以下 |
+| State spacing | 任意の2 state間で10px以上。すべてのevent laneが1 bandを共有するためlaneをまたいで検査します。同じbandのstateは `col` または `yOffset` で分離します |
+| Transition length | endpoint間32px以上 |
+| Legend row | 最終baseline y = height − 36、測定済みの追加rowは上方向へwrap |
 
-The primary lifecycle rail runs along the phase band and extends to the
-furthest occupied phase column. Route presets for transitions: `straight`,
-`drop` (bend at `channelY`, defaulting to the vertical midpoint),
-`bottom-channel`, `top-channel`, `right-channel`, `left-channel`, explicit
-`via` points, or the default `auto`. Multi-segment transitions get rounded
-corners; tune them with `cornerRadius` (default 10, `0` for sharp bends).
+primary lifecycle railはphase bandに沿って走り、使用中の最も遠いphase columnまで伸びます。transitionのroute presetは `straight`、`drop`（`channelY` で曲がる。既定はvertical midpoint）、`bottom-channel`、`top-channel`、`right-channel`、`left-channel`、明示的 `via` point、または既定の `auto` です。multi-segment transitionにはrounded cornerが付き、`cornerRadius`（既定10、sharp bendには `0`）で調整できます。
 
-## Design Rules
+## Design rule
 
-- Treat lifecycle diagrams as a phase map, not a dense state-transition graph.
-- Put the primary lifecycle on one horizontal rail using the `main` lane.
-- Use `step` labels for ordered phases, such as `01`, `02`, and `03`.
-- Use lower lanes only for interruptions, recovery, and terminal exits.
-- Keep transition labels out of the main SVG unless the label is essential;
-  prefer node labels, tags, legend entries, and summary cards.
-- Avoid diagonal and crossing lines. Terminal exits should drop vertically from
-  their source event whenever possible.
-- Use `success` for completion, `failure` for failure/terminal exits,
-  `waiting` for pauses, and `decision` for quality gates.
+- lifecycle diagramをdense state-transition graphではなくphase mapとして扱います。
+- primary lifecycleを `main` lane上のhorizontal rail 1本に置きます。
+- `01`、`02`、`03` のようなordered phaseには `step` labelを使います。
+- lower laneはinterruption、recovery、terminal exitにだけ使います。
+- transition labelが必須でない限りmain SVGから除き、node label、tag、legend entry、summary cardを優先します。
+- diagonal lineとcrossing lineを避けます。可能ならterminal exitはsource eventから垂直に下ろします。
+- completionには `success`、failure/terminal exitには `failure`、pauseには `waiting`、quality gateには `decision` を使います。
 
-Schema violations exit non-zero with path-prefixed messages annotated with the
-element's id or label. The renderer additionally fails when it can detect
-layout problems, including a missing `main` lane, duplicate state IDs, unknown
-lanes, unknown transition endpoints, states outside the lifecycle area,
-overlapping states (including across lanes), labels colliding with states or
-other labels, labels wider than their state, unreadably short transitions, or
-transitions crossing unrelated states (2px Clean Flow clearance). Lifecycle
-bands remain intentional pass-through containers.
-Text width is estimated CJK-aware: fullwidth glyphs count as two units.
+schema violationは、elementのidまたはlabelを注記したpath-prefix付きmessageを出して非ゼロで終了します。rendererはさらに、検出可能なlayout問題で失敗します。対象にはmissing `main` lane、duplicate state ID、unknown lane、unknown transition endpoint、lifecycle area外のstate、overlapping state（lane間を含む）、stateまたは他labelと衝突するlabel、stateより広いlabel、短すぎて読めないtransition、関係のないstateを横切るtransition（2px Clean Flow clearance）が含まれます。Lifecycle bandは意図的なpass-through containerのままです。text widthはCJK-awareに見積もられ、fullwidth glyphは2 unitとして数えます。
 
-Set `meta.quality_profile` to `showcase` for polished delivery. Unrelated proper
-X crossings then fail with `composition/proper-crossing`; default `standard`
-keeps them as artifact-receipt warnings. The final artifact check samples
-rounded `Q` corners. Collinear corridors remain outside the proper-X rule, but
-a separate gate warns in `standard` and fails in `showcase` when unrelated
-transitions overlap for at least 8px. Shared semantic endpoints, point touches,
-and shorter overlaps remain valid. Showcase also rejects any route segment
-below 8px and any interior turn segment below 16px; ordinary 8–15px endpoint
-stubs remain valid.
+洗練された配布には `meta.quality_profile` を `showcase` に設定します。その場合、関係のないproper X crossingは `composition/proper-crossing` で失敗します。既定の `standard` ではartifact-receipt warningに留まります。最終artifact checkはrounded `Q` cornerをsampleします。collinear corridorはproper-X ruleの対象外ですが、関係のないtransitionが8px以上overlapすると、別gateが `standard` でwarning、`showcase` でfailureにします。shared semantic endpoint、point touch、より短いoverlapは有効です。showcaseはさらに、8px未満のroute segmentと16px未満のinterior turn segmentを拒否します。通常の8～15px endpoint stubは有効です。

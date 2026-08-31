@@ -1,21 +1,18 @@
-# Sequence Renderer
+# Sequence Renderer（シーケンス）
 
-Render `diagram_type: "sequence"` JSON files into the standard Archify HTML
-template.
+`diagram_type: "sequence"` のJSON fileを標準Archify HTML templateへrenderします。
 
 ```bash
 node archify/renderers/sequence/render-sequence.mjs input.sequence.json output.html
 ```
 
-The renderer validates input against `archify/schemas/sequence.schema.json`
-with the bundled standalone validator. No dependency installation is required.
+rendererは同梱standalone validatorを使い、inputを `archify/schemas/sequence.schema.json` に対して検証します。dependencyのinstallは不要です。
 
-If `output.html` is omitted, the renderer uses `meta.output` from the JSON file
-or falls back to `sequence.html` in the current working directory.
+`output.html` を省略した場合、rendererはJSON fileの `meta.output` を使い、それもなければ現在のworking directoryに `sequence.html` を出力します。
 
-## Input
+## 入力
 
-Sequence JSON files must set:
+Sequence JSON fileには次を設定しなければなりません。
 
 ```json
 {
@@ -33,82 +30,50 @@ Sequence JSON files must set:
 }
 ```
 
-The timeline scales with the viewBox height: a taller `meta.viewBox` buys more
-message room, a shorter one shrinks the readable band instead of clipping. A
-complete worked example lives at
-`archify/examples/cache-miss-request.sequence.json`.
+timelineはviewBox heightに合わせてscaleします。高い `meta.viewBox` はmessage roomを増やし、低いviewBoxはclipする代わりにreadable bandを縮めます。完全なworked exampleは `archify/examples/cache-miss-request.sequence.json` にあります。
 
-The schema lives at:
+schemaは次にあります。
 
 ```text
 archify/schemas/sequence.schema.json
 ```
 
-## Legend
+## 凡例
 
-The default visual legend derives kinds from `messages[].variant` (omitting
-`variant` means `default`). Supported `meta.legend.entries` keys, in stable
-order, are `emphasis`, `return`, `security`, `dashed`, and `default`. These are
-visual message keys, not Semantic Lens controls; label/visibility overrides do
-not create edge facts.
+既定のvisual legendは `messages[].variant` からkindを導出します（`variant` を省略すると `default`）。対応する `meta.legend.entries` keyは、安定した順序で `emphasis`、`return`、`security`、`dashed`、`default` です。これらはvisual message keyであり、Semantic Lens controlではありません。label/visibility overrideでedge factを作ることはありません。
 
 ## Layout budget
 
-| Constant | Value |
+| 定数 | 値 |
 |----------|-------|
-| viewBox | default `[920, 760]`; schema minimum `[480, 480]` |
-| Participant boxes | `fixed` (default): 86×54 at y 72; `spread`: viewBox-relative width from 86px up to 190px |
-| Participant columns | `fixed`: centers at x = 62 + index×108; `spread`: columns distribute across the available viewBox width |
-| Participant count | the last box must end at or before width − 40; layouts that cannot fit fail closed |
-| Lifelines | from y 142 down to height − 65; band must be ≥120px tall |
+| viewBox | 既定 `[920, 760]`、schema最小 `[480, 480]` |
+| Participant box | `fixed`（既定）: 86×54、y 72。`spread`: viewBox-relative width 86px～190px |
+| Participant column | `fixed`: center x = 62 + index×108。`spread`: 利用可能なviewBox width全体へcolumnを分配 |
+| Participant count | 最後のboxがwidth − 40以前で終わらなければならない。収まらないlayoutはfail closed |
+| Lifeline | y 142からheight − 65まで。band heightは120px以上 |
 | Message `y` range | `[160, height − 83]` |
-| Message spacing | ≥28px vertical between messages that share horizontal space |
-| Arrow span | ≥60px horizontal between the two participants |
-| Segments | y pixel ranges with `to > from`, inside `[72, lifeline bottom + 20]` |
+| Message spacing | horizontal spaceを共有するmessage間でvertical 28px以上 |
+| Arrow span | 2 participant間でhorizontal 60px以上 |
+| Segment | `to > from` となるy pixel rangeで、`[72, lifeline bottom + 20]` 内 |
 | Legend row | y = height − 54 |
 
-`segments[].from/to` and `activations[].from/to` are y pixel coordinates, not
-participant ids; activations also require `to > from`.
+`segments[].from/to` と `activations[].from/to` はparticipant idではなくy pixel coordinateです。activationにも `to > from` が必要です。
 
 ### Column fit
 
-Sequence diagrams use `meta.column_fit: "fixed"` by default so existing
-documents keep their historical coordinates. Use `"spread"` when a wide
-viewBox would otherwise leave empty space on the right or when meaningful
-participant labels do not fit the fixed 86px boxes. Spread derives box width
-and column distance from the viewBox while preserving participant order,
-lifelines, and message semantics.
+Sequence diagramでは `meta.column_fit: "fixed"` が既定で、既存documentの従来coordinateを維持します。幅広viewBoxで右側が空白になる場合、または意味のあるparticipant labelがfixed 86px boxに収まらない場合は `"spread"` を使います。Spreadはparticipant order、lifeline、message semanticsを維持しながら、viewBoxからbox widthとcolumn distanceを導出します。
 
-## Design Rules
+## Design rule
 
-- Put participants across the top, ordered by the story the reader should
-  follow.
-- Time moves downward.
-- Use `emphasis` for the main request path.
-- Use `security` for auth, consent, permission, and policy calls.
-- Use `return` for quiet response messages.
-- Use `dashed` for async trace, event, logging, and non-blocking work.
-- Use segments as light background guides; keep segment labels short.
-- Keep labels concise, but try `meta.column_fit: "spread"` before shortening a
-  meaningful participant label just to fit the fixed boxes.
+- readerがたどるstory順にparticipantを上部へ並べます。
+- 時間は下方向へ進みます。
+- main request pathには `emphasis` を使います。
+- auth、consent、permission、policy callには `security` を使います。
+- 控えめなresponse messageには `return` を使います。
+- async trace、event、logging、non-blocking workには `dashed` を使います。
+- segmentは薄いbackground guideとして使い、segment labelを短く保ちます。
+- labelを簡潔に保ちますが、fixed boxに収めるためだけに意味のあるparticipant labelを短くする前に `meta.column_fit: "spread"` を試します。
 
-Schema violations exit non-zero with path-prefixed messages annotated with the
-element's id or label. The renderer additionally fails when it can detect
-layout problems, including missing participants, duplicate participant IDs,
-participant labels wider than their box, unknown message endpoints, messages
-outside the readable timeline, overly tight vertical spacing between messages
-that overlap horizontally, invalid segment or activation ranges, or
-participants that exceed the viewBox. The shared Clean Flow contract treats
-participant headers as semantic boxes while explicitly allowing messages to
-cross intermediate lifelines, activation bars, and segment frames. Text width is estimated CJK-aware:
-fullwidth glyphs count as two units.
+schema violationは、elementのidまたはlabelを注記したpath-prefix付きmessageを出して非ゼロで終了します。rendererはさらに、検出可能なlayout問題で失敗します。対象にはmissing participant、duplicate participant ID、boxより広いparticipant label、unknown message endpoint、readable timeline外のmessage、水平方向にoverlapするmessage間で狭すぎるvertical spacing、無効なsegmentまたはactivation range、viewBoxを超えるparticipantが含まれます。共有Clean Flow契約はparticipant headerをsemantic boxとして扱う一方、messageが中間lifeline、activation bar、segment frameを横切ることを明示的に許します。text widthはCJK-awareに見積もられ、fullwidth glyphは2 unitとして数えます。
 
-Set `meta.quality_profile` to `showcase` for polished delivery. Unrelated proper
-message X crossings then fail with `composition/proper-crossing`; default
-`standard` keeps them as artifact-receipt warnings. Messages may still cross
-intermediate lifelines. Collinear corridors remain outside the proper-X rule,
-but a separate gate warns in `standard` and fails in `showcase` when unrelated
-messages overlap for at least 8px. Shared semantic endpoints, point touches,
-and shorter overlaps remain valid. Showcase also rejects any route segment
-below 8px and any interior turn segment below 16px; ordinary 8–15px endpoint
-stubs remain valid.
+洗練された配布には `meta.quality_profile` を `showcase` に設定します。その場合、関係のないproper message X crossingは `composition/proper-crossing` で失敗します。既定の `standard` ではartifact-receipt warningに留まります。messageは引き続き中間lifelineを横切れます。collinear corridorはproper-X ruleの対象外ですが、関係のないmessageが8px以上overlapすると、別gateが `standard` でwarning、`showcase` でfailureにします。shared semantic endpoint、point touch、より短いoverlapは有効です。showcaseはさらに、8px未満のroute segmentと16px未満のinterior turn segmentを拒否します。通常の8～15px endpoint stubは有効です。

@@ -1,82 +1,68 @@
-# Delivery contract
+# 配布契約
 
-## Validate and deliver
+## 検証と配布
 
-Use `validate` after every candidate edit. Use final atomic delivery only after the candidate is frozen:
+候補を編集するたびに `validate` を使います。候補を凍結した後にだけ、最終的なatomic配布を実行します。
 
 ```bash
 node bin/archify.mjs deliver <type> <candidate.json> <output.html> --quality showcase --json
 ```
 
-Deliver reads the specification once, writes those exact bytes to a private same-directory candidate snapshot, renders that snapshot, runs the complete artifact checker, and only replaces the target after all artifact checks pass. The JSON receipt includes SHA-256 and byte counts for both `specification` and `artifact`. Renderer, checker, receipt, or commit failure exits non-zero, removes private state, preserves the previous trusted artifact, and never invokes an opener.
+Deliverは仕様を1回読み、その正確なbytesを同じdirectory内のprivate candidate snapshotへ書き込み、そのsnapshotをrenderして完全なartifact checkerを実行し、すべてのartifact checkが合格した後にだけtargetを置き換えます。JSON receiptには `specification` と `artifact` 双方のSHA-256とbyte countが含まれます。renderer、checker、receipt、commitのいずれかが失敗した場合は非ゼロで終了し、private stateを削除し、以前の信頼済みartifactを保持し、openerを決して起動しません。
 
-Run `visual-check` only after `deliver` exits zero for the current candidate. If
-delivery fails and the output path already exists, that path still names the
-previous trusted artifact; running `visual-check` then would measure and capture
-stale output, not the rejected candidate. Report the delivery diagnostics and
-repair the source before collecting new visual evidence.
+現在の候補に対する `deliver` がexit 0になった後にだけ `visual-check` を実行します。配布が失敗し、output pathがすでに存在する場合、そのpathは以前の信頼済みartifactを指したままです。その時点で `visual-check` を実行すると、却下された候補ではなく古いoutputを測定・captureすることになります。新しいvisual evidenceを集める前に、配布diagnosticを報告し、sourceを修正してください。
 
-The deterministic receipt proves byte identity and automated checks. Never claim that the deterministic receipt includes visual review.
+deterministic receiptが証明するのはbyte identityとautomated checkです。deterministic receiptにvisual reviewが含まれると決して主張してはなりません。
 
-## Automated visual evidence
+## 自動visual evidence
 
-After delivery, inspect the exact trusted HTML without rerendering or modifying
-it:
+配布後、信頼済みHTMLを再renderまたは変更せず、その正確なHTMLを検査します。
 
 ```bash
 node bin/archify.mjs visual-check <output.html> --json
 ```
 
-The zero-dependency command uses Chrome/Chromium through the DevTools pipe. It
-measures light-theme containment at 1440×900, 1600×1000, 1920×1080, and
-2048×1320, then captures light/dark screenshots at 1440×900 and 2048×1320. It
-writes four PNG sidecars, one relative-path HTML contact sheet, and one JSON
-receipt beside the artifact. The receipt binds the source artifact SHA-256 and
-byte count, records READ plus Still runtime state, and always reports
-`visualReview: "pending"`; automated evidence cannot claim perceptual review.
+このzero-dependency commandはDevTools pipe経由でChrome/Chromiumを使います。light themeのcontainmentを1440×900、1600×1000、1920×1080、2048×1320で測定し、次にlight/dark screenshotを1440×900と2048×1320でcaptureします。4つのPNG sidecar、relative-path HTML contact sheet、JSON receiptを成果物の隣に書き込みます。receiptはsource artifactのSHA-256とbyte countをbindし、READおよびStill runtime stateを記録し、常に `visualReview: "pending"` と報告します。automated evidenceはperceptual reviewを主張できません。
 
-Exit 0 means every containment measurement and capture passed. Exit 1 means an
-overflow or capture failure. Exit 2 means Chrome/Chromium was unavailable and
-the receipt status is `skipped`. Failed or skipped capture runs remove stale
-image/contact-sheet sidecars rather than presenting prior evidence as current.
+exit 0はすべてのcontainment測定とcaptureが成功したことを意味します。exit 1はoverflowまたはcapture failureです。exit 2はChrome/Chromiumが利用できず、receipt statusが `skipped` であることを意味します。captureが失敗またはskipした場合は、以前のevidenceを最新として提示しないよう、古いimage/contact-sheet sidecarを削除します。
 
-## Optional opening
+## 任意のopen
 
-Add `--open` only when the user wants an immediate local preview. It runs after that atomic commit, uses one argument-array OS opener with a five-second bound, and records `open.status`. Keep it off for CI, unattended agents, and non-interactive environments. Failure or unsupported opening does not invalidate delivery; its status proves only whether the local opener invocation succeeded.
+ユーザーが即時のlocal previewを求めた場合にだけ `--open` を加えます。これはatomic commitの後に実行され、引数配列を1つ使うOS openerを5秒の上限付きで呼び出し、`open.status` を記録します。CI、unattended agent、non-interactive environmentでは無効のままにしてください。openが失敗またはunsupportedでも配布は無効になりません。そのstatusが証明するのはlocal opener invocationが成功したかどうかだけです。
 
 ## Last-Good Live Preview
 
-For an active desktop authoring loop only:
+稼働中のdesktop authoring loopでだけ使います。
 
 ```bash
 node bin/archify.mjs preview <type> <input>.json <output>.html --quality showcase
 ```
 
-Preview watches one explicit input on loopback, binds each stable digest to a private snapshot, and advances only after the existing verified delivery pipeline passes. Invalid, half-written, deleted, or superseded input leaves the previous verified revision on screen and on disk. Identical bytes do not rebuild or reload.
+Previewはloopback上で明示されたinput 1つをwatchし、安定したdigestごとにprivate snapshotへbindして、既存の検証済み配布pipelineが合格した後にだけ進みます。無効、書き込み途中、削除済み、または置換済みのinputがあっても、以前の検証済みrevisionを画面とdiskに残します。同一bytesではrebuildもreloadも行いません。
 
-The preview runtime ships inside the zero-dependency Skill ZIP and must work without `node_modules`.
+preview runtimeはzero-dependency Skill ZIP内に同梱され、`node_modules` なしで動作しなければなりません。
 
-Never start it by default. Do not use it for CI, unattended agents, remote sharing, or mobile use. `--no-open` is only for a user who will open the printed local URL or for loop testing. Stop it with Ctrl-C before handoff. Server state, port, source path, diagnostics, error text, and reload tokens must never enter the generated artifact or any export.
+既定で開始してはなりません。CI、unattended agent、remote sharing、mobileで使ってはなりません。`--no-open` は、表示されたlocal URLを自分で開くユーザーまたはloop testのためだけに使います。引き渡し前にCtrl-Cで停止します。server state、port、source path、diagnostic、error text、reload tokenを、生成成果物やexportへ決して入れてはなりません。
 
-## Perceptual delivery gate
+## 知覚的な配布gate
 
-Automated validation cannot prove visual polish. After deterministic delivery, inspect the actual HTML in a capable browser or render a screenshot with an image reader. Check both themes when changed, the default READ view, line crossings/corridors, label masks, node/card fit, focus/search/passport closure, and export cleanliness.
+automated validationではvisual polishを証明できません。deterministic delivery後、実際のHTMLを対応browserで調べるか、image readerでscreenshotをrenderして検査します。変更した場合は両theme、既定READ view、line crossing/corridor、label mask、node/card fit、focus/search/passport closure、export cleanlinessを確認します。
 
-For the default standalone desktop viewer, measure 1440×900, 1600×1000, and 1920×1080. When the artifact is intended for a large desktop display, also measure 2048×1320. A first-screen pass requires `document.documentElement.scrollWidth <= window.innerWidth` and `scrollHeight <= window.innerHeight` at every checked size. At the largest checked viewport, inspect the rendered composition for a conspicuous empty lower band: the main panel and necessary conclusion cards should use the available height as a balanced whole, not collapse into a shallow strip. If a desktop viewport overflows, repair the authored composition by removing only genuinely redundant content or compacting spacing before shrinking nodes, labels, or the main panel. Do not hide overflow, clip content, introduce an internal diagram scroller, or reduce node/label typography to make the measurement pass. Narrow/mobile containment may retain vertical page scrolling.
+既定のstandalone desktop viewerでは、1440×900、1600×1000、1920×1080を測定します。大きなdesktop display向けの成果物では、2048×1320も測定します。first-screen合格には、すべての確認sizeで `document.documentElement.scrollWidth <= window.innerWidth` および `scrollHeight <= window.innerHeight` が必要です。最大viewportでは、不自然な下部の空白帯がないか、render済みcompositionを検査します。main panelと必要なconclusion cardは、浅い帯へ潰れず、利用可能なheightを均衡よく使う必要があります。desktop viewportがoverflowする場合は、本当に冗長なcontentだけを除くかspacingを詰めてオーサリング済みcompositionを修正した後に、node、label、main panelを縮小します。measurementを通すためにoverflowを隠す、contentをclipする、diagram内部scrollerを導入する、node/label typographyを小さくする、といったことをしてはなりません。narrow/mobile containmentでは縦方向のpage scrollを残せます。
 
-Report exactly one truthful status:
+次の正直なstatusを正確に1つ報告します。
 
-- `visual_review: passed` — only after inspecting the rendered artifact.
-- `visual_review: skipped (image reader unavailable)` — when no capable visual surface exists.
-- `visual_review: failed` — with the concrete visible defect.
+- `visual_review: passed` — render済み成果物を検査した後にだけ使います。
+- `visual_review: skipped (image reader unavailable)` — 対応するvisual surfaceがない場合に使います。
+- `visual_review: failed` — 具体的に見えるdefectを添えます。
 
-Use `correction_rounds: 0`, `correction_rounds: 1`, or `correction_rounds: 2`; never exceed a maximum of two focused correction rounds. Never report `visual_review: passed` without inspecting the artifact.
+`correction_rounds: 0`、`correction_rounds: 1`、`correction_rounds: 2` のいずれかを使います。修正roundは最大2回で、2回を超えてはなりません。成果物を検査せずに `visual_review: passed` と報告してはなりません。
 
-If visual review changes the candidate, validation and delivery must run again because the prior frozen specification receipt is no longer current.
+visual reviewで候補を変更した場合、以前の凍結済みspecification receiptは最新ではないため、validationとdeliveryをもう一度実行しなければなりません。
 
-## Handoff receipt
+## 引き渡しreceipt
 
-Return:
+次を返します。
 
 ```text
 diagram_type: architecture|workflow|sequence|dataflow|lifecycle
@@ -88,4 +74,4 @@ visual_review: passed|skipped (image reader unavailable)|failed
 correction_rounds: 0|1|2
 ```
 
-Opening, preview status, Share Cards, and other viewer exports are not validation claims.
+open、preview status、Share Card、その他のviewer exportはvalidation claimではありません。

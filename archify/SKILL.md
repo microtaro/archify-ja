@@ -1,6 +1,6 @@
 ---
 name: archify
-description: Create polished, validated architecture, workflow, sequence, data-flow, and lifecycle/state diagrams as explorable standalone HTML with inline SVG, dark/light themes, optional trace motion, and PNG/JPEG/WebP/SVG/WebM export. Accept plain-language requirements or pasted Mermaid flowchart, sequenceDiagram, and stateDiagram input; inspect repository evidence when the diagram must reflect real code. Use when the user asks to visualize system architecture, infrastructure, cloud/security/network topology, technical workflows, API call sequences, request lifecycles, data pipelines, ETL/ELT, data lineage, state machines, or to convert/beautify Mermaid.
+description: 洗練され、検証済みの architecture、workflow、sequence、data-flow、lifecycle/state ダイアグラムを作成する。成果物はインラインSVG、ダーク/ライトテーマ、任意のトレースモーション、PNG/JPEG/WebP/SVG/WebM書き出しを備えた、探索可能で自己完結した standalone HTML。自然言語の要件、または貼り付けられた Mermaid の flowchart、sequenceDiagram、stateDiagram を入力として受け付ける。実在するコードを反映する場合は repository evidence を調査する。システム構成、インフラ、クラウド/セキュリティ/ネットワーク構成、技術的な処理手順、API呼び出し順序、リクエストのライフサイクル、データパイプライン、ETL/ELT、データリネージ、ステートマシンの可視化、または Mermaid の変換・美化をユーザーが求めた場合に利用する。
 license: MIT
 metadata:
   version: "2.16"
@@ -8,128 +8,125 @@ metadata:
   based_on: Cocoon-AI/architecture-diagram-generator (MIT, v1.0)
 ---
 
-# Archify-ja
+# Archify-ja 日本語版
 
-Create a self-contained, interactive HTML diagram from a small typed JSON specification. Static output is the default; enable motion only when the user asks for a demo or presentation.
+小さな型付きJSON仕様から、自己完結した対話型HTMLダイアグラムを作成します。静的な出力が既定です。ユーザーがデモまたはプレゼンテーションを求めた場合にだけモーションを有効にしてください。
 
-## Fast authoring path
+## 最短のオーサリング手順
 
-Use this bounded path for ordinary generation. Do not read the optional Viewer Runtime reference unless the user asks about those features.
+通常の生成には、この限定された手順を使います。ユーザーがその機能を求めない限り、任意のViewer Runtimeリファレンスを読んではなりません。
 
-1. Choose `architecture`, `workflow`, `sequence`, `dataflow`, or `lifecycle` from the question.
-2. Read one matching schema in `schemas/`, `schemas/common.schema.json`, and one matching JSON example in `examples/`. Read only those files. Fresh authorship means new stable IDs, domain wording, and layout; use the example for field shape, not facts. New workflow sources use `schema_version: 2` and its readable layout contract; keep `schema_version: 1` only when preserving an existing workflow's fixed geometry. When real product identity matters, query `node bin/archify.mjs brands "<name>" --json`; read `references/brand-marks.md` only for an unknown brand with a user-provided URL.
-3. Artifact first: the next tool action must write the candidate. Write the candidate before inspecting renderer internals. Do not plan exact coordinates in prose. Start with one clear main path, short side branches, sparse labels, and at most 12 primary nodes. Set `meta.quality_profile` to `"showcase"` unless the user explicitly requests a dense `standard` map. Start with automatic routes and labels. Do not add `via`, `channelX`, `channelY`, or `labelAt` before a diagnostic calls for one; apply at most one diagnosed geometry control per repair.
-4. Validate after every candidate edit and immediately before handoff:
+1. 質問から `architecture`、`workflow`、`sequence`、`dataflow`、`lifecycle` のいずれかを選びます。
+2. `schemas/` にある対応するschema 1つ、`schemas/common.schema.json`、および `examples/` にある対応するJSON例1つを読みます。それらのファイルだけを読んでください。新規オーサリングでは、新しい安定ID、ドメインの表現、レイアウトを作ります。例はfieldの形にだけ使い、事実には使わないでください。新しいworkflow sourceには `schema_version: 2` とその可読性レイアウト契約を使います。既存workflowの固定ジオメトリを維持する場合にだけ `schema_version: 1` を残します。実在製品のidentityが重要な場合は `node bin/archify.mjs brands "<name>" --json` で問い合わせます。ユーザー提供URLを持つ未知のbrandについてだけ `references/brand-marks.md` を読んでください。
+3. 成果物を先に作ります。次のtool actionでは候補を書き込まなければなりません。renderer内部を調べる前に候補を書いてください。正確な座標を文章で計画してはなりません。明確なmain path 1本、短いside branch、疎なlabel、primary node最大12個から始めます。ユーザーが密な `standard` mapを明示的に求めない限り、`meta.quality_profile` を `"showcase"` にします。自動routeとlabelから始めます。診断が要求する前に `via`、`channelX`、`channelY`、`labelAt` を加えてはなりません。1回の修正につき、診断されたgeometry controlを最大1つだけ適用します。
+4. 候補を編集するたび、および引き渡し直前に検証します。
 
    ```bash
    node bin/archify.mjs validate <type> <candidate.json> --quality showcase --json
    ```
 
-   A receipt with only 4 artifact checks is basic validation, never showcase acceptance. A showcase pass must report all 9 artifact checks with 0 composition errors and 0 warnings. If the candidate omits or misspells the exact `meta.quality_profile` field, fix it before geometry. For a workflow v2 geometry diagnosis, run `node bin/archify.mjs validate workflow <candidate.json> --layout-json` and use the stable compiler receipt; solver internals are not authoring controls. A passing final validation freezes the candidate: never edit it afterward.
-5. For a delivered HTML, `deliver` is the final acceptance command:
+   artifact checkが4件だけのreceiptはbasic validationであり、showcase acceptanceではありません。showcaseの合格にはartifact check全9件、composition error 0件、warning 0件が必要です。候補に正確な `meta.quality_profile` fieldがない、または綴りが誤っている場合は、geometryより先に修正します。workflow v2のgeometry診断では `node bin/archify.mjs validate workflow <candidate.json> --layout-json` を実行し、安定したcompiler receiptを使います。solver内部はオーサリング用controlではありません。最終検証に合格した候補は凍結します。凍結後は決して編集しないでください。
+5. 配布するHTMLでは、`deliver` が最終acceptance commandです。
 
    ```bash
    node bin/archify.mjs deliver <type> <candidate.json> <output.html> --quality showcase --json
    ```
 
-   A non-zero exit can never be described as success. A failed delivery preserves any previous output, so do not run `visual-check` on that path: it would inspect the stale last-good artifact, not the failed candidate. If validation fails, change only the diagnosed `subject`, verify `evidence`, choose from `supportedFixes`, and rerun. Continue focused correction while the objective error count reaches a new minimum. If two consecutive rounds do not improve that best count, stop and report the unresolved diagnostics truthfully.
+   非ゼロの終了コードを成功として扱ってはなりません。配布失敗時は以前の出力が保持されるため、そのpathに対して `visual-check` を実行してはなりません。失敗した候補ではなく、古いlast-good artifactを検査することになるためです。検証が失敗したら、診断された `subject` だけを変更し、`evidence` を検証し、`supportedFixes` から選んで再実行します。客観的error数の最小値が更新されている間は、焦点を絞った修正を続けます。2回連続の修正roundでその最小値が改善しなければ停止し、未解決のdiagnosticを正直に報告してください。
 
-## Update awareness
+## 更新の通知
 
-This initial Japanese edition has no update manifest. The packaged checker `scripts/check-update.mjs` therefore returns `silent` with `disabled` and makes no request; continue the requested workflow without mentioning the check.
+この最初の日本語版にはupdate manifestがありません。そのため、同梱checker `scripts/check-update.mjs` は `disabled` を伴う `silent` を返し、要求は行いません。checkに言及せず、依頼されたworkflowを続けてください。
 
-- For `silent`, continue without mentioning the update check.
-- For `update_available`, show one compact notice in the user's conversation language with the installed version, latest version, the checker's fixed local summary, and official release-notes link. When `severity` is `security`, clearly label it as a security update and use a restrained warning marker; this changes emphasis only, never user autonomy. Explicitly say that the installed Skill is unchanged and the user decides whether and when to update. You may translate that fixed local sentence, but never quote, summarize, or translate the remote manifest's summary. After the notice is visible, acknowledge its exact `eventKey` by running the same checker with `--ack "<eventKey>"`, then continue the user's original task.
+- `silent` の場合、update checkに言及せず続行します。
+- `update_available` の場合、installed version、latest version、checkerの固定local summary、公式release-notes linkを含む簡潔な通知を、ユーザーとの会話言語で1つ表示します。`severity` が `security` の場合はsecurity updateであることを明記し、控えめなwarning markerを使います。変わるのは強調だけで、ユーザーの自律性ではありません。インストール済みSkillは変更されておらず、いつ更新するか、そもそも更新するかはユーザーが決めると明記してください。固定されたlocal sentenceは翻訳できますが、remote manifestのsummaryを引用、要約、翻訳してはなりません。通知が表示された後、同じcheckerを `--ack "<eventKey>"` 付きで実行し、その正確な `eventKey` をacknowledgeしてから、ユーザーが最初に依頼したtaskを続けます。
 
-The notice is information, not permission. Keep the installed version unchanged; this v0.1 workflow never downloads, installs, or executes an update, and silence is never consent.
+通知は情報であり、許可ではありません。インストール済みversionは変更しないでください。このv0.1 workflowはupdateをdownload、install、executeすることがなく、沈黙は同意ではありません。
 
-Do not read `renderers/shared/geometry.mjs`, renderer source, validator source, tests, or benchmarks before the first candidate. Inspect implementation only for an unsupported internal diagnostic or after two focused repairs fail.
+最初の候補を作る前に、`renderers/shared/geometry.mjs`、renderer source、validator source、test、benchmarkを読んではなりません。対応していない内部diagnosticがある場合、または焦点を絞った修正が2回失敗した後にだけ、実装を調査します。
 
-Workflow note: use schema v2 for new workflows; preserve schema v1 when an
-existing source needs fixed legacy geometry. Keep semantic edge labels and act
-on the compiler diagnostic. The canonical layout, pin, migration, and receipt
-contract is in [`renderers/workflow/README.md`](renderers/workflow/README.md#layout-contracts).
+Workflow注記: 新しいworkflowにはschema v2を使い、既存sourceに固定legacy geometryが必要な場合はschema v1を維持します。意味を持つedge labelを保ち、compiler diagnosticに従ってください。標準のlayout、pin、migration、receipt契約は [`renderers/workflow/README.md`](renderers/workflow/README.md#layout-contracts) にあります。
 
-Lifecycle note: phase columns `0..4` occupy the main rail; event/terminal column `N` in `0..2` aligns exactly beneath main column `N + 2`. A recoverable state uses `type: "failure"` plus a real transition back to the active state.
+Lifecycle注記: phase column `0..4` はmain railを占めます。event/terminal column `N`（`0..2`）はmain column `N + 2` の真下に正確に揃います。回復可能なstateには `type: "failure"` とactive stateへ戻る実際のtransitionを使います。
 
-## Type router
+## 種別の振り分け
 
-| Type | Use for |
+| Type | 用途 |
 |---|---|
-| `architecture` | Components, services, cloud/security boundaries, infrastructure |
-| `workflow` | Processes, approval gates, tool calls, runbooks, CI/CD |
-| `sequence` | API call chains, request lifecycles, async traces, returns |
-| `dataflow` | Pipelines, ETL/ELT, lineage, governance, consumers |
-| `lifecycle` | State/status transitions, retries, waiting and terminal states |
+| `architecture` | component、service、cloud/security boundary、infrastructure |
+| `workflow` | process、approval gate、tool call、runbook、CI/CD |
+| `sequence` | API call chain、request lifecycle、async trace、return |
+| `dataflow` | pipeline、ETL/ELT、lineage、governance、consumer |
+| `lifecycle` | state/status transition、retry、waiting、terminal state |
 
-When ambiguous, run `node bin/archify.mjs guide "<scenario>" --json`. Scenario proof examples are structural references, not facts to copy.
+曖昧な場合は `node bin/archify.mjs guide "<scenario>" --json` を実行します。scenario proof exampleは構造の参考であり、複製する事実ではありません。
 
-## Mermaid input
+## Mermaid入力
 
-Read Mermaid for topology and meaning, then author fresh Archify JSON; do not mechanically render Mermaid styling.
+Mermaidからtopologyと意味を読み取り、新しいArchify JSONを作成します。Mermaidのstyleを機械的にrenderしてはなりません。
 
-- `flowchart` / `graph` → `workflow`, or `architecture` for a component map.
-- `sequenceDiagram` → `sequence`; participants become semantic participants and arrows become messages.
-- `stateDiagram` → `lifecycle`; states and transitions retain meaning, not Mermaid style.
+- `flowchart` / `graph` → `workflow`、またはcomponent mapなら `architecture`。
+- `sequenceDiagram` → `sequence`。participantはsemantic participantになり、arrowはmessageになります。
+- `stateDiagram` → `lifecycle`。stateとtransitionはMermaidのstyleではなく意味を維持します。
 
-## Authoring invariants
+## オーサリングの不変条件
 
-- One obvious main path; side branches leave the nearest main-path node. Remove low-value edges before adding routing controls.
-- Omit `meta.visual_preset` by default so every diagram opens in `classic`, regardless of whether its resolved color mode is light or dark. Color mode and visual preset are independent: switching Light / Dark must preserve the current preset. Set `signal-flow`, `blueprint`, or `editorial` only when the user explicitly requests that visual style.
-- Omit `meta.subtitle` by default. Never invent a subtitle that restates the title, nodes, or cards; include one short supporting line only when the user explicitly asks for it.
-- Treat the standalone desktop viewer as a first-screen artifact by default, not a shallow strip. Generate one responsive artifact for laptops and external displays—never device-specific HTML or alternate topology. The viewer may adapt only the outer reading width from the live viewport height; it must preserve the authored SVG/viewBox, proportions, semantic geometry, and normal document flow. On a wide or tall desktop, use enough authored vertical rhythm that the diagram panel and its necessary conclusion cards occupy the screen as a balanced whole; runtime scaling cannot repair an over-compressed Y layout or an undersized explicit `meta.viewBox`. Before handoff, open the real HTML at 1440×900, 1600×1000, and 1920×1080; additionally check 2048×1320 whenever the composition is intended for a large desktop display. Require `document.documentElement.scrollWidth <= window.innerWidth` and `scrollHeight <= window.innerHeight` at every checked size, while visually checking that the diagram remains comfortably readable and vertically balanced at the largest checked viewport. Repair overflow by removing only genuinely redundant content or compacting spacing before shrinking nodes, labels, or the main panel. If the largest viewport still has a conspicuous empty lower band at the viewer's width cap, redistribute authored Y positions and increase the viewBox height proportionally; do not add filler copy or decorative cards. Never counterfeit a pass with `overflow: hidden`, clipped content, an internal diagram scroller, stretched SVG height, or smaller typography. Narrow/mobile layouts may scroll vertically when containment requires it.
-- Omit `meta.legend` for the truthful `auto` default. When needed, use only `mode: auto|all|hidden` and renderer-supported `entries.<kind>.label|visible`; labels never change semantics.
-- Choose one primary authored language from an explicit user choice; otherwise follow the request or conversation's dominant language. `meta.locale` controls only renderer-owned Viewer UI: use `"en"` for the supported Viewer language. For every other language, omit `meta.locale` and explicitly disclose that the fixed Viewer UI and `<html lang>` fall back to English. The renderer never translates authored content. See `references/authoring-contract.md` for details.
-- Preserve exact product names, code identifiers, commands, protocols, API paths, and environment names. They may remain English inside localized copy, but never justify leaving the surrounding explanatory prose in another language.
-- Brand identity is optional and explicit. Put a canonical built-in ID in `brand` when the node names that real product. If no preset matches and the user supplied the official HTTP(S) URL, first run `node bin/archify.mjs brands capture "<url>" --json`, then author the returned digest-pinned `brand` object. Render and validate never perform an unpinned capture. Otherwise omit `brand`. Never infer a brand from a vague role such as "database", and never let a badge replace the semantic `type`, label, or relationship facts.
-- For sequence diagrams, omit `meta.column_fit` for the stable `fixed` layout. Set it to `"spread"` when a wide viewBox would otherwise leave unused horizontal space or when meaningful participant labels do not fit the fixed boxes; do not shorten semantic labels before trying `spread`.
-- Component types are `frontend`, `backend`, `database`, `cloud`, `security`, `messagebus`, and `external`; variants are `default`, `emphasis`, `security`, and `dashed`.
-- Relationship labels are semantic data. When one collides, move the label, adjust the route or spacing, then shorten the wording while preserving meaning. Omit only wording that is already fully implied by both endpoints and contains no protocol, action, direction, synchronous/asynchronous behavior, or cross-boundary mechanism. Preserve every meaningful label; deleting it is not a geometry repair. If a relationship starts unlabeled because its endpoints fully imply it, explain why the wording is redundant; this is a semantic authoring choice, not a geometry repair.
-- Omit `meta.engineering_profile` by default. Region, cluster, and security boundary wording do not by themselves enable it. Enable `deployment-ownership` only when the user explicitly asks for a production deployment topology, ownership handoff, or fail-closed deployment review and the source facts are known. Once enabled, must not remove the engineering profile merely to pass validation; repair the facts or report the diagnostics truthfully.
-- Spacing means clear gap, not center distance. For a relationship label, clear gap must exceed its measured mask width; follow the label-preserving repair order.
-- Automatic routes own their endpoint sides. A side is a direction contract: the first and final segment must leave/enter perpendicular to that side.
-- Automatic Port Spread is a default renderer behavior for architecture, workflow, data-flow, and lifecycle. It skips single relationships and explicit `via`, `channelX`, `channelY`, `labelAt`, or non-`auto` routes. Near parallel ports use an outside bridge so automatic routing cannot create a sub-8px segment or sub-16px interior turn. Architecture separately keeps unobstructed facing automatic ports (`left`/`right` or `top`/`bottom`) on one shared axis when their offset is under 16px and both ports retain corner clearance. If exactly one endpoint was spread, only the unshared endpoint may move onto that axis; if both endpoints were spread, keep the outside bridge so competing ports remain distinct.
-- Never accept an edge crossing an unrelated opaque node, an ambiguous shared corridor, or a relationship label masking another route.
+- 明白なmain pathを1本にし、side branchは最も近いmain-path nodeから分岐させます。routing controlを追加する前に、価値の低いedgeを削除してください。
+- `meta.visual_preset` は既定で省略し、解決後のcolor modeがlightかdarkかにかかわらず、すべてのダイアグラムが `classic` で開くようにします。color modeとvisual presetは独立しています。Light / Darkの切り替えでは現在のpresetを維持しなければなりません。ユーザーがそのvisual styleを明示的に求めた場合にだけ `signal-flow`、`blueprint`、`editorial` を設定します。
+- `meta.subtitle` は既定で省略します。title、node、cardの言い換えとなるsubtitleを決して創作してはなりません。ユーザーが明示的に求めた場合にだけ、短い補足行を1つ含めます。
+- standalone desktop viewerは、既定では浅い帯ではなくfirst-screen artifactとして扱います。laptopとexternal display向けにresponsive artifactを1つ生成し、device固有HTMLや別topologyは決して作りません。viewerがlive viewport heightから適応してよいのは外側のreading widthだけです。オーサリング済みSVG/viewBox、比率、semantic geometry、通常のdocument flowを維持しなければなりません。幅広または縦長のdesktopでは、diagram panelと必要なconclusion cardが画面全体を均衡よく占めるだけのvertical rhythmをオーサリングします。runtime scalingでは、圧縮しすぎたY layoutや小さすぎる明示的 `meta.viewBox` を修復できません。引き渡し前に、実際のHTMLを1440×900、1600×1000、1920×1080で開きます。大きなdesktop display向けのcompositionでは2048×1320も確認します。すべての確認サイズで `document.documentElement.scrollWidth <= window.innerWidth` および `scrollHeight <= window.innerHeight` を必須とし、最大viewportでダイアグラムが無理なく読め、縦方向に均衡していることを目視確認します。overflowは、本当に冗長なcontentだけを除くかspacingを詰めることで修正し、node、label、main panelを縮小するのはその後にします。最大viewportでviewerのwidth capより下に不自然な空白帯が残る場合は、オーサリング済みY positionを再配分し、viewBox heightを比例して増やします。穴埋めcopyや装飾cardを追加してはなりません。`overflow: hidden`、contentのclip、diagram内部scroller、引き伸ばしたSVG height、または小さなtypographyで合格を偽装してはなりません。narrow/mobile layoutではcontainmentに必要なら縦scrollを許容できます。
+- 正直な `auto` 既定値には `meta.legend` を省略します。必要な場合は `mode: auto|all|hidden` と、rendererが対応する `entries.<kind>.label|visible` だけを使います。labelで意味が変わることはありません。
+- 明示されたユーザーの選択からprimary authored languageを1つ選びます。選択がなければ、依頼または会話の主言語に従います。`meta.locale` が制御するのはrenderer所有のViewer UIだけです。対応Viewer言語には `"en"` を使います。それ以外のすべての言語では `meta.locale` を省略し、固定Viewer UIと `<html lang>` がEnglishへfallbackすることを明示します。rendererがauthored contentを翻訳することはありません。詳細は `references/authoring-contract.md` を参照してください。
+- 正確な製品名、code identifier、command、protocol、API path、environment nameを維持します。ローカライズされたcopy内でEnglishのままでもかまいませんが、周囲の説明文を別言語のままにする根拠には決してなりません。
+- brand identityは任意かつ明示的です。nodeがその実在製品を指す場合は、標準の組み込みIDを `brand` に入れます。一致するpresetがなく、ユーザーが公式HTTP(S) URLを提供した場合は、最初に `node bin/archify.mjs brands capture "<url>" --json` を実行し、返されたdigest固定済み `brand` objectを使います。renderとvalidateは固定されていないcaptureを決して行いません。それ以外では `brand` を省略します。「database」のような曖昧な役割からbrandを推測してはならず、badgeでsemantic `type`、label、relationship factを置き換えてはなりません。
+- sequence diagramでは、安定した `fixed` layoutにするため `meta.column_fit` を省略します。幅広いviewBoxで水平方向の未使用spaceが生じる場合、または意味のあるparticipant labelがfixed boxに収まらない場合は `"spread"` にします。`spread` を試す前にsemantic labelを短くしてはなりません。
+- component typeは `frontend`、`backend`、`database`、`cloud`、`security`、`messagebus`、`external` です。variantは `default`、`emphasis`、`security`、`dashed` です。
+- 関係ラベルは意味を持つデータです。衝突した場合は、labelを移動し、routeまたはspacingを調整し、その後、意味を維持して表現を短くします。両endpointからすでに完全に明白で、protocol、action、direction、synchronous/asynchronous behavior、cross-boundary mechanismを含まない表現だけを省略できます。意味のあるlabelはすべて維持してください。削除はジオメトリ修正ではありません。endpointから完全に明白なため最初からrelationshipをlabelなしにする場合は、表現が冗長な理由を説明します。これはsemantic authoring choiceであり、geometry修正ではありません。
+- `meta.engineering_profile` は既定で省略します。region、cluster、security boundaryという表現だけでは有効になりません。ユーザーがproduction deployment topology、ownership handoff、またはfail-closed deployment reviewを明示的に求め、source factが既知の場合にだけ `deployment-ownership` を有効にします。有効にした後は、検証を通すためだけにengineering profileを削除してはなりません。factを修復するか、diagnosticを正直に報告してください。
+- spacingとはcenter distanceではなくclear gapです。relationship labelでは、clear gapが測定済みmask widthを超えなければなりません。labelを維持する修正順序に従ってください。
+- automatic routeがendpoint sideを所有します。sideはdirection contractです。最初と最後のsegmentは、そのsideに垂直な向きで出入りしなければなりません。
+- Automatic Port Spreadはarchitecture、workflow、data-flow、lifecycleにおけるrendererの既定動作です。単一relationship、および明示的 `via`、`channelX`、`channelY`、`labelAt`、または `auto` 以外のrouteでは適用されません。近接したparallel portにはoutside bridgeを使い、自動routingで8px未満のsegmentや16px未満のinterior turnを作れないようにします。architectureではさらに、妨げのない対向automatic port（`left`/`right` または `top`/`bottom`）について、offsetが16px未満かつ両portがcorner clearanceを維持する場合に1本の共有axisへ揃えます。endpointの片方だけがspreadされた場合は、共有されていないendpointだけをそのaxisへ移動できます。両endpointがspreadされた場合はoutside bridgeを維持し、競合portを区別します。
+- 関係のないopaque nodeを横切るedge、曖昧なshared corridor、別routeをmaskするrelationship labelを決して受け入れてはなりません。
 
-Read `references/authoring-contract.md` only when you need field enums, spacing math, geometry repair rules, repository evidence, or mode-specific placement.
+field enum、spacing計算、geometry修正rule、repository evidence、mode別placementが必要な場合にだけ `references/authoring-contract.md` を読んでください。
 
-## Delivery
+## 配布
 
-Use `validate` during repair and `deliver` once for final acceptance. Delivery freezes the exact specification bytes into a private same-directory snapshot, renders and checks that snapshot, atomically commits the HTML, and reports SHA-256 plus byte counts for both specification and artifact.
+修正中は `validate` を使い、最終acceptanceには `deliver` を1回使います。配布では、正確な仕様bytesを同じdirectory内のprivate snapshotへ凍結し、そのsnapshotをrenderおよびcheckして、HTMLをatomicにcommitします。仕様と成果物双方のSHA-256とbyte countを報告します。
 
-After delivery, collect bounded desktop evidence without modifying or rerendering the trusted HTML:
+配布後は、信頼済みHTMLを変更または再renderせず、限定されたdesktop evidenceを収集します。
 
 ```bash
 node bin/archify.mjs visual-check <output.html> --json
 ```
 
-`visual-check` measures containment at 1440×900, 1600×1000, 1920×1080, and 2048×1320; captures light/dark screenshots at the smallest and largest sizes; and writes a relative-path contact sheet plus JSON sidecars beside the artifact. Its automated receipt always reports `visualReview: "pending"`: screenshots are evidence for inspection, never an automatic polish claim. Exit 0 means containment and captures passed, 1 means overflow or capture failure, and 2 means Chrome/Chromium was unavailable and the receipt is `skipped`. The command never changes the delivered HTML.
+`visual-check` は1440×900、1600×1000、1920×1080、2048×1320でcontainmentを測定し、最小と最大のsizeでlight/dark screenshotをcaptureして、成果物の隣にrelative-path contact sheetとJSON sidecarを書き込みます。automated receiptは常に `visualReview: "pending"` を報告します。screenshotはinspection用evidenceであり、自動的なpolish claimではありません。exit 0はcontainmentとcaptureの成功、1はoverflowまたはcapture failure、2はChrome/Chromiumが利用できずreceiptが `skipped` になったことを意味します。このcommandは配布済みHTMLを決して変更しません。
 
-Add `--open` only when the user wants an immediate local preview. For an active desktop authoring loop, the optional command is:
+ユーザーが即時のlocal previewを求めた場合にだけ `--open` を加えます。稼働中のdesktop authoring loopでは、任意で次を使えます。
 
 ```bash
 node bin/archify.mjs preview <type> <input>.json <output>.html --quality showcase
 ```
 
-Never start preview by default. Read `references/delivery-contract.md` when using preview, repository evidence, export receipts, visual review, or post-commit opening.
+既定ではpreviewを開始してはなりません。preview、repository evidence、export receipt、visual review、またはcommit後のopenを使う場合は `references/delivery-contract.md` を読んでください。
 
-## Optional viewer capabilities
+## 任意のviewer機能
 
-Generated HTML already contains theme switching, pan/zoom, search, focus, relationship tracing, semantic views, presentation, and truthful exports. These are reader capabilities, not extra authoring work. `meta.animation: "trace"` is opt-in; `meta.views` is optional and should contain at most five curated chapters.
+生成HTMLにはtheme switching、pan/zoom、search、focus、relationship tracing、semantic view、presentation、正直なexportがすでに含まれます。これらはreader機能であり、追加のオーサリング作業ではありません。`meta.animation: "trace"` はopt-inです。`meta.views` は任意で、curated chapterを最大5つまで含めます。
 
-Read `references/viewer-runtime.md` only when the user explicitly asks for Share Cards, Route/Reach cards, motion, guided stories, deep links, presentation, search/focus, or another Viewer Runtime feature.
+ユーザーがShare Card、Route/Reach card、motion、guided story、deep link、presentation、search/focus、または他のViewer Runtime機能を明示的に求めた場合にだけ `references/viewer-runtime.md` を読んでください。
 
-## Setup and fallback
+## セットアップとfallback
 
-No install is required inside the skill package. Verify with:
+Skill package内でのinstallは不要です。次で確認します。
 
 ```bash
 node bin/archify.mjs doctor
 node bin/archify.mjs demo <output-directory>
 ```
 
-When shell access is unavailable, hand-place architecture SVG into `assets/template.html`, use CSS semantic classes rather than inline colors, and follow the visual review contract in `references/delivery-contract.md`.
+shell accessが利用できない場合は、architecture SVGを `assets/template.html` に手作業で置き、inline colorではなくCSS semantic classを使い、`references/delivery-contract.md` のvisual review契約に従います。
 
-## Output
+## 出力
 
-Return the checked HTML path, diagram type, validation summary, specification/artifact receipt, and truthful visual-review status. Do not claim success for a non-zero command or claim visual inspection you did not perform.
+検査済みHTML path、diagram type、validation summary、specification/artifact receipt、正直なvisual-review statusを返します。非ゼロcommandを成功と主張したり、実施していないvisual inspectionを実施済みと主張したりしてはなりません。

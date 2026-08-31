@@ -1,51 +1,31 @@
-# Archify JSON IR Schemas
+# Archify JSON IR Schema（スキーマ）
 
-Each typed renderer consumes a JSON intermediate representation (IR) validated
-against one of the schemas in this folder before any layout work happens.
+型付きrendererはそれぞれ、layout処理を始める前に、このfolder内のschemaの1つで検証されたJSON中間表現（IR）を受け取ります。
 
-## Files
+## ファイル
 
-| Schema | Governs | Structural arrays |
+| Schema | 対象 | 構造array |
 |--------|---------|-------------------|
 | `workflow.schema.json` | `diagram_type: "workflow"` | `lanes`, `phases`, `groups`, `mainPath`, `nodes`, `edges` |
 | `sequence.schema.json` | `diagram_type: "sequence"` | `participants`, `segments`, `messages`, `activations` |
 | `dataflow.schema.json` | `diagram_type: "dataflow"` | `stages`, `nodes`, `flows` |
 | `lifecycle.schema.json` | `diagram_type: "lifecycle"` | `lanes`, `states`, `transitions` |
 | `architecture.schema.json` | `diagram_type: "architecture"` | `components`, `boundaries`, `connections` |
-| `common.schema.json` | shared `$defs` only (no top-level document) | — |
+| `common.schema.json` | 共有 `$defs` のみ（top-level documentなし） | — |
 
-Every diagram schema requires `schema_version`, `diagram_type`, `meta` (with
-`title`), and its structural arrays — except `segments`, `activations`, and
-`cards`, which are optional — and sets `additionalProperties: false` at every
-level, so unknown fields are rejected rather than silently ignored.
+すべてのdiagram schemaには、`schema_version`、`diagram_type`、`meta`（`title` を含む）、および構造arrayが必要です。ただし `segments`、`activations`、`cards` は任意です。すべての階層で `additionalProperties: false` を設定するため、未知のfieldは黙って無視されず拒否されます。
 
-Every `meta` object also accepts `animation: "trace"` for opt-in SVG/CSS motion
-in generated HTML. Omit it, or set `"none"`, for the default static output.
-It also accepts `locale: "en"`. The field selects the fixed Viewer
-UI, renderer-owned default legend and accessibility copy, document-title
-suffix, and `<html lang>` value; it does not translate authored strings.
-Omitting it preserves legacy behavior and resolves to English. Unsupported
-locale values fail schema validation instead of being guessed or silently
-rewritten.
-`visual_preset` accepts `classic` (the stable default), `signal-flow` (luminous
-motion-forward presentation), `blueprint` (high-contrast engineering review),
-or `editorial` (warm publication-style design review and documentation).
-Presets change only viewer styling; they do not alter semantic IDs or geometry.
-Sequence `meta` additionally accepts `column_fit`. The default `fixed` keeps
-the historical 108px column gap and 86px participant boxes, so an authored
-diagram renders at the same coordinates no matter how wide its viewBox is.
-`spread` derives the gap and box width from the viewBox instead, which turns a
-wide canvas into column distance and label room rather than empty space on the
-right. Lane order, IDs, and message semantics are unchanged either way.
+すべての `meta` objectは、生成HTMLでopt-inのSVG/CSS motionを使う `animation: "trace"` も受け付けます。既定のstatic outputには省略するか `"none"` を設定します。また、`locale: "en"` も受け付けます。このfieldは、固定Viewer UI、renderer所有の既定legendおよびaccessibility copy、document-title suffix、`<html lang>` 値を選びます。オーサリング済みstringを翻訳するものではありません。省略するとlegacy behaviorを維持し、Englishへ解決されます。対応していないlocale valueは推測または黙って書き換えられず、schema validationに失敗します。
 
-It may also include up to five guided `views`. Each view has a unique `id`, a
-reader-facing `label`, a non-empty `focus` list of existing semantic node IDs,
-and an optional short `note`.
+`visual_preset` は `classic`（安定した既定値）、`signal-flow`（発光するmotion-forward presentation）、`blueprint`（high-contrast engineering review）、`editorial`（暖色のpublication-style design reviewとdocumentation）を受け付けます。presetが変えるのはviewer styleだけで、semantic IDやgeometryは変更しません。
 
-### Legend presentation contract
+Sequenceの `meta` は追加で `column_fit` を受け付けます。既定の `fixed` は従来の108px column gapと86px participant boxを維持するため、オーサリング済みダイアグラムはviewBoxの幅にかかわらず同じcoordinateでrenderされます。`spread` は代わりにviewBoxからgapとbox widthを導出し、幅広canvasの右側を空白にせずcolumn distanceとlabel roomへ変えます。どちらでもlane order、ID、message semanticsは変わりません。
 
-Every `meta` object accepts the same optional legend shape without changing
-the schema version already selected for that renderer:
+また、guided `views` を最大5つまで含められます。各viewは一意の `id`、reader向け `label`、既存semantic node IDからなる空でない `focus` list、任意の短い `note` を持ちます。
+
+### 凡例presentation契約
+
+すべての `meta` objectは、そのrendererですでに選択されたschema versionを変更せず、同じ任意legend shapeを受け付けます。
 
 ```json
 "legend": {
@@ -56,26 +36,13 @@ the schema version already selected for that renderer:
 }
 ```
 
-`mode` is `auto` (the default), `all`, or `hidden`. `auto` includes only kinds
-present in typed IR; `all` includes the renderer's full stable catalog;
-`hidden` removes the complete legend and takes precedence over entry overrides.
-Architecture documents that omit an explicit `viewBox` size that automatic
-viewBox from the same measured resolved legend footprint used for final SVG
-layout. Across all renderers, legacy documents that omit `meta.legend` use a
-compatibility-safe implicit `auto`: if the resolved legend cannot fit an
-explicit authored viewBox without overlap, Archify omits the complete legend
-instead of turning a previously valid schema-v1 document into a hard failure.
-Once an author adds `meta.legend` (including explicit `mode: "auto"`), the
-layout is intentional and unfit labels or bands fail with a path-prefixed
-diagnostic. An entry may set a non-empty, bounded `label`, boolean `visible`,
-or both.
-`visible: false` removes a resolved entry and `visible: true` forces a supported
-but unused kind into the visual legend. Unknown kinds and properties fail
-strict validation.
+`mode` は `auto`（既定値）、`all`、`hidden` です。`auto` はtyped IRに存在するkindだけを含み、`all` はrendererの安定した全catalogを含み、`hidden` は凡例全体を除去してentry overrideより優先されます。明示的な `viewBox` のないArchitecture documentでは、最終SVG layoutに使う解決済みlegend footprintと同じ測定結果から、viewBoxを自動で決めます。
 
-Supported keys are renderer-owned:
+すべてのrendererで、`meta.legend` を省略するlegacy documentはcompatibility-safeな暗黙の `auto` を使います。解決済みlegendが明示的なオーサリング済みviewBoxにoverlapなしで収まらない場合、Archifyは以前は有効だったschema-v1 documentをhard failureに変えず、凡例全体を省略します。authorが `meta.legend` を追加すると（明示的 `mode: "auto"` を含む）、layoutは意図的なものとなり、収まらないlabelまたはbandはpath-prefix付きdiagnosticで失敗します。entryは空でない上限付き `label`、boolean `visible`、またはその両方を設定できます。`visible: false` は解決済みentryを除去し、`visible: true` は対応済みだが未使用のkindをvisual legendへ強制的に加えます。未知のkindおよびpropertyはstrict validationに失敗します。
 
-| Renderer | `meta.legend.entries` keys |
+対応keyはrendererが所有します。
+
+| Renderer | `meta.legend.entries` key |
 |---|---|
 | Architecture | `frontend`, `backend`, `database`, `cloud`, `security`, `messagebus`, `external` |
 | Workflow | `frontend`, `backend`, `security`, `messagebus`, `database`, `cloud`, `external` |
@@ -83,129 +50,61 @@ Supported keys are renderer-owned:
 | Dataflow | `emphasis`, `security`, `dashed`, `database`, `default` |
 | Lifecycle | `start`, `active`, `waiting`, `decision`, `success`, `failure`, `neutral`, `external` |
 
-Labels are presentation only: they do not rename the stable kind, change
-nodes/relationships, or create Semantic Lens edge facts. Sequence message and
-Dataflow flow-variant entries are visual keys. Component/state entries backed
-by exact compiled node facts receive the interactive Semantic Legend bridge;
-this includes Dataflow `database` when a real `nodes[].type: "database"` fact
-exists.
+labelはpresentation専用です。安定したkindをrenameしたり、node/relationshipを変更したり、Semantic Lensのedge factを作ったりしません。Sequence messageとDataflow flow-variant entryはvisual keyです。正確なcompiled node factに裏付けられたcomponent/state entryには、対話型Semantic Legend bridgeが付きます。実在する `nodes[].type: "database"` factがある場合のDataflow `database` も対象です。
 
-Every relationship collection (`connections`, `edges`, `messages`, `flows`, and
-`transitions`) accepts an optional author-controlled `id` using the shared ID
-pattern. The renderer keeps its source-order runtime key separately, while the
-authored ID enables a stable `#relation=<id>` viewer link that survives array
-reordering. ID-less documents remain valid and their relationship pins stay
-local to the current page.
+すべてのrelationship collection（`connections`、`edges`、`messages`、`flows`、`transitions`）は、共有ID patternを使う任意のauthor-controlled `id` を受け付けます。rendererはsource-order runtime keyを別に維持し、オーサリング済みIDはarray reorder後も有効なstable `#relation=<id>` viewer linkを実現します。IDのないdocumentも有効で、そのrelationship pinは現在のpage内に留まります。
 
-Every semantic node collection (`components`, `nodes`, `participants`, and
-`states`) also accepts one optional `brand`: either a canonical string returned
-by `archify brands --json`, or a digest-pinned `{ "url", "sha256" }` object
-returned by `archify brands capture <url> --json`. Known IDs and known-brand
-domains use the bundled vector catalogue. Unknown URLs must be captured in that
-explicit command before authoring; render and validate never perform an
-unpinned network capture. Unsafe, unavailable, changed, or unsupported content
-fails closed with a brand diagnostic. Omitted `brand` preserves the prior
-output.
+すべてのsemantic node collection（`components`、`nodes`、`participants`、`states`）は、任意の `brand` も受け付けます。`archify brands --json` が返すcanonical string、または `archify brands capture <url> --json` が返すdigest固定済み `{ "url", "sha256" }` objectのいずれかです。既知IDと既知brand domainは同梱vector catalogueを使います。未知URLは、オーサリング前にその明示commandでcaptureしなければなりません。renderとvalidateは固定されていないnetwork captureを決して実行しません。unsafe、unavailable、changed、unsupported contentはbrand diagnostic付きでfail closedします。`brand` を省略すると従来のoutputを維持します。
 
-## schema_version policy
+## schema_version方針
 
-Workflow supports schema versions 1 and 2. Version 1 remains the fixed-layout
-compatibility contract; version 2 opts into the readable workflow compiler and
-can be produced explicitly with `archify migrate workflow ... --to-schema 2`.
-The other four diagram schemas keep `schema_version` pinned to `1`.
+Workflowはschema version 1と2に対応します。version 1は固定layoutのcompatibility contractとして残り、version 2は可読性workflow compilerを有効にし、`archify migrate workflow ... --to-schema 2` で明示的に生成できます。他の4種類のdiagram schemaでは `schema_version` を `1` に固定します。
 
-Workflow also accepts optional `semanticChecks`. `allowedRoots` and
-`allowedTerminals` close the set of intentional graph sources and sinks;
-`requiredEdges` requires exact authored relationships; and `requiredPaths`
-requires directed reachability while allowing intermediate nodes. The compiler
-evaluates these facts before layout and returns typed `workflow/*` diagnostics.
-The field is additive and geometry-neutral: omitting it preserves existing
-workflow behavior and including a satisfied contract does not change SVG or
-layout-receipt bytes.
+Workflowは任意の `semanticChecks` も受け付けます。`allowedRoots` と `allowedTerminals` は意図されたgraph sourceとsinkの集合を閉じます。`requiredEdges` は正確なオーサリング済みrelationshipを必須にし、`requiredPaths` は中間nodeを許しつつdirected reachabilityを必須にします。compilerはlayout前にこれらのfactを評価し、型付き `workflow/*` diagnosticを返します。このfieldはadditiveかつgeometry-neutralです。省略すると既存workflow behaviorを維持し、満たされた契約を含めてもSVGまたはlayout-receipt bytesは変わりません。
 
-A file that validates today must keep validating and rendering within its
-declared version throughout the 2.x release line. Additive viewer,
-accessibility, and presentation improvements may enhance generated HTML, but
-they must not reinterpret authored IR or turn a previously valid profile-less
-v1 file into a new hard layout failure. Breaking IR changes require a new
-version; additive, backwards-compatible fields do not.
+現在validなfileは、その宣言versionの範囲内で2.x release lineを通してvalidationとrenderingが有効であり続けなければなりません。additiveなviewer、accessibility、presentation改善は生成HTMLを強化できますが、オーサリング済みIRを再解釈したり、以前はvalidだったprofileなしv1 fileを新たなhard layout failureに変えたりしてはなりません。breaking IR changeには新versionが必要です。additiveで後方互換性のあるfieldには不要です。
 
-## Shared definitions (common.schema.json)
+## 共有定義（common.schema.json）
 
-The five diagram schemas reference `common.schema.json#/$defs/...`:
+5つのdiagram schemaは `common.schema.json#/$defs/...` を参照します。
 
-- `id` — element identifiers, pattern `^[a-zA-Z][a-zA-Z0-9_-]*$`
-- `point` — an `[x, y]` pair of numbers (used by `via` and `labelAt`)
-- `componentType` — `frontend`, `backend`, `database`, `cloud`, `security`,
-  `messagebus`, `external`
-- `locale` — the bounded renderer locale, `en`
-- `brandMark` — one optional built-in brand ID or explicit HTTP(S) site URL
-- `variant` — `default`, `emphasis`, `security`, `dashed` (sequence messages
-  extend this list locally with `return`)
-- `legendMode` and `legendEntry` — the shared strict mode and label/visibility
-  override shapes used by each renderer-owned key map
-- `guidedViews` — the bounded, read-only reader paths accepted by `meta.views`
-- `cards` — the summary-card blocks rendered below the SVG
+- `id` — element identifier。patternは `^[a-zA-Z][a-zA-Z0-9_-]*$`
+- `point` — numberの `[x, y]` pair（`via` と `labelAt` で使用）
+- `componentType` — `frontend`、`backend`、`database`、`cloud`、`security`、`messagebus`、`external`
+- `locale` — 上限付きrenderer locale、`en`
+- `brandMark` — 任意の組み込みbrand ID 1つ、または明示的HTTP(S) site URL
+- `variant` — `default`、`emphasis`、`security`、`dashed`（sequence messageではlocalに `return` を追加）
+- `legendMode` と `legendEntry` — renderer所有の各key mapで使う、共有のstrict modeおよびlabel/visibility override shape
+- `guidedViews` — `meta.views` が受け付ける上限付きread-only reader path
+- `cards` — SVGの下にrenderされるsummary-card block
 
-Lifecycle state `type` is mode-specific (`start`/`active`/`waiting`/...) and
-stays in `lifecycle.schema.json`.
+Lifecycle stateの `type` はmode固有（`start`/`active`/`waiting`/...）で、`lifecycle.schema.json` に留まります。
 
 ## Runtime validation
 
-At development time, `scripts/generate-validators.mjs` compiles all five
-schemas with ajv's draft 2020-12 standalone generator using `strict: true` and
-`allErrors: true`. The generated `renderers/shared/generated-validators.mjs`
-is committed and shipped with the skill, so runtime validation has no npm or
-network dependency. `renderers/shared/validator.mjs` applies the matching
-standalone validator before the renderer's own layout checks.
-The shared loader then checks cross-collection facts that JSON Schema cannot
-express cleanly here: duplicate view IDs, duplicate focus IDs, focus IDs that do
-not exist in the diagram's semantic collection, and duplicate authored
-relationship IDs within the mode's relationship collection.
+開発時に `scripts/generate-validators.mjs` は、ajvのdraft 2020-12 standalone generatorを `strict: true` および `allErrors: true` で使い、5つすべてのschemaをcompileします。生成された `renderers/shared/generated-validators.mjs` はcommitされ、Skillとともに配布されるため、runtime validationにはnpmもnetwork dependencyもありません。`renderers/shared/validator.mjs` は、renderer固有のlayout checkより先に対応するstandalone validatorを適用します。
 
-Architecture additionally supports opt-in, revision-pinned repository evidence.
-`meta.repository` names a public GitHub URL and full commit SHA; a component may
-carry one to three `sources` with repo-relative POSIX paths, optional line
-ranges, and optional labels. Shape is schema-checked, then the renderer requires
-`--repo-root`: the local Git origin must match, and Git must prove the commit,
-blobs, and requested lines. Verified evidence is embedded outside the canonical
-SVG for the Semantic Passport and Node Finder; ordinary documents and visual
-exports carry no repository evidence.
+共有loaderは続けて、JSON Schemaだけではここで簡潔に表現できないcross-collection factを確認します。duplicate view ID、duplicate focus ID、diagramのsemantic collectionに存在しないfocus ID、modeのrelationship collection内で重複するオーサリング済みrelationship IDです。
 
-## Visual quality and engineering truth
+Architectureはさらに、opt-inでrevision固定済みのrepository evidenceに対応します。`meta.repository` はpublic GitHub URLと完全なcommit SHAを指定し、componentはrepo-relative POSIX path、任意のline range、任意のlabelを持つ `sources` を1～3個保持できます。shapeはschemaで検査され、その後rendererが `--repo-root` を要求します。local Git originが一致し、Gitがcommit、blob、要求lineを証明しなければなりません。検証済みevidenceはSemantic PassportとNode Finder向けにcanonical SVG外へ埋め込まれます。通常documentとvisual exportはrepository evidenceを保持しません。
 
-`meta.quality_profile` and `meta.engineering_profile` answer different
-questions. `quality_profile` is available in all five modes and controls how
-strictly Archify judges composition. `engineering_profile` is an optional
-Architecture-only semantic contract; omitting it preserves the ordinary v1
-behavior.
+## Visual品質とengineering上の真実性
 
-The first engineering profile is `deployment-ownership`. Enable it only when
-the user wants a fail-closed deployment review and the source facts are known.
-It requires every non-external component to name an owner in `tag` and belong
-to exactly one `region`; the document must contain both `region` and
-`security-group` boundaries; every `database` must be inside a
-`security-group`; each security group must contain members from one shared
-region; and every connection whose region or security-group membership changes
-must name the real crossing mechanism in `label`.
+`meta.quality_profile` と `meta.engineering_profile` は別の問いに答えます。`quality_profile` は5つすべてのmodeで利用でき、Archifyがcompositionをどれだけstrictに判定するかを制御します。`engineering_profile` はArchitecture専用の任意semantic contractです。省略すると通常のv1 behaviorを維持します。
 
-The profile validates only authored IR. It does not discover infrastructure,
-infer owners, or prove that a diagram matches a live environment. If a fact is
-unknown, leave the profile unset or obtain the fact instead of inventing it.
+最初のengineering profileは `deployment-ownership` です。ユーザーがfail-closed deployment reviewを求め、source factが既知の場合にだけ有効にします。すべてのnon-external componentが `tag` にownerを指定し、正確に1つの `region` に属することが必要です。documentには `region` と `security-group` boundaryの両方が必要です。すべての `database` は `security-group` 内になければなりません。各security groupには1つの共有regionからのmemberだけを含めます。regionまたはsecurity-group membershipが変わるすべてのconnectionは、実際のcrossing mechanismを `label` に指定しなければなりません。
 
-`npm test` runs the generator in check mode and fails when the committed
-validators drift from their schemas.
+profileが検証するのはオーサリング済みIRだけです。infrastructureを発見したり、ownerを推測したり、ダイアグラムがlive environmentと一致することを証明したりしません。factが不明なら、創作せず、profileを未設定にするかfactを取得します。
 
-## Error format
+`npm test` はgeneratorをcheck modeで実行し、commit済みvalidatorがschemaからdriftしている場合に失敗します。
 
-Schema violations exit non-zero. Each ajv error is reported on its own line as
-the instance path — annotated with the nearest enclosing element's `id` or
-`label` — followed by the message and parameters:
+## Error形式
+
+schema violationは非ゼロで終了します。各ajv errorは1行ずつ、instance path、最も近いenclosing elementの `id` または `label`、message、parameterの順で報告されます。
 
 ```text
 workflow schema validation failed:
   /nodes/3 (id/label: "router") must NOT have additional properties {"additionalProperty":"colour"}
 ```
 
-Schemas catch shape errors (types, enums, ranges, unknown fields); geometry
-problems such as overlaps and label collisions are the renderers' job.
+schemaが捕捉するのはshape error（type、enum、range、unknown field）です。overlapやlabel collisionなどのgeometry問題はrendererが担当します。

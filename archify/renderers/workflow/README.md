@@ -1,31 +1,26 @@
-# Workflow Renderer
+# Workflow Renderer（ワークフロー）
 
-Render `diagram_type: "workflow"` JSON files into the standard Archify HTML
-template.
+`diagram_type: "workflow"` のJSON fileを標準Archify HTML templateへrenderします。
 
 ```bash
 node archify/renderers/workflow/render-workflow.mjs input.workflow.json output.html
 ```
 
-The renderer validates input against `archify/schemas/workflow.schema.json`
-with the bundled standalone validator. No dependency installation is required.
+rendererは同梱standalone validatorを使い、inputを `archify/schemas/workflow.schema.json` に対して検証します。dependencyのinstallは不要です。
 
-If `output.html` is omitted, the renderer uses `meta.output` from the JSON file
-or falls back to `workflow.html` in the current working directory.
+`output.html` を省略した場合、rendererはJSON fileの `meta.output` を使い、それもなければ現在のworking directoryに `workflow.html` を出力します。
 
-After rendering, run the artifact checker:
+render後、artifact checkerを実行します。
 
 ```bash
 node archify/scripts/check-render-output.mjs output.html
 ```
 
-It catches final-SVG issues that are easiest to see in a browser: non-finite
-SVG values, accidental two-point diagonal arrows, and arrows crossing the
-legend.
+これはbrowserで最も見つけやすいfinal-SVG問題を捕捉します。non-finite SVG value、意図しないtwo-point diagonal arrow、凡例を横切るarrowです。
 
-## Input
+## 入力
 
-Workflow JSON files must set:
+Workflow JSON fileには次を設定しなければなりません。
 
 ```json
 {
@@ -44,137 +39,95 @@ Workflow JSON files must set:
 }
 ```
 
-Use `schema_version: 2` for new workflows. Its readable layout compiler treats
-every `col` as a logical rank in `0..5` and derives geometry from the measured
-document. `schema_version: 1` remains the fixed legacy contract for existing
-sources; valid v1 output is preserved byte-for-byte and never silently
-reinterpreted as v2.
+新しいworkflowには `schema_version: 2` を使います。その可読性layout compilerは、すべての `col` を `0..5` のlogical rankとして扱い、測定済みdocumentからgeometryを導出します。`schema_version: 1` は既存source向けの固定legacy contractとして残ります。有効なv1 outputはbyte-for-byteで維持され、黙ってv2として再解釈されることはありません。
 
-Omit `meta.viewBox` for the common v2 case so the compiler can use intrinsic
-measured bounds. In v1, the omitted width remains fixed at 720 and height is
-derived from lane count. A complete worked example lives at
-`archify/examples/agent-tool-call.workflow.json`; its `schema_version` selects
-the applicable contract.
+通常のv2 caseでは `meta.viewBox` を省略し、compilerがintrinsic measured boundを使えるようにします。v1でwidthを省略した場合は720に固定され、heightはlane countから導出されます。完全なworked exampleは `archify/examples/agent-tool-call.workflow.json` にあります。その `schema_version` が適用契約を選びます。
 
-The schema lives at:
+schemaは次にあります。
 
 ```text
 archify/schemas/workflow.schema.json
 ```
 
-## Migration and layout receipt
+<a id="migration-and-layout-receipt"></a>
+## Migrationとlayout receipt
 
-Migrate an existing v1 source into a separate v2 file:
+既存v1 sourceを別のv2 fileへmigrateします。
 
 ```bash
 node archify/bin/archify.mjs migrate workflow old.json new.json --to-schema 2 --json
 ```
 
-Running the command again with its schema-v2 output as the new source is an
-idempotent verification pass: the destination bytes and geometry stay unchanged.
+schema-v2 outputを新しいsourceとして同じcommandをもう一度実行すると、idempotent verification passになります。destination bytesとgeometryは変わりません。
 
-The command never overwrites the source by default. It maps absolute
-`via[*][0]`, `labelAt[0]`, and `channelX` values from legacy to solved rank
-space, preserves y coordinates unless a reported vertical constraint needs
-author input, expands an explicit viewBox only for an unambiguous containment
-repair, and writes the destination only after v2 compilation and artifact
-checks pass. Ambiguous explicit pins fail without producing the destination.
+commandは既定でsourceを上書きしません。legacyのabsolute `via[*][0]`、`labelAt[0]`、`channelX` valueをsolved rank spaceへmapし、報告されたvertical constraintにauthorのinputが必要な場合を除いてy coordinateを維持します。曖昧さのないcontainment修正に限って明示的viewBoxを広げ、v2 compilationとartifact checkが合格した後にだけdestinationを書き込みます。曖昧なexplicit pinはdestinationを生成せず失敗します。
 
-Inspect the stable author-facing v2 plan with:
+author向けの安定したv2 planを次で調べます。
 
 ```bash
 node archify/bin/archify.mjs validate workflow input.workflow.json --layout-json
 ```
 
-The receipt reports the selected contract, measured `viewBox` and
-`requiredViewBox`, solved columns, nodes, edges, labels, and causal diagnostics.
-It deliberately omits solver iterations and candidate scores.
+receiptは選択されたcontract、測定済み `viewBox` と `requiredViewBox`、solved column、node、edge、label、causal diagnosticを報告します。solver iterationとcandidate scoreは意図的に省略します。
 
-## Legend
+## 凡例
 
-The default legend derives component kinds from `nodes[].type`. Supported
-`meta.legend.entries` keys, in stable order, are `frontend`, `backend`,
-`security`, `messagebus`, `database`, `cloud`, and `external`. Labels and
-visibility may be overridden through the shared legend contract; only kinds
-backed by rendered nodes receive Semantic Legend controls.
+既定のlegendは `nodes[].type` からcomponent kindを導出します。対応する `meta.legend.entries` keyは、安定した順序で `frontend`、`backend`、`security`、`messagebus`、`database`、`cloud`、`external` です。共有legend契約によってlabelとvisibilityをoverrideできます。render済みnodeに裏付けられたkindだけがSemantic Legend controlを受け取ります。
 
-## Layout contracts
+<a id="layout-contracts"></a>
+## Layout契約
 
 ### Fixed v1
 
-| Constant | Value |
+| 定数 | 値 |
 |----------|-------|
-| viewBox | default `[720, auto]` — auto height = 52 + lanes×104 + (lanes−1)×20 + 124 |
-| Lane frame | x 40, width 640, height 104, gap 20; first lane top at y 52 |
-| Lane title strip | top 30px of each lane; node boxes must stay below it |
-| Column centers (`col` 0–5) | x = 88, 220, 300, 430, 500, 625 |
-| Phase headers | Optional `phases[]` render above the first lane, spanning `fromCol..toCol` |
-| Lane groups | Optional `groups[]` frame parallel work or branch work inside one lane |
-| Exception lanes | Set `lane.variant: "exception"` for retry, denial, fallback, or failure paths |
-| Main path lint | Optional `mainPath[]` checks that happy-path steps have matching edges and do not move backward |
-| Default node | 92×52 (height 68 when `tag` is set) |
-| Node spacing | ≥8px between nodes in the same lane |
-| Edge length | straight segments must span ≥28px |
-| Legend row | y = lane bottom + 44; viewBox height must be ≥ legend y + 18 |
+| viewBox | 既定 `[720, auto]` — auto height = 52 + lanes×104 + (lanes−1)×20 + 124 |
+| Lane frame | x 40、width 640、height 104、gap 20、最初のlane topはy 52 |
+| Lane title strip | 各laneの上部30px。node boxはその下に置かなければならない |
+| Column center（`col` 0～5） | x = 88, 220, 300, 430, 500, 625 |
+| Phase header | 任意の `phases[]` を最初のlane上にrenderし、`fromCol..toCol` にまたがる |
+| Lane group | 任意の `groups[]` が1 lane内のparallel workまたはbranch workを囲む |
+| Exception lane | retry、denial、fallback、failure pathには `lane.variant: "exception"` を設定 |
+| Main path lint | 任意の `mainPath[]` がhappy-path stepに対応edgeがあり、後退しないことを確認 |
+| 既定node | 92×52（`tag` 設定時はheight 68） |
+| Node spacing | 同じlaneのnode間で8px以上 |
+| Edge length | straight segmentは28px以上 |
+| Legend row | y = lane bottom + 44、viewBox heightはlegend y + 18以上 |
 
-Column-center gaps are 132 / 80 / 130 / 70 / 125 px: columns 1↔2 (80px) and
-3↔4 (70px) cannot both hold default-width 92px nodes in the same lane. Such an
-invalid v1 source receives one causal `workflow/column-capacity` diagnostic and
-a verified migration-to-v2 repair; v1 never falls through to adaptive layout.
+column-center gapは132 / 80 / 130 / 70 / 125 pxです。column 1↔2（80px）と3↔4（70px）では、同じlane内に既定width 92pxのnodeを両方置けません。そのような無効v1 sourceは、causalな `workflow/column-capacity` diagnostic 1件と検証済みmigration-to-v2修正を受け取ります。v1がadaptive layoutへfall throughすることはありません。
 
 ### Readable v2
 
-| Invariant | Contract |
+| 不変条件 | 契約 |
 |----------|----------|
-| Logical columns | `col` is an integer in `0..5`; pixel centers are measured output |
-| Adjacent-rank baseline | 120px center distance before document-specific constraints |
-| Same-lane node clearance | ≥8px when vertical node intervals overlap |
-| Facing direct edge | clear gap ≥`max(28px, measured label mask width + 8px)` |
-| Automatic route rhythm | direct segment ≥28px; endpoint stub ≥8px; interior turn segment ≥16px |
-| Implicit viewBox | intrinsic content bounds plus contract padding |
-| Explicit viewBox | containment capacity; too-small input reports exact `requiredViewBox` and contributors |
+| Logical column | `col` は `0..5` のinteger、pixel centerは測定済みoutput |
+| Adjacent-rank baseline | document固有constraintを適用する前のcenter distance 120px |
+| Same-lane node clearance | vertical node intervalがoverlapする場合8px以上 |
+| Facing direct edge | clear gapは `max(28px, measured label mask width + 8px)` 以上 |
+| Automatic route rhythm | direct segment 28px以上、endpoint stub 8px以上、interior turn segment 16px以上 |
+| Implicit viewBox | intrinsic content bound + contract padding |
+| Explicit viewBox | containment capacity。不足inputは正確な `requiredViewBox` とcontributorを報告 |
 
-The compiler applies constraints only to actual related or overlapping
-same-lane nodes, so a wide node in an unrelated lane does not expand every
-rank. Legacy centers are a soft preference after correctness constraints, not
-a geometry promise. Phase and group frames derive from the solved rank bands.
-Automatic routes are normalized once and the same final scene drives
-validation and SVG serialization. Long automatic labels compare direct-gutter
-growth with a legal channel instead of widening every downstream rank. Measured
-multi-row legends participate in intrinsic height and explicit viewBox
-capacity.
+compilerは実際に関連するnodeまたはoverlapするsame-lane nodeにだけconstraintを適用します。そのため、関係のないlaneにある幅広nodeがすべてのrankを広げることはありません。legacy centerはcorrectness constraintの後に使うsoft preferenceであり、geometry promiseではありません。phase frameとgroup frameはsolved rank bandから導出されます。automatic routeは1回だけnormalizeされ、validationとSVG serializationは同じfinal sceneを使います。長いautomatic labelは、すべてのdownstream rankを広げる代わりに、direct-gutter growthとlegal channelを比較します。測定済みmulti-row legendはintrinsic heightとexplicit viewBox capacityに関与します。
 
-Authored `via`, `labelAt`, `channelX`, and `channelY` are absolute hard pins in
-v2; an infeasible pin returns `workflow/explicit-pin-conflict` rather than being
-silently moved. `fromSide` and `toSide` remain direction constraints. A route
-preset restricts the automatic candidate family but is not itself an absolute
-coordinate pin. When either endpoint side is omitted, the v2 compiler chooses
-a feasible side; an authored side restricts that endpoint to the named port.
+オーサリング済み `via`、`labelAt`、`channelX`、`channelY` は、v2ではabsolute hard pinです。実行不能なpinは黙って移動せず `workflow/explicit-pin-conflict` を返します。`fromSide` と `toSide` はdirection constraintのままです。route presetはautomatic candidate familyを制限しますが、それ自体はabsolute coordinate pinではありません。endpoint sideのどちらかを省略すると、v2 compilerは実行可能なsideを選びます。オーサリング済みsideはそのendpointを指定portに制限します。
 
-## Design Rules
+## Design rule
 
-- Use lanes for ownership or runtime boundaries.
-- Use phase headers for high-level story beats such as Intake, Plan, Execute, and Report.
-- Use groups for parallel checks, branch handling, or bounded work within a lane; every group must contain at least one node.
-- Use `lane.variant: "exception"` for human wait, denial, retry, fallback, and failure lanes instead of mixing those paths into the happy path.
-- Set `mainPath` when the diagram has a clear happy path; the renderer validates that consecutive ids have matching edges and move left-to-right.
-- Place nodes with lane IDs and `col` indexes in `0..5`, not raw SVG coordinates.
-- Preserve semantic edge labels. Readable v2 allocates measured label clearance;
-  when a label does not fit, repair the reported capacity or route constraint
-  instead of deleting meaning.
-- Use labels for decisions, approvals, protocols, async traces, return paths,
-  and any other relationship meaning not fully implied by its endpoints.
-- Prefer route presets — `drop` (bend between lanes; `bias` 0–1 picks where),
-  `outside-right`, `return-left`, `bottom-channel`, and `up-channel` — before
-  using raw `via` points. `straight` and the default `auto` cover the rest.
-- Keep workflow examples compact enough to render well in narrow chat/browser
-  previews.
+- ownershipまたはruntime boundaryにlaneを使います。
+- Intake、Plan、Execute、Reportのようなhigh-level story beatにphase headerを使います。
+- 1 lane内のparallel check、branch handling、限定作業にgroupを使います。すべてのgroupにはnodeを1つ以上含めなければなりません。
+- human wait、denial、retry、fallback、failure laneには、happy pathへ混在させず `lane.variant: "exception"` を使います。
+- 明確なhappy pathがある場合は `mainPath` を設定します。rendererは連続するidに対応edgeがあり、left-to-rightに進むことを検証します。
+- raw SVG coordinateではなく、lane IDと `0..5` の `col` indexでnodeを配置します。
+- 意味を持つedge labelを維持します。Readable v2は測定済みlabel clearanceを割り当てます。labelが収まらない場合は意味を削除せず、報告されたcapacityまたはroute constraintを修正します。
+- endpointから完全には明白でないdecision、approval、protocol、async trace、return path、その他のrelationship meaningにはlabelを使います。
+- raw `via` pointより先にroute presetを使います。`drop`（lane間で曲がる。0～1の `bias` が位置を選択）、`outside-right`、`return-left`、`bottom-channel`、`up-channel` です。それ以外には `straight` と既定の `auto` を使います。
+- 狭いchat/browser previewでも適切にrenderできる簡潔さをworkflow exampleに保ちます。
 
-### Optional semantic checks
+### 任意のsemantic check
 
-Layout validation cannot infer domain truth from labels or cards. When source
-evidence establishes roots, terminals, mandatory direct relationships, or
-mandatory directed reachability, encode those facts in `semanticChecks`:
+layout validationでは、labelやcardからdomain truthを推測できません。source evidenceがroot、terminal、必須のdirect relationship、または必須のdirected reachabilityを確立する場合は、それらのfactを `semanticChecks` にencodeします。
 
 ```json
 "semanticChecks": {
@@ -189,35 +142,10 @@ mandatory directed reachability, encode those facts in `semanticChecks`:
 }
 ```
 
-When `allowedRoots` or `allowedTerminals` is present, it is the complete allow
-list for zero-incoming or zero-outgoing nodes respectively. `requiredEdges`
-requires one exact authored direction; `requiredPaths` permits intermediate
-nodes but follows authored edge direction. These checks run before layout, do
-not alter SVG or receipt bytes, and must not be weakened merely to resolve a
-route or composition diagnostic. Omit fields whose domain facts are unknown.
+`allowedRoots` または `allowedTerminals` がある場合、それぞれzero-incoming nodeまたはzero-outgoing nodeに対する完全なallow listです。`requiredEdges` は正確なオーサリング済みdirection 1つを必須にします。`requiredPaths` は中間nodeを許しつつ、オーサリング済みedge directionに従います。これらのcheckはlayout前に実行し、SVGまたはreceipt bytesを変更しません。routeまたはcomposition diagnosticを解決するためだけに弱めてはなりません。domain factが不明なfieldは省略します。
 
-Schema violations exit non-zero with path-prefixed messages annotated with the
-element's id or label. The renderer additionally fails when it can detect
-layout problems, including node overlap, nodes outside their lanes, invalid
-phase/group column ranges, empty groups, broken `mainPath` steps, unknown edge
-targets, labels colliding with nodes or other labels, labels wider than their
-node, legends outside the viewBox, or straight arrows that are too short to
-read cleanly. The shared Clean Flow Gate also rejects edges crossing unrelated
-nodes with 2px clearance; lanes, phases, and groups remain intentional
-pass-through containers. Text width is estimated CJK-aware: fullwidth glyphs
-count as two units.
+schema violationは、elementのidまたはlabelを注記したpath-prefix付きmessageを出して非ゼロで終了します。rendererはさらに、検出可能なlayout問題で失敗します。対象にはnode overlap、lane外のnode、無効なphase/group column range、empty group、壊れた `mainPath` step、unknown edge target、nodeまたは他labelと衝突するlabel、nodeより広いlabel、viewBox外のlegend、短すぎて明瞭に読めないstraight arrowが含まれます。共有Clean Flow Gateも2px clearanceで関係のないnodeを横切るedgeを拒否します。lane、phase、groupは意図的なpass-through containerのままです。text widthはCJK-awareに見積もられ、fullwidth glyphは2 unitとして数えます。
 
-Diagnostics are causal: a rank-capacity failure suppresses derivative short
-edge, endpoint-direction, and label-overlap findings. Every
-`supportedFixes[]` entry is verified by replanning the proposed edit, and a
-diagnostic never proposes removing a semantic label when label presence does
-not cause the failed invariant.
+diagnosticはcausalです。rank-capacity failureは派生するshort edge、endpoint-direction、label-overlap findingを抑制します。各 `supportedFixes[]` entryは、提案editをreplanして検証されます。labelの存在がfailed invariantの原因でない場合、diagnosticがsemantic labelの削除を提案することはありません。
 
-Set `meta.quality_profile` to `showcase` for polished delivery. Unrelated proper
-X crossings then fail with `composition/proper-crossing`; default `standard`
-keeps them as artifact-receipt warnings. Collinear lane corridors are outside
-the proper-X rule, but a separate gate warns in `standard` and fails in
-`showcase` when unrelated edges overlap for at least 8px. Shared semantic
-endpoints, point touches, and shorter overlaps remain valid. Showcase also
-rejects any route segment below 8px and any interior turn segment below 16px;
-ordinary 8–15px endpoint stubs remain valid for fixed lane gaps.
+洗練された配布には `meta.quality_profile` を `showcase` に設定します。その場合、関係のないproper X crossingは `composition/proper-crossing` で失敗します。既定の `standard` ではartifact-receipt warningに留まります。collinear lane corridorはproper-X ruleの対象外ですが、関係のないedgeが8px以上overlapすると、別gateが `standard` でwarning、`showcase` でfailureにします。shared semantic endpoint、point touch、より短いoverlapは有効です。showcaseはさらに、8px未満のroute segmentと16px未満のinterior turn segmentを拒否します。fixed lane gapでは、通常の8～15px endpoint stubは有効です。

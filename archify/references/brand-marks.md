@@ -1,18 +1,16 @@
-# Brand marks
+# Brand mark（ブランドマーク）
 
-Use a brand mark only when a real product, provider, model family, channel, or
-service identity helps the reader. Semantic `type` still explains what the node
-does; `brand` explains whose product it is.
+実在するproduct、provider、model family、channel、serviceのidentityがreaderの理解に役立つ場合にだけ、brand markを使います。semantic `type` は引き続きnodeの役割を説明し、`brand` はどの会社のproductかを説明します。
 
-## Agent decision path
+## Agentの判断手順
 
-1. Search the built-in catalogue when the request names a recognizable brand:
+1. 依頼に認識可能なbrand名がある場合は、組み込みcatalogueを検索します。
 
    ```bash
    node bin/archify.mjs brands "Claude" --json
    ```
 
-2. Put the returned canonical ID in the node, participant, or state:
+2. 返されたcanonical IDをnode、participant、stateに入れます。
 
    ```json
    {
@@ -23,14 +21,13 @@ does; `brand` explains whose product it is.
    }
    ```
 
-3. If there is no catalogue match and the user supplied the official website,
-   capture its icon explicitly:
+3. catalogueに一致せず、ユーザーが公式websiteを提供した場合は、そのiconを明示的にcaptureします。
 
    ```bash
    node bin/archify.mjs brands capture "https://partner.example.com" --json
    ```
 
-   Put the command's digest-pinned `brand` value in the authored node:
+   commandが返したdigest固定済み `brand` 値を、オーサリング対象nodeに入れます。
 
    ```json
    {
@@ -44,22 +41,10 @@ does; `brand` explains whose product it is.
    }
    ```
 
-4. If there is no match and no user-provided URL, omit `brand`. Do not invent a
-   URL or silently assign a visually similar company.
+4. 一致するbrandがなく、ユーザー提供URLもない場合は `brand` を省略します。URLを創作したり、見た目が似た会社を黙って割り当てたりしてはなりません。
 
-Known-brand URLs resolve to the bundled vector instead of using the network.
-Unknown URL capture accepts only bounded raster image formats, blocks
-credentials, nonstandard public ports, and private or link-local destinations,
-uses bounded concurrency and one total deadline, and returns the captured
-content digest. Later render and validate operations require that exact digest;
-blocked, unavailable, changed, oversized, or unsafe content fails closed instead
-of silently changing the artifact.
+既知brandのURLはnetworkを使わず、同梱vectorへ解決されます。未知URLのcaptureは、上限付きのraster image formatだけを受け付け、credential、非標準public port、privateまたはlink-local destinationをblockします。上限付きconcurrencyと全体deadlineを1つ使い、captureしたcontent digestを返します。その後のrenderとvalidateでは、その正確なdigestが必要です。block済み、利用不能、変更済み、oversize、またはunsafeなcontentは、成果物を黙って変更するのではなくfail closedします。
 
-The final artifact never fetches a brand asset when opened. Preset vectors and
-digest-verified captured site icons remain embedded in SVG, PNG, WebP, JPEG,
-Share Card, and WebM exports.
+最終成果物を開いた際にbrand assetを取得することはありません。preset vectorとdigest検証済みのcapture済みsite iconは、SVG、PNG、WebP、JPEG、Share Card、WebM export内に埋め込まれたままです。
 
-Use `node bin/archify.mjs brands --json` to inspect all canonical IDs, aliases,
-categories, domains, and provenance. Current categories cover AI, cloud,
-engineering, data, collaboration, business systems, channels, languages, and
-frameworks.
+すべてのcanonical ID、alias、category、domain、provenanceを調べるには、`node bin/archify.mjs brands --json` を使います。現在のcategoryはAI、cloud、engineering、data、collaboration、business system、channel、language、frameworkを扱います。

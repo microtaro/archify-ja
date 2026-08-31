@@ -1,119 +1,64 @@
-# Authoring contract
+# オーサリング契約
 
-Read this reference only after the Fast authoring path calls for more detail. The schemas and examples remain authoritative.
+最短のオーサリング手順で詳細が必要になった後にだけ、このリファレンスを読みます。schemaとexampleが引き続き正本です。
 
-## Schema lookup
+## Schemaの調べ方
 
-Read both the mode schema and `schemas/common.schema.json`. The mode schemas use `$ref`, so the common file is where shared enums live.
+mode schemaと `schemas/common.schema.json` の両方を読みます。mode schemaは `$ref` を使うため、共有enumはcommon fileにあります。
 
-- `componentType`: `frontend`, `backend`, `database`, `cloud`, `security`, `messagebus`, `external`
-- `variant`: `default`, `emphasis`, `security`, `dashed`
-- Relationship IDs use the shared identifier pattern and must be unique in their collection.
+- `componentType`: `frontend`、`backend`、`database`、`cloud`、`security`、`messagebus`、`external`
+- `variant`: `default`、`emphasis`、`security`、`dashed`
+- relationship IDは共有identifier patternを使い、そのcollection内で一意でなければなりません。
 
-Do not invent fields. Use the nearest matching example for structure, then author fresh IDs, wording, facts, and layout.
+fieldを創作してはなりません。構造には最も近いexampleを使い、その後で新しいID、表現、事実、layoutをオーサリングします。
 
-## Workflow layout contracts
+## Workflow layout契約
 
-Use schema v2 for new workflows and keep schema v1 when an existing source must
-retain fixed geometry. In both versions, `col` stays in `0..5` and semantic
-edge labels are never deleted as a spacing repair. Do not change only
-`schema_version` when absolute coordinates exist: follow the canonical
-[migration and layout-receipt contract](../renderers/workflow/README.md#migration-and-layout-receipt).
-The complete normative invariants live in the workflow renderer's
-[layout contracts](../renderers/workflow/README.md#layout-contracts).
+新しいworkflowにはschema v2を使い、既存sourceが固定geometryを維持しなければならない場合はschema v1を残します。どちらのversionでも `col` は `0..5` の範囲を保ち、意味を持つedge labelをspacing修正として削除してはなりません。absolute coordinateがある場合に `schema_version` だけを変更してはなりません。標準の[migrationおよびlayout-receipt契約](../renderers/workflow/README.md#migration-and-layout-receipt)に従ってください。完全な規範的不変条件はworkflow rendererの[layout契約](../renderers/workflow/README.md#layout-contracts)にあります。
 
-## Legend contract
+## 凡例契約
 
-Omit `meta.legend` for the truthful default: `auto` lists only semantic kinds
-present in typed IR. Use `mode: "all"` for a renderer reference or
-`mode: "hidden"` to remove the full legend. Under `entries`, only keys listed
-by the selected mode schema are valid; each key accepts `label`, `visible`, or
-both. `visible: true` may show an unused supported convention, while
-`visible: false` hides it. `hidden` cannot be overridden.
+正直な既定値には `meta.legend` を省略します。`auto` はtyped IRに存在するsemantic kindだけを一覧表示します。rendererのreferenceには `mode: "all"` を使い、凡例全体を除去するには `mode: "hidden"` を使います。`entries` 配下では、選択したmode schemaが列挙するkeyだけが有効です。各keyは `label`、`visible`、またはその両方を受け付けます。`visible: true` は未使用だが対応済みのconventionを表示でき、`visible: false` はそれを隠します。`hidden` をoverrideすることはできません。
 
-A label override changes reader wording only. Never infer a kind from prose or
-use the legend to compensate for missing nodes, states, messages, or flows.
-Long labels are measured and wrap into deterministic rows. Architecture's
-implicit automatic viewBox grows from that same measured footprint. For
-backwards compatibility, a legacy document with no `meta.legend` may omit an
-implicit auto legend that cannot fit its explicit viewBox; this never changes
-its typed topology. Adding `meta.legend` makes the presentation intentional and
-strict: if its resolved labels cannot fit the authored viewBox, shorten or hide
-them, or widen the viewBox using the emitted diagnostic.
+label overrideが変えるのはreader向け表現だけです。文章からkindを推測したり、不足しているnode、state、message、flowを凡例で補ったりしてはなりません。長いlabelは測定され、deterministic rowへwrapします。Architectureの暗黙的automatic viewBoxは、その同じ測定済みfootprintから広がります。後方互換性のため、`meta.legend` のないlegacy documentでは、明示的viewBoxに収まらない暗黙のauto legendを省略できます。typed topologyが変わることはありません。`meta.legend` を追加するとpresentationは意図的かつstrictになります。解決後labelがオーサリング済みviewBoxに収まらない場合は、短くするか隠すか、出力されたdiagnosticに従ってviewBoxを広げます。
 
-## Language consistency
+## 言語の一貫性
 
-Choose one primary authored language. An explicit user choice wins; otherwise
-use the language of the request, or the conversation's dominant language when
-the request itself is language-neutral. The supported Viewer locale is English:
-write `meta.locale: "en"` for English Viewer UI. The renderer consumes the
-authored locale without inferring language from diagram strings. Documents that
-omit it remain valid and default to English.
+primary authored languageを1つ選びます。ユーザーの明示的な選択が優先されます。選択がなければ依頼の言語、依頼自体が言語中立なら会話の主言語を使います。対応するViewer localeはEnglishです。EnglishのViewer UIには `meta.locale: "en"` を書きます。rendererはdiagram stringから言語を推測せず、オーサリング済みlocaleを使います。省略したdocumentは有効なままで、Englishが既定になります。
 
-`meta.locale` controls only renderer-owned reader surfaces: `<html lang>`, the
-document-title suffix, default SVG description and focus labels, default legend
-labels, and fixed Viewer controls, statuses, accessibility names, and errors.
-It never translates authored content. Apply the primary language separately to
-titles, subtitles, node and relationship copy, boundaries, lanes, groups,
-guided views, legend label overrides, and cards. A diagram authored in another
-language still uses the English Viewer locale.
+`meta.locale` が制御するのはrenderer所有のreader surfaceだけです。対象は `<html lang>`、document-title suffix、既定のSVG descriptionとfocus label、既定のlegend label、固定Viewer control、status、accessibility name、errorです。authored contentを翻訳することはありません。title、subtitle、nodeとrelationshipのcopy、boundary、lane、group、guided view、legend label override、cardには、primary languageを個別に適用します。別言語でオーサリングされたダイアグラムでもEnglishのViewer localeを使います。
 
-For a requested language outside `en`, do not write an unsupported
-locale. Keep every reader-facing authored string in the requested language,
-omit `meta.locale` so the renderer safely uses English, and explicitly tell the
-user that fixed Viewer UI and `<html lang>` remain English and the artifact is
-not fully localized. The fallback applies only to renderer-owned surfaces; it
-never permits authored copy to fall back to English. Do not silently substitute
-an unsupported locale.
+`en` 以外の言語を求められた場合、対応していないlocaleを書いてはなりません。reader向けのオーサリング済みstringをすべて依頼言語に保ち、`meta.locale` を省略してrendererが安全にEnglishを使うようにし、固定Viewer UIと `<html lang>` がEnglishのままで成果物が完全にはローカライズされないことをユーザーへ明示します。fallbackが適用されるのはrenderer所有surfaceだけです。authored copyをEnglishへfallbackしてよいことには決してなりません。対応していないlocaleへ黙って置き換えてはなりません。
 
-Keep exact product names, code identifiers, commands, protocols, API paths, and
-environment names intact. Those terms may remain English inside localized copy,
-but surrounding explanatory prose must still use the selected language.
-Renderer-owned default legend labels follow `meta.locale`; author a
-`meta.legend.entries.*.label` override only when the diagram needs different
-domain wording, and keep that authored override in the primary language.
+正確な製品名、code identifier、command、protocol、API path、environment nameをそのまま維持します。ローカライズ済みcopy内でそれらの用語をEnglishのままにできますが、周囲の説明文には選択した言語を使わなければなりません。renderer所有の既定legend labelは `meta.locale` に従います。ダイアグラムに別のdomain表現が必要な場合にだけ `meta.legend.entries.*.label` overrideをオーサリングし、そのoverrideはprimary languageに保ちます。
 
-## Visual preset default
+## Visual presetの既定値
 
-Omit `meta.visual_preset` by default. The renderer then opens the diagram in
-`classic` for both light and dark color modes. Color mode and visual preset are
-independent viewer state: switching Light / Dark must preserve the current
-preset. Author `signal-flow`, `blueprint`, or `editorial` only when the user
-explicitly requests that visual style.
+`meta.visual_preset` は既定で省略します。その場合rendererは、lightとdarkの両color modeでダイアグラムを `classic` として開きます。color modeとvisual presetは独立したviewer stateです。Light / Darkの切り替えでは現在のpresetを維持しなければなりません。ユーザーがそのvisual styleを明示的に求めた場合にだけ `signal-flow`、`blueprint`、`editorial` をオーサリングします。
 
-## Engineering profile default
+## Engineering profileの既定値
 
-Omit `meta.engineering_profile` for an ordinary system architecture. Region,
-cluster, and security boundary wording do not by themselves enable an
-engineering profile. Enable `deployment-ownership` only when the user
-explicitly asks for a production deployment topology, ownership handoff, or
-fail-closed deployment review and the source facts are known. Once enabled,
-do not remove the engineering profile merely to pass validation; repair the
-authored facts or report the diagnostics truthfully.
+通常のsystem architectureでは `meta.engineering_profile` を省略します。region、cluster、security boundaryという表現だけではengineering profileを有効にしません。ユーザーがproduction deployment topology、ownership handoff、またはfail-closed deployment reviewを明示的に求め、source factが既知の場合にだけ `deployment-ownership` を有効にします。有効にした後は、検証を通すためだけにengineering profileを削除してはなりません。オーサリング済みfactを修正するか、diagnosticを正直に報告してください。
 
 ## Title hierarchy
 
-Use one concise title and let the diagram carry the explanation. Omit
-`meta.subtitle` by default, and never use it to restate the title, nodes, edges,
-or cards. Include one short supporting line only when the user explicitly asks
-for a subtitle; an omitted or blank subtitle must not leave an empty visual row
-in the generated viewer.
+簡潔なtitleを1つ使い、説明はダイアグラム自体に担わせます。`meta.subtitle` は既定で省略し、title、node、edge、cardを言い換えるために決して使いません。ユーザーがsubtitleを明示的に求めた場合にだけ、短い補足行を1つ含めます。subtitleを省略または空にした際、生成viewerに空のvisual rowが残ってはなりません。
 
-## Executable geometry rules
+## 実行可能なgeometry rule
 
-- Node anchors start at side midpoints. `left`/`right` change the horizontal endpoint; `top`/`bottom` change the vertical endpoint. For an automatic Architecture relationship, unobstructed facing ports whose axis offset is under 16px may share one horizontal or vertical axis when both endpoints retain the 16px corner gutter. If exactly one endpoint belongs to a spread group, only its unshared counterpart moves; relationships spread at both endpoints keep their distinct ports and outside bridge.
-- A side is a direction contract. The first and final route segment must be perpendicular and outward/inward in the named direction.
-- Automatic Port Spread is a default renderer behavior for architecture, workflow, data-flow, and lifecycle diagrams. Shared automatic endpoints spread deterministically and symmetrically with a 16px corner gutter. It does not apply to sequence messages, single relationships, or explicit `via`, `channelX`, `channelY`, `labelAt`, or non-`auto` routes.
-- Showcase route rhythm: every nonzero segment must be at least 8px; every interior segment must be at least 16px. When spread ports are nearly parallel, the router uses a 24px endpoint stub and a 16px outside bridge instead of manufacturing a tiny dogleg.
-- Shared endpoint corridors are allowed only when they remain semantically unambiguous. Unrelated collinear overlap of 8px or more fails showcase.
-- Container borders are intentional pass-through geometry, but a long edge running along a structural border is not.
-- An edge crossing an unrelated opaque node is always a hard failure, independent of quality profile.
+- node anchorはside midpointから始まります。`left`/`right` はhorizontal endpointを変更し、`top`/`bottom` はvertical endpointを変更します。automatic Architecture relationshipでは、axis offsetが16px未満の妨げられていない対向portについて、両endpointが16pxのcorner gutterを維持する場合に1本のhorizontalまたはvertical axisを共有できます。一方のendpointだけがspread groupに属する場合、共有されていないcounterpartだけが移動します。両endpointでspreadされたrelationshipは、区別されたportとoutside bridgeを維持します。
+- sideはdirection contractです。最初と最後のroute segmentは、指定方向へ垂直かつoutward/inwardでなければなりません。
+- Automatic Port Spreadはarchitecture、workflow、data-flow、lifecycle diagramにおけるrendererの既定動作です。共有automatic endpointを、16px corner gutterを保ってdeterministicかつsymmetricに広げます。sequence message、単一relationship、明示的 `via`、`channelX`、`channelY`、`labelAt`、または `auto` 以外のrouteには適用されません。
+- showcase route rhythmでは、0ではないすべてのsegmentが8px以上、すべてのinterior segmentが16px以上でなければなりません。spread portがほぼparallelの場合、routerは小さなdoglegを作る代わりに、24px endpoint stubと16px outside bridgeを使います。
+- shared endpoint corridorは、semantic ambiguityがない場合にだけ許されます。関係のないcollinear overlapが8px以上あるとshowcaseは失敗します。
+- container borderは意図されたpass-through geometryですが、長いedgeをstructural borderに沿わせてはなりません。
+- 関係のないopaque nodeを横切るedgeは、quality profileにかかわらず常にhard failureです。
 
-### Spacing and labels
+### Spacingとlabel
 
-Spacing recommendations mean clear gap between boxes, not center distance. A 200px center distance between 165px-wide nodes leaves only 35px of clear gap.
+spacing recommendationが意味するのはbox間のclear gapであり、center distanceではありません。width 165pxのnode間でcenter distanceが200pxでも、clear gapは35pxしかありません。
 
-For a relationship label, require:
+relationship labelには次を必要とします。
 
 ```text
 clear gap > label mask width + 8px breathing room
@@ -121,69 +66,46 @@ label mask width ≈ 6.5px × ASCII units + 13px
 CJK characters count as two units
 ```
 
-Relationship labels are semantic data. If the gap is too small, move the label,
-adjust the route or spacing, then shorten the wording while preserving meaning.
-Omit only wording already fully implied by both endpoints and carrying no
-protocol, action, direction, synchronous/asynchronous behavior, or
-cross-boundary mechanism. Preserve every meaningful label.
-Deleting it is not a spacing repair. If a relationship starts unlabeled because
-its endpoints fully imply it, explain why the wording is redundant; this is a
-semantic authoring choice, not a spacing repair. In workflow v2, let the compiler
-allocate its measured mask before applying a diagnosed `labelAt`,
-`labelDx`/`labelDy`, or `labelSegment`. Apply one diagnosed geometry control at
-a time.
+関係ラベルは意味を持つデータです。gapが小さすぎる場合はlabelを移動し、routeまたはspacingを調整し、その後、意味を維持して表現を短くします。両endpointからすでに完全に明白で、protocol、action、direction、synchronous/asynchronous behavior、cross-boundary mechanismを含まない表現だけを省略できます。意味のあるlabelはすべて維持してください。削除はジオメトリ修正ではありません。endpointから完全に明白なため最初からrelationshipをlabelなしにする場合は、表現が冗長な理由を説明します。これはsemantic authoring choiceであり、spacing修正ではありません。workflow v2では、診断された `labelAt`、`labelDx`/`labelDy`、`labelSegment` を適用する前に、compilerに測定済みmaskを割り当てさせます。診断済みgeometry controlは一度に1つ適用します。
 
-### Repair order
+### 修正順序
 
-1. Fix missing/invalid `meta.quality_profile` and schema errors.
-2. Fix node overlap or out-of-range placement.
-3. Fix edge-through-node and endpoint-direction errors.
-4. Fix crossings, ambiguous corridors, border runs, and route rhythm.
-5. Fix label-to-node, label-to-label, then label-to-route clearance.
+1. 欠落または無効な `meta.quality_profile` とschema errorを修正します。
+2. node overlapまたは範囲外placementを修正します。
+3. edge-through-nodeおよびendpoint-direction errorを修正します。
+4. crossing、ambiguous corridor、border run、route rhythmを修正します。
+5. label-to-node、label-to-label、label-to-route clearanceの順に修正します。
 
-Run `validate` after every edit. Consume `diagnostics[]` by stable `code`, exact `subject`, measured `evidence`, and `supportedFixes`. If the diagnostic gives `labelAt`, use that point instead of estimating another offset.
+編集するたびに `validate` を実行します。`diagnostics[]` は、安定した `code`、正確な `subject`、測定済み `evidence`、`supportedFixes` を使って処理します。diagnosticが `labelAt` を返す場合、別のoffsetを見積もらず、そのpointを使います。
 
-## Mode placement
+## Mode別placement
 
 ### Architecture
 
-Use one left-to-right spine with short vertical branches. Prefer 6–12 primary components and group only real ownership, trust, process, or deployment boundaries. Boundaries do not replace relationships.
+短いvertical branchを持つleft-to-right spineを1本使います。primary componentは6～12個を優先し、実在するownership、trust、process、deployment boundaryだけをgroup化します。boundaryはrelationshipを置き換えません。
 
-Grid placement is preferred when the schema supports it. Free positions are appropriate for a bounded exception, not for prose-level coordinate planning. Keep external actors outside the system boundary when that is factually true.
+schemaが対応している場合はgrid placementを優先します。free positionは限定的な例外に適し、文章によるcoordinate planningには適しません。事実として正しい場合、external actorをsystem boundaryの外に置きます。
 
 ### Workflow
 
-Lanes express responsibility or phase. Columns `0..5` express logical
-progression. Start new workflows on `readable-v2`; retain `fixed-v1` only for
-legacy geometry compatibility. Keep the happy path monotonic, preserve semantic
-edge labels, and route retries and exception returns outside the main lane
-corridor.
+laneはresponsibilityまたはphaseを表します。column `0..5` はlogical progressionを表します。新しいworkflowは `readable-v2` で開始し、legacy geometry compatibilityのためだけに `fixed-v1` を残します。happy pathをmonotonicに保ち、意味を持つedge labelを維持し、retryとexception returnをmain lane corridorの外へrouteします。
 
 ### Sequence
 
-Participants are ordered by conversation role. Messages own their vertical order. Use return/async/security variants for meaning, not decoration; sequence does not use Automatic Port Spread.
+participantはconversation role順に並べます。messageがvertical orderを所有します。return/async/security variantは意味のために使い、装飾のために使ってはなりません。sequenceではAutomatic Port Spreadを使いません。
 
 ### Dataflow
 
-Stages express transformation or custody. Rows separate parallel streams. Label only data contracts, classifications, or cross-boundary movement that is not obvious.
+stageはtransformationまたはcustodyを表します。rowはparallel streamを分けます。明白ではないdata contract、classification、cross-boundary movementだけにlabelを付けます。
 
 ### Lifecycle
 
-Main phases use columns `0..4`; event and terminal bands use columns `0..2`.
-Event/terminal column `N` aligns to the same x coordinate as main column
-`N + 2`. A recoverable failure needs a real transition back to an active state.
-A card or guided view saying “retry” is not topology.
+main phaseはcolumn `0..4`、event bandとterminal bandはcolumn `0..2` を使います。event/terminal column `N` はmain column `N + 2` と同じx coordinateに揃います。回復可能なfailureにはactive stateへ戻る実際のtransitionが必要です。cardやguided viewに「retry」と書くだけではtopologyになりません。
 
 ## Repository evidence
 
-When an architecture diagram must reflect real code, inspect repository
-entrypoints, runtime boundaries, storage, transports, and deployment
-configuration before authoring. Record only evidence you actually verified.
-`--repo-root <path>` is architecture-only and is accepted by architecture
-`render`, `validate`, `deliver`, `preview`, and `compare`; workflow, sequence,
-dataflow, and lifecycle reject it. Never infer runtime causality from file
-proximity or naming alone.
+architecture diagramが実在するコードを反映しなければならない場合は、オーサリング前にリポジトリのエントリポイント、実行時の境界、ストレージ、トランスポート、デプロイconfigを調査します。実際に検証した証拠だけを記録してください。`--repo-root <path>` はarchitecture専用で、architectureの `render`、`validate`、`deliver`、`preview`、`compare` が受け付けます。workflow、sequence、dataflow、lifecycleでは拒否されます。ファイルの近さや名前だけからruntimeの因果関係を推測してはなりません。
 
-## Hand-placed fallback
+## 手作業placementのfallback
 
-Use only when no renderer can run. Start from `assets/template.html`, keep semantic CSS classes, preserve the inline SVG/accessibility structure, and run the delivery visual checklist. Never introduce inline literal colors that break dark/light parity.
+rendererを実行できない場合にだけ使います。`assets/template.html` から始め、semantic CSS classを保ち、inline SVG/accessibility構造を維持し、配布用visual checklistを実行します。dark/light parityを壊すinline literal colorを決して導入してはなりません。

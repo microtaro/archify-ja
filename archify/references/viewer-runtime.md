@@ -1,45 +1,45 @@
-# Viewer Runtime reference
+# Viewer Runtimeリファレンス
 
-Read this only when the user asks for a reader-facing capability. Ordinary generation does not require implementing or re-documenting these features; they are already in the generated HTML.
+ユーザーがreader向け機能を求めた場合にだけ、このリファレンスを読みます。通常の生成では、これらの機能を実装し直したり文書化し直したりする必要はありません。生成HTMLにすでに含まれています。
 
-## Exploration
+## 探索
 
-- Diagram Guide lists current actions and shortcuts.
-- Reading Depth starts at READ at the default 100% scale, reveals FULL detail at 175%, and falls back to MAP only below 100%. Focus, story, route, and semantic interactions reveal their exact facts at any scale.
-- Semantic Lens summarizes selected node/relationship kinds without changing authored geometry.
-- Intent Trace previews a fine-pointer or keyboard target before committed focus.
-- Node Finder searches labels and stable IDs.
-- Semantic Passport opens on focus, shows authored upstream/downstream facts, supports a copyable deep link, has an explicit close action, closes on true outside activation and Escape, and never enters canonical export.
-- Semantic Radar mirrors the visible viewport and authored graph without becoming a second source of truth.
-- Direct Relationship Pin makes a unique compiled relationship operable while preserving the authored line and stable relationship identity. It must fail closed on conflicting source/target/label/ID metadata.
-- Route Probe resolves exactly two endpoints over authored directed relationships. It never infers a route from geometry.
+- Diagram Guideは現在のactionとshortcutを一覧表示します。
+- Reading Depthは既定の100% scaleでREADから始まり、175%でFULL detailを表示し、100%未満の場合だけMAPへ戻ります。focus、story、route、semantic interactionは、scaleにかかわらず正確なfactを表示します。
+- Semantic Lensは、オーサリング済みgeometryを変更せず、選択したnode/relationship kindを要約します。
+- Intent Traceは、focusを確定する前にfine-pointerまたはkeyboard targetをpreviewします。
+- Node Finderはlabelとstable IDを検索します。
+- Semantic Passportはfocus時に開き、オーサリング済みupstream/downstream factを表示し、copy可能なdeep linkを提供します。明示的なclose actionを持ち、本当のoutside activationとEscapeで閉じ、canonical exportには決して入りません。
+- Semantic Radarはvisible viewportとオーサリング済みgraphを反映しますが、第二のsource of truthにはなりません。
+- Direct Relationship Pinは、オーサリング済みlineと安定したrelationship identityを維持しながら、一意のcompiled relationshipを操作可能にします。source/target/label/ID metadataが競合する場合はfail closedしなければなりません。
+- Route Probeは、オーサリング済みdirected relationship上で正確に2つのendpointを解決します。geometryからrouteを推測することはありません。
 
-## Guided views and story
+## Guided viewとstory
 
-`meta.views` may define at most five curated chapters using stable node IDs. The Named Chapter Rail, Chapter Delta Preview, Story Beat Navigator, Story Follow Camera, Story Director Strip, Story Horizon, and Shareable Story Moment links all derive from that one authored array; none owns parallel topology or layout.
+`meta.views` は、stable node IDを使うcurated chapterを最大5つ定義できます。Named Chapter Rail、Chapter Delta Preview、Story Beat Navigator、Story Follow Camera、Story Director Strip、Story Horizon、Shareable Story Moment linkはすべて、その1つのオーサリング済みarrayから派生します。並行したtopologyやlayoutを所有するものはありません。
 
-Story transitions classify only the exact relationship between adjacent authored stops: forward, reverse, multiple, or grouped/no direct link. Never infer a transitive edge, verb, causality, or runtime behavior from proximity, kinds, or story order. Playback is reader-started, bounded, stale-safe, and motion-governed.
+story transitionが分類するのは、隣り合うオーサリング済みstop間の正確なrelationshipだけです。forward、reverse、multiple、またはgrouped/no direct linkです。proximity、kind、story orderからtransitive edge、verb、causality、runtime behaviorを決して推測してはなりません。playbackはreaderが開始し、上限付きで、stale-safeかつmotion-governedです。
 
-## Motion and presentation
+## Motionとpresentation
 
-`meta.animation: "trace"` enables a finite reader-controlled Live/Still trace. Static is the default. Still, reduced motion, page hiding, print, and canonical export preserve complete static meaning. Presentation Stage changes viewer chrome and framing, never authored geometry. This is not a mobile product feature; narrow layouts get containment only.
+`meta.animation: "trace"` は、readerが制御する有限のLive/Still traceを有効にします。staticが既定です。Still、reduced motion、page hiding、print、canonical exportでは、完全なstatic meaningを維持します。Presentation Stageが変更するのはviewer chromeとframingであり、オーサリング済みgeometryではありません。これはmobile product機能ではなく、narrow layoutではcontainmentだけを提供します。
 
-## Canonical exports
+## Canonical export
 
-The export menu can copy/download full-diagram PNG, download JPEG/WebP, download a dual-theme SVG, and record a trace-enabled WebM. Viewer state—Guide, Lens, finder, focus, route, story, camera, radar, presentation, motion ownership, and temporary overlays—must be removed from canonical export.
+export menuでは、ダイアグラム全体のPNGをcopy/downloadし、JPEG/WebPをdownloadし、dual-theme SVGをdownloadし、trace-enabled WebMをrecordできます。Viewer state（Guide、Lens、finder、focus、route、story、camera、radar、presentation、motion ownership、temporary overlay）はcanonical exportから除去しなければなりません。
 
 ### Share Card
 
-The optional 1200×630 Share Card PNG is for README, release, social, or launch previews. It uses the current theme and visual preset, contains the complete canonical diagram without cropping, and never claims validation. Copy Share Card reuses the same canonical PNG when clipboard image writes are supported.
+任意の1200×630 Share Card PNGは、README、release、social、launch preview用です。現在のthemeとvisual presetを使い、croppingなしで完全なcanonical diagramを含み、validationを主張することはありません。clipboard image writeに対応している場合、Copy Share Cardは同じcanonical PNGを再利用します。
 
 ### Route Share Card
 
-After a real directed Route Probe resolves, the reader may use **Export → Route Share Card**. It reuses the exact ordered route snapshot and the shared Share Card seam: `format=share-card`, `variant=route`. The isolated clone may use only static `data-share-route-*` decoration. It is download-only, fails closed for stale/unreachable/conflicting routes, and never becomes the canonical artifact.
+実際のdirected Route Probeが解決した後、readerは **Export → Route Share Card** を使えます。正確なordered route snapshotと共有Share Card seamを再利用します: `format=share-card`、`variant=route`。isolated cloneが使えるのはstaticな `data-share-route-*` decorationだけです。download-onlyであり、stale/unreachable/conflicting routeではfail closedし、canonical artifactにはなりません。
 
 ### Reach Share Card
 
-After a non-empty authored reachability query, the reader may use **Export → Reach Share Card**. It consumes the already resolved upstream/downstream node and edge set without rerunning traversal: `format=share-card`, `variant=reach`. The isolated clone may use only static `data-share-reach-*` decoration. It is download-only. Call it authored reachability—not impact, blast radius, breakage, or runtime causality.
+空でないオーサリング済みreachability queryの後、readerは **Export → Reach Share Card** を使えます。traversalを再実行せず、すでに解決済みのupstream/downstream nodeおよびedge setを使います: `format=share-card`、`variant=reach`。isolated cloneが使えるのはstaticな `data-share-reach-*` decorationだけです。download-onlyです。impact、blast radius、breakage、runtime causalityではなく、authored reachabilityと呼んでください。
 
-## Truth boundary
+## 真実性の境界
 
-Viewer exports are communication assets. They do not replace the checked HTML, the deterministic delivery receipt, or a real visual review. Do not add a hosted service, storage surface, dependency, schema branch, or mobile product surface for these viewer-only capabilities.
+Viewer exportはcommunication assetです。検査済みHTML、deterministic delivery receipt、実際のvisual reviewを置き換えるものではありません。これらのviewer専用機能のためにhosted service、storage surface、dependency、schema branch、mobile product surfaceを追加してはなりません。
