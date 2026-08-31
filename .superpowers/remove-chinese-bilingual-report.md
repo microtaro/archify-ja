@@ -74,7 +74,7 @@ README English mirrors remain byte-identical to each other. The initial change d
 
 ## Concerns and boundaries
 
-- Existing English documentation sentences in `archify/SKILL.md`, `archify/references/authoring-contract.md`, and `archify/schemas/README.md` that describe the historical `zh-CN` option remain outside this product-facing README/site cleanup. Runtime/schema/site behavior is English-only, so those prose references require a separately authorized packaged-contract documentation edit.
+- Packaged source-of-truth documentation now matches the English-only runtime and schema contract. Historical/spec material and explicit `zh-CN` rejection fixtures remain outside the product-facing residual audit.
 - CJK text still present in width/Unicode/layout/browser fixtures, authored-content fallback coverage, brand aliases, and release-design evidence is intentionally retained and is not a product Chinese locale.
 - Real Chrome-only tests remained explicitly skipped because `ARCHIFY_CHROME` was not configured; non-browser generated/runtime tests passed.
 
@@ -103,3 +103,54 @@ cd archify && node --test test/english-only-localization.test.mjs test/landing.t
 ```
 
 Observed: 33 tests, 33 pass, 0 fail, 0 skip.
+
+## Review fix round
+
+Three Important review findings were handled without rerunning the already-green full suite.
+
+### 1. Packaged locale source of truth
+
+RED command:
+
+```text
+cd archify && node --test --test-name-pattern="product-facing source|language behavior" test/english-only-localization.test.mjs test/skill-metadata.test.mjs
+```
+
+Observed failures: `archify/SKILL.md`, `archify/references/authoring-contract.md`, and `archify/schemas/README.md` still advertised `zh-CN` support.
+
+GREEN: those three source-of-truth documents now describe `en` as the only Viewer locale, retain non-English authored-content fallback guidance, and contain no `zh-CN` product contract. They are included in the bounded product-facing residual audit.
+
+### 2. Scenario English output preservation
+
+RED: the new behavior test expected the original error `Scenario recipe "system-overview" does not define a en start prompt.` but received the rewritten `does not define an English start prompt.`
+
+GREEN: `startPromptsFor` again derives the error from `language = 'en'`. The test also locks every English start prompt and repository prompt to the pre-removal byte digest:
+
+```text
+d7c6063a82f140325db918672f67e0eafe51aa89434f9c086e6139d15f14128f
+```
+
+The digest was independently reproduced from base `b6dd629`.
+
+### 3. English navigation continuity coverage
+
+Restored `archify/test/site-navigation-continuity.test.mjs` as an English-only suite and `archify/test/site-navigation-integration.mjs` as the serialized builder/browser gate. `test:webm` again runs that integration gate.
+
+Coverage restored:
+
+- shared Guide / Proof Lab / Start links, Install CTA, page identities, and canonical navigation CSS;
+- desktop and mobile CSS geometry contracts;
+- Gallery English labels, filter selection, URL persistence, and responsive controls;
+- Guide English labels and filter selection;
+- all four custom site builders emitting canonical navigation CSS and English navigation;
+- optional real Chrome traversal, reload persistence, CTA/navigation, filtering, and 1440x900 / 390x844 geometry.
+
+Mutation RED: temporarily changing the Gallery Guide target to `guide-missing.html` produced 1/1 FAIL with `scripts/gallery-template.html: Guide link missing`; the mutation was immediately reverted. Integration GREEN: 6 pass, 0 fail, 1 Chrome skip.
+
+Final focused command:
+
+```text
+cd archify && node --test test/english-only-localization.test.mjs test/skill-metadata.test.mjs test/guide.test.mjs test/start-page.test.mjs test/site-navigation-integration.mjs
+```
+
+Observed: 32 tests, 31 pass, 0 fail, 1 explicit Chrome skip. Full `npm test` was not rerun per review instruction.

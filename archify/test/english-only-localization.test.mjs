@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -99,6 +100,20 @@ test('scenario APIs publish English copy and matching signals only', () => {
   assert.ok(publicData.every((recipe) => recipe.en?.prompt && !('zh' in recipe)));
 });
 
+test('scenario English start behavior stays byte-identical after removing Chinese branches', () => {
+  const prompts = SCENARIO_RECIPES
+    .filter((recipe) => recipe.start)
+    .map((recipe) => [recipe.id, startPromptsFor(recipe, 'en')]);
+  const digest = crypto.createHash('sha256').update(JSON.stringify(prompts)).digest('hex');
+  assert.equal(digest, 'd7c6063a82f140325db918672f67e0eafe51aa89434f9c086e6139d15f14128f');
+
+  const missing = { ...SCENARIO_RECIPES[0], start: undefined };
+  assert.throws(
+    () => startPromptsFor(missing, 'en'),
+    { message: 'Scenario recipe "system-overview" does not define a en start prompt.' },
+  );
+});
+
 test('site builders and checked-in pages expose English UI without locale switching', () => {
   const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-english-site-'));
   try {
@@ -147,6 +162,9 @@ test('product-facing source and generated docs contain no Chinese locale routes 
     'scripts/build-start.mjs',
     'scripts/site-copy.mjs',
     'scripts/copy-site-assets.mjs',
+    'archify/SKILL.md',
+    'archify/references/authoring-contract.md',
+    'archify/schemas/README.md',
     'docs/index.html',
     'docs/gallery.html',
     'docs/guide.html',

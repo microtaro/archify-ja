@@ -174,10 +174,11 @@ export function detectGuideLanguage(value = '') {
 }
 
 export function startPromptsFor(recipe, lang = 'en') {
+  const language = 'en';
   const copy = recipe.en;
   const descriptionPrompt = recipe.start?.en?.descriptionPrompt;
   if (!descriptionPrompt) {
-    throw new Error(`Scenario recipe ${JSON.stringify(recipe.id)} does not define an English start prompt.`);
+    throw new Error(`Scenario recipe ${JSON.stringify(recipe.id)} does not define a ${language} start prompt.`);
   }
   const repositoryPrompt = recipe.type === 'architecture'
     ? copy.prompt
