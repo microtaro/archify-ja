@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { copyPattern } from './helpers/viewer-copy.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const skillRoot = path.resolve(__dirname, '..');
@@ -64,7 +65,7 @@ test('all typed renderers expose named, stable relationships without changing ge
 test('relationship lens groups incoming, outgoing, and self-loop paths and follows neighbors', () => {
   const html = render('architecture', CASES.architecture.example);
   assert.match(html, /id="focus-chip" hidden role="region" aria-labelledby="relationship-lens-title"/);
-  assert.match(html, /id="relationship-lens-list" aria-label="Connected relationships"/);
+  assert.match(html, new RegExp(`id="relationship-lens-list" aria-label="${copyPattern('viewer.passport.relations.list')}"`));
   assert.match(html, /function relationshipsFor\(id, byId\)/);
   assert.match(html, /direction = from === id && to === id \? 'loop' : \(from === id \? 'out' : 'in'\)/);
   assert.match(html, /\{ id: 'out', label: viewerText\('viewer\.passport\.relationship\.group\.out'\) \}/);

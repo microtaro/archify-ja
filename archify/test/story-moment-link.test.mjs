@@ -39,7 +39,7 @@ test('all five renderers inherit one viewer-only Story Moment Link control', () 
     const { result, html } = render(mode, example);
     assert.equal(result.status, 0, result.stderr);
     assert.match(html, new RegExp(`id="guided-view-beat-link"[^>]+aria-label="${copyPattern('viewer.guided.selectBeatLink')}"[^>]+disabled`));
-    assert.match(html, /id="guided-view-beat-link-label">Copy moment<\/span>/);
+    assert.match(html, new RegExp(`id="guided-view-beat-link-label">${copyPattern('viewer.guided.copyMoment')}</span>`));
     assert.doesNotMatch(canonicalSvg(html), /data-story-moment|guided-view-beat-link|#view=/);
   }
 });

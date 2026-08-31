@@ -53,7 +53,7 @@ test('Semantic Lens derives honest kind counts and compares at most two roles', 
   assert.match(html, /var crossKind = selectedKinds\.length === 2/);
   assert.match(html, /fromKind === selectedKinds\[0\] && toKind === selectedKinds\[1\]/);
   assert.match(html, /fromKind === selectedKinds\[1\] && toKind === selectedKinds\[0\]/);
-  assert.match(html, /direct relationship/);
+  assert.match(html, /直接の関係/);
   assert.match(html, /data-lens-peer/);
   assert.match(html, /data-lens-selected/);
 });

@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { copyPattern } from './helpers/viewer-copy.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const skillRoot = path.resolve(__dirname, '..');
@@ -74,7 +75,7 @@ test('only legends with an exact node-kind meaning publish bridge entries', () =
     'emphasis', 'return', 'security', 'dashed', 'default',
   ]);
   assert.doesNotMatch(sequence, /data-legend-bridge|data-legend-kind=/);
-  assert.match(sequence, />Legend</);
+  assert.match(sequence, new RegExp(`>${copyPattern('legend.title')}<`));
 
   const dataflow = canonicalSvg(render('dataflow'));
   assert.deepEqual(values(dataflow, 'data-legend-semantic-kind'), [
@@ -83,7 +84,7 @@ test('only legends with an exact node-kind meaning publish bridge entries', () =
   assert.deepEqual(values(dataflow, 'data-legend-kind'), ['database']);
   assert.equal((dataflow.match(/data-legend-bridge=""/g) || []).length, 1);
   assert.ok(values(dataflow, 'data-node-kind').includes('database'));
-  assert.match(dataflow, />Legend</);
+  assert.match(dataflow, new RegExp(`>${copyPattern('legend.title')}<`));
 });
 
 test('runtime decoration derives counts from compiled node facts and stays viewer-only', () => {

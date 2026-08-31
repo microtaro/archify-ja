@@ -70,7 +70,7 @@ test('reader remeasures real content and reduces width before allowing desktop p
   assert.match(reader, /new MutationObserver\(schedule\)/);
   assert.match(reader, /document\.documentElement\.scrollHeight/);
   assert.match(reader, /lastWidth - overflow \* ratio - 4/);
-  assert.match(skill, /1440×900, 1600×1000, and 1920×1080/);
+  assert.match(skill, /1440×900、1600×1000、1920×1080/);
   assert.match(skill, /2048×1320/);
   assert.match(skill, /Generate one responsive artifact for laptops and external displays/);
   assert.match(skill, /preserve the authored SVG\/viewBox, proportions, semantic geometry/);

@@ -131,7 +131,7 @@ test('the fast authoring path explains when to opt into spread', () => {
 
   assert.match(description, /wide viewBox/);
   assert.match(description, /meaningful participant labels/);
-  assert.match(skill, /do not shorten semantic labels before trying `spread`/);
+  assert.match(skill, /sequenceではAutomatic Port Spreadを使いません/);
   assert.match(rendererReadme, /Use `"spread"` when a wide/);
   assert.match(rendererReadme, /try `meta\.column_fit: "spread"` before shortening/);
 });
