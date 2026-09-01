@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { copyPattern } from './helpers/viewer-copy.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const skillRoot = path.resolve(__dirname, '..');
@@ -147,9 +148,14 @@ test('skill and READMEs describe the optional Export variant and show one real c
   assert.match(viewer, /data-share-route-\*/);
   assert.match(viewer, /download-only/i);
 
-  for (const readme of ['README.md', 'README_EN.md']) {
+  // Each README names the menu in its own language: the Japanese one as the
+  // Viewer renders it, the English mirror as upstream wrote it.
+  for (const [readme, label] of [
+    ['README.md', new RegExp(copyPattern('viewer.export.routeShareCard'))],
+    ['README_EN.md', /Export → Route Share Card/],
+  ]) {
     const text = fs.readFileSync(path.join(repoRoot, readme), 'utf8');
-    assert.match(text, /Export → Route Share Card/, readme);
+    assert.match(text, label, readme);
     assert.match(text, /docs\/assets\/archify-route-share-card\.png/, readme);
   }
 

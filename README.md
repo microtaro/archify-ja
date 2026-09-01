@@ -10,20 +10,20 @@
 
 Archify-jaは、Cursor、Claude Code、Codex CLI、OpenCode向けのAgent Skillです。Agentが型付きJSON IRを作り、Node.js製のrendererとvalidatorが自己完結HTML/SVGへ決定論的に変換します。
 
-- Architecture、Workflow、Sequence、Data Flow、Lifecycleの5形式
-- dark/light theme、4種類のvisual preset、有限motion
-- node検索、上流・下流の到達範囲、経路探索、role比較、guided story
-- Schema・layout・HTML/SVG・route・label clearanceの検証
-- PNG、JPEG、WebP、SVG、WebM、1200×630 Share Card出力
+- 構成図、業務フロー、シーケンス、データフロー、ライフサイクルの5形式
+- ダーク／ライトの両テーマ、4種類の表示スタイル、限定的なモーション
+- ノード検索、上流・下流の到達範囲、経路探索、役割の比較、ガイド付きストーリー
+- スキーマ、レイアウト、HTML/SVG、経路、ラベルの余白を検証
+- PNG、JPEG、WebP、SVG、WebM、1200×630 の共有カード（ルート／到達範囲）を書き出し
 
 ![License](https://img.shields.io/badge/license-MIT-22c55e?style=flat-square)
 ![Agent Skill](https://img.shields.io/badge/Agent-Skill-7C3AED?style=flat-square)
 ![Japanese Edition Version](https://img.shields.io/badge/version-2.16.0--ja.1-0891b2?style=flat-square)
 
 **日本語版:** `v2.16.0-ja.1`
-**Repository:** [microtaro/archify-ja](https://github.com/microtaro/archify-ja)
+**リポジトリ:** [microtaro/archify-ja](https://github.com/microtaro/archify-ja)
 
-Archify-jaは[`tt-a1i/archify`](https://github.com/tt-a1i/archify) v2.16.0を基にした非公式の日本語派生版です。本家への継続追従は保証しません。
+Archify-jaは[`tt-a1i/archify`](https://github.com/tt-a1i/archify) v2.16.0を基にした非公式の日本語派生版です。本家への継続的な追従は保証しません。
 
 ## インストール
 
@@ -80,7 +80,7 @@ npx skills remove archify-ja --global --agent claude-code --yes
 npx skills remove archify-ja --global --agent opencode --yes
 ```
 
-project導入を削除する場合は`--global`を外します。手動で配置した場合は、配置先にある`archify-ja` directoryだけを削除してください。
+プロジェクト単位の導入を削除する場合は`--global`を外します。手動で配置した場合は、配置先にある `archify-ja` ディレクトリだけを削除してください。
 
 ## 使い方
 
@@ -90,49 +90,156 @@ Repositoryは必須ではありません。チャットでシステムを説明�
 Archify-jaを使って、Browser -> API -> Redis cache -> PostgreSQL fallbackを図にしてください。
 ```
 
-実装根拠を使う場合:
+迷ったら、まず日本語で聞けます。
+
+```bash
+node archify/bin/archify.mjs guide "APIの呼び出し順序を描きたい"
+# → 推奨: API 呼び出し連鎖 [sequence]  確信度: 高
+```
+
+## 5つの図種と頼み方
+
+同じシステムでも、問いが違えば図種が変わります。以下はそのまま貼って使える例です。
+
+### Architecture — 何があり、どう繋がっているか
 
 ```text
-このrepositoryを調査し、Archify-jaで高レベルのruntime architecture図を作成してください。
-主要componentを8〜12個、主経路を1本、外部依存とtrust boundaryを表示してください。
+このrepositoryを調査し、Archify-jaで構成図を作成してください。
+実行時の主要componentと、外部依存、主経路を1本示してください。
 補足はedgeを増やさずcardへ記載してください。
+```
+
+より細かく分解したい場合は、その旨を伝えてください。密度を上げると
+ラベル衝突が増えるため、`quality_profile` は `standard` が適します。
+
+```text
+レイヤ単位まで細かく分解し、UI・状態・ドメイン・永続化をboundaryで囲んでください。
+密度を優先するのでquality_profileはstandardにしてください。
+```
+
+### Sequence — 誰が誰を、どの順で呼ぶか
+
+Architectureには時間軸がありません。呼び出し順序、待ち合わせ、
+非同期の戻りを見せたいときはこちらです。
+
+```text
+取り込み処理の呼び出し順序をArchify-jaのsequenceで描いてください。
+参加者ごとのライフラインを立て、確定を待つ箇所が分かるようにしてください。
+```
+
+### Workflow — 分岐と担当
+
+```text
+リリース工程をArchify-jaのworkflowで描いてください。
+開発者・CI・承認・環境をレーンに分け、成功経路を一目で分かるようにし、
+ロールバック経路も示してください。
+```
+
+### Dataflow — データがどこから来て誰が使うか
+
+```text
+このsystemのデータリネージをArchify-jaで描いてください。
+ソース、変換、蓄積、利用者をステージに分け、
+個人情報や社外秘が流れる経路はclassificationで明示してください。
+```
+
+### Lifecycle — どの状態を取り、どう終わるか
+
+```text
+注文の状態遷移をArchify-jaのlifecycleで描いてください。
+開始・実行中・待ち・失敗・終端を状態として並べ、
+遷移を起こすイベントをラベルにしてください。
+```
+
+## 図を強くするオプション
+
+いずれも任意です。頼まなければ付きません。
+
+### ソースの根拠を付ける（architectureのみ）
+
+各componentに対応するソースファイルを記録すると、Semantic Passportに
+「検証済みソース」欄が出ます。`git` が固定commitでのファイルと行の実在を
+確認するため、**存在しないパスを書くと検証で落ちます**。
+
+```text
+各componentに対応するソースファイルをsourcesとして記録してください。
+```
+
+検証はローカルで完結し、networkには出ません。公開GitHub URLを
+`meta.repository.url` に書いた場合だけ、Viewerがpermalinkのリンクにします。
+未pushやprivateのrepositoryではURLを省いてください。
+
+### ガイド付きストーリーを付ける
+
+図に名前付きのチャプターを定義すると、読み手が経路を順に辿れます。
+
+```text
+「取り込み経路」「書き出し経路」「検証」の3つのストーリーをviewsとして定義してください。
+```
+
+### 実在サービスのロゴを出す
+
+```text
+Box、PostgreSQL、Redisは公式brandで表示してください。
+```
+
+### 見た目を変える
+
+`classic`（既定）、`signal-flow`、`blueprint`、`editorial` から選べます。
+
+```text
+visual_presetはblueprintにしてください。
+```
+
+## Mermaidから変換する
+
+既存のMermaidを貼れば、意味を読み取って作り直します。styleの機械的な
+再現ではなく、`[*]` を開始・終端として解釈するなど意味を維持した変換です。
+
+- `flowchart` / `graph` → `workflow`（構成の地図なら `architecture`）
+- `sequenceDiagram` → `sequence`
+- `stateDiagram` → `lifecycle`
+
+```text
+このMermaidをArchify-jaで作り直してください。
+
+stateDiagram-v2
+    [*] --> Draft
+    Draft --> Review: submit
+    Review --> Approved: approve
 ```
 
 ## 図の選び方
 
-| 形式 | 適した内容 |
+| 形式 | 適した内容 | 答えられる問い |
+|---|---|---|
+| `architecture` | 構成要素、サービス、データストア、信頼境界 | 何が存在し、どう繋がっているか |
+| `workflow` | CI/CD、承認、運用手順、分岐 | どう進み、どこで分かれるか |
+| `sequence` | API 呼び出し、キャッシュ退避、認証、非同期処理 | 誰が誰を、どの順で呼ぶか |
+| `dataflow` | パイプライン、リネージ、個人情報、利用者 | データはどこから来て誰が使うか |
+| `lifecycle` | 状態、リトライ、待ち、終端 | どの状態を取り、どう終わるか |
+
+形式名はそのまま CLI の引数になります（`archify guide` の推奨もこの名前で返ります）。
+
+## 表示例
+
+| ダーク | ライト |
 |---|---|
-| Architecture | component、service、storage、boundary |
-| Workflow | CI/CD、approval、runbook、分岐 |
-| Sequence | API call、cache fallback、認証、非同期処理 |
-| Data Flow | pipeline、lineage、PII、consumer |
-| Lifecycle | state、retry、wait、terminal outcome |
+| ![ダークテーマ](docs/assets/archify-dark.png) | ![ライトテーマ](docs/assets/archify-light.png) |
 
-迷った場合はCLI guideを使えます。
-
-```bash
-node archify/bin/archify.mjs guide "Redisのcache missを含むAPI request"
-```
-
-## Preview
-
-| Dark | Light |
-|---|---|
-| ![Dark theme](docs/assets/archify-dark.png) | ![Light theme](docs/assets/archify-light.png) |
-
-ViewerのExport menuから静止画・動画・Share Cardを出力できます。
+ビューアの「書き出し」メニューから静止画・動画・共有カードを出力できます。
 
 ![Export menu](docs/assets/archify-menu.png)
 
-経路を選択した後、**Export → Route Share Card**で全体図を保持した1200×630 PNGを出力します。
+経路を選択した後、**書き出し → ルート共有カード**で全体図を保持した1200×630 PNGを出力します。
 
-![Route Share Card](docs/assets/archify-route-share-card.png)
+![ルート共有カード](docs/assets/archify-route-share-card.png)
 
-上流・下流の到達範囲を選択した後、**Reach Share Card**を出力できます。
+上流・下流の到達範囲を選択した後、**到達範囲共有カード**を出力できます。
 
-![Reach Share Card](docs/assets/mco-runtime-reach-share-card.png)
+![到達範囲共有カード](docs/assets/mco-runtime-reach-share-card.png)
 
-## Upstream Archify examples
+## 派生元 Archify の参考例
 
 次の画像は派生元Archifyの参考例です。Archify-jaの公開siteへのlinkではありません。
 
@@ -140,15 +247,15 @@ ViewerのExport menuから静止画・動画・Share Cardを出力できます�
   <img src="docs/assets/archify-live-proof.gif" alt="Upstream Archify reference artifacts" width="960"/>
 </p>
 
-| Guided story | Route probe | Semantic lens |
+| ガイド付きストーリー | 経路探索 | セマンティックレンズ |
 |---|---|---|
-| ![Workflow](docs/assets/archify-demo-story.png) | ![Sequence](docs/assets/archify-demo-route.png) | ![Architecture](docs/assets/archify-demo-lens.png) |
+| ![ストーリー](docs/assets/archify-demo-story.png) | ![経路探索](docs/assets/archify-demo-route.png) | ![Architecture](docs/assets/archify-demo-lens.png) |
 
 実repositoryの参考例:
 
 ![MCO runtime architecture](docs/assets/mco-runtime-share-card.png)
 
-派生元は[`mco-org/mco`](https://github.com/mco-org/mco)のrevision `9f1a1cf`を調査して作成しています。型付きsourceは[`docs/cases/mco-runtime.architecture.json`](docs/cases/mco-runtime.architecture.json)です。
+派生元は[`mco-org/mco`](https://github.com/mco-org/mco)のリビジョン `9f1a1cf` を調査して作成しています。型付きの入力は[`docs/cases/mco-runtime.architecture.json`](docs/cases/mco-runtime.architecture.json)です。
 
 ## CLI
 
@@ -163,11 +270,11 @@ node bin/archify.mjs deliver workflow examples/agent-tool-call.workflow.json /tm
 
 `preview`は`127.0.0.1`のrandom portで1つのJSON sourceを監視し、検証に成功したrevisionだけを表示します。停止はCtrl-Cです。
 
-`deliver`は候補を検証し、成功した場合だけ出力先をatomicに置き換えます。`--open`はcommit後のartifactだけを開きます。
+`deliver`は候補を検証し、成功した場合だけ出力先を不可分に置き換えます。`--open` は確定後の成果物だけを開きます。
 
-失敗時、`validate --json`と`deliver --json`はmachine-readableな`diagnostics[]`を返します。各diagnosticの`supportedFixes`だけを適用し、修正は最大2回です。
+失敗時、`validate --json`と`deliver --json`は機械可読な `diagnostics[]`を返します。各診断の `supportedFixes` だけを適用し、修正は最大2回です。
 
-## Locale
+## 言語の切り替え
 
 日本語が既定です。英語Viewerを使う場合だけ`meta.locale`を指定します。
 
@@ -181,30 +288,30 @@ node bin/archify.mjs deliver workflow examples/agent-tool-call.workflow.json /tm
 }
 ```
 
-`meta.locale`はViewer UI、Legend、状態・error、ARIA、HTML/SVGの`lang`を切り替えます。title、node、relationship、cardなどのauthored contentは自動翻訳しません。
+`meta.locale` はビューアの UI、凡例、状態・エラー、ARIA、HTML/SVG の `lang` を切り替えます。タイトル、ノード、関係、カードなど、作者が記述した内容は自動翻訳しません。
 
-## Viewer操作
+## ビューアの操作
 
 | 操作 | Key |
 |---|---|
-| Guide | <kbd>?</kbd> |
-| node検索 | <kbd>/</kbd> |
-| directed route | <kbd>R</kbd> |
-| semantic role比較 | <kbd>L</kbd> |
-| overview map | <kbd>M</kbd> |
-| story再生 | <kbd>P</kbd> |
-| presentation | <kbd>F</kbd> |
-| style / theme / export | <kbd>S</kbd> / <kbd>T</kbd> / <kbd>E</kbd> |
-| zoom / reset | <kbd>+</kbd> / <kbd>-</kbd> / <kbd>0</kbd> |
+| ガイド | <kbd>?</kbd> |
+| ノード検索 | <kbd>/</kbd> |
+| 経路探索 | <kbd>R</kbd> |
+| 役割の比較 | <kbd>L</kbd> |
+| 俯瞰マップ | <kbd>M</kbd> |
+| ストーリー再生 | <kbd>P</kbd> |
+| プレゼンテーション表示 | <kbd>F</kbd> |
+| スタイル / テーマ / 書き出し | <kbd>S</kbd> / <kbd>T</kbd> / <kbd>E</kbd> |
+| 拡大 / 縮小 / リセット | <kbd>+</kbd> / <kbd>-</kbd> / <kbd>0</kbd> |
 
-Viewerの完全な契約は[`archify/SKILL.md`](archify/SKILL.md)を参照してください。
+ビューアの完全な契約は[`archify/SKILL.md`](archify/SKILL.md)を参照してください。
 
-## 配布範囲
+## 対象範囲
 
 - RavenとDeepSeek Harnessは初版の対象外です。
 - 独自の更新manifestはなく、update checkのnetwork requestは行いません。
-- hosted Proof Labはありません。
-- WYSIWYG editor、hosted sharing、一般purposeのauto-layoutは対象外です。
+- ホスト版の Proof Lab はありません。
+- WYSIWYG エディタ、ホスト型の共有、汎用の自動レイアウトは対象外です。
 
 ## License
 
