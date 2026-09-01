@@ -191,6 +191,58 @@ Box、PostgreSQL、Redisは公式brandで表示してください。
 visual_presetはblueprintにしてください。
 ```
 
+## あとから直す
+
+一度で完成させる必要はありません。図は型付きのJSONとして残るので、会話を
+続けたまま部分的に直せます。
+
+```text
+認証をもう一段細かく分解してください。他はそのままで。
+```
+
+```text
+Redisを追加して、APIからの経路を引いてください。
+```
+
+```text
+ロールバック経路を強調してください。
+```
+
+### 追加は壊れない、言い換えは崩れうる
+
+配置は自動レイアウトではなく明示的な座標です。図を書き足しても既存ノードの
+再計算は走らないため、いまの配置は動きません。一方、ラベルの文言を変えると
+文字幅が変わり、隣とぶつかることがあります。
+
+| 変更 | 既存の配置 |
+|---|---|
+| ノードや関係の追加・削除 | 動かない |
+| 一部だけ粒度を細かくする | 動かない |
+| ラベルの言い換え | ずれることがある（検証で分かる） |
+
+### 検証の提案はそのまま採用しない
+
+`validate`は衝突を見つけると具体的な座標を返します。
+
+```text
+Suggested fix: move "cache" pos to [520, 180] (right of "api")
+```
+
+これは衝突した2つの矩形だけを見て、判定を通る最小の移動を示したものです。
+層構造や意味的な近さは考慮していません。どちらを動かすべきかは意味で
+決めてください。特に、関係を削れば検査は通りますが、図としては悪化します。
+
+### 手元で確認する
+
+```bash
+node bin/archify.mjs preview architecture your.json
+node bin/archify.mjs validate architecture your.json --json
+node bin/archify.mjs compare architecture before.json after.json /tmp/delta.html
+```
+
+`preview`は保存のたびに再検証し、通ったrevisionだけを表示します。
+`compare`は2つの版の差分を図として示します（architectureのみ）。
+
 ## Mermaidから変換する
 
 既存のMermaidを貼れば、意味を読み取って作り直します。styleの機械的な
